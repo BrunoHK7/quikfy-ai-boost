@@ -230,6 +230,12 @@ const Index = () => {
             >
               Ranking
             </button>
+            <Link to="/podcasts" className="font-medium text-gray-600 hover:text-purple-600 transition-colors">
+              Podcasts
+            </Link>
+            <Link to="/content-feed" className="font-medium text-gray-600 hover:text-purple-600 transition-colors">
+              Feed Premium
+            </Link>
           </nav>
           <div className="flex items-center space-x-4">
             <Link to="/profile">
