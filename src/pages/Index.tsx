@@ -173,7 +173,7 @@ const Index = () => {
     },
     {
       id: 4,
-4 author: "Marina Costa",
+      author: "Marina Costa",
       avatar: "MC",
       message: "📸",
       time: "10:37",
