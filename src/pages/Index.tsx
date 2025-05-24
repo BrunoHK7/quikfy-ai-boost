@@ -31,7 +31,8 @@ import {
   Play,
   Paperclip,
   Smile,
-  MoreHorizontal
+  MoreHorizontal,
+  User
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -231,6 +232,12 @@ const Index = () => {
             </button>
           </nav>
           <div className="flex items-center space-x-4">
+            <Link to="/profile">
+              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50">
+                <User className="w-4 h-4 mr-2" />
+                Perfil
+              </Button>
+            </Link>
             <Link to="/login">
               <Button variant="outline">Login</Button>
             </Link>
