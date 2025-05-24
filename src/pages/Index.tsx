@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +28,12 @@ import {
   Mail,
   FileText,
   Image as ImageIcon,
-  Play
+  Play,
+  Paperclip,
+  Smile,
+  MoreHorizontal
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("tools");
@@ -143,6 +146,55 @@ const Index = () => {
     { name: "Você", revenue: "R$ 234.560", level: "SILVER", position: 47 }
   ];
 
+  const chatHistory = [
+    {
+      id: 1,
+      author: "Carlos M.",
+      avatar: "CM",
+      message: "Galera, quem mais testou a nova IA de carrossel?",
+      time: "10:30",
+      type: "text"
+    },
+    {
+      id: 2,
+      author: "Ana Silva",
+      avatar: "AS",
+      message: "Testei ontem! Resultado insano 🔥 Já gerou 3 carrosséis que bombaram",
+      time: "10:32",
+      type: "text"
+    },
+    {
+      id: 3,
+      author: "Pedro Santos",
+      avatar: "PS",
+      message: "Podem me mandar o link? Não estou encontrando",
+      time: "10:35",
+      type: "text"
+    },
+    {
+      id: 4,
+4 author: "Marina Costa",
+      avatar: "MC",
+      message: "📸",
+      time: "10:37",
+      type: "image",
+      content: "Screenshot dos resultados"
+    },
+    {
+      id: 5,
+      author: "Bruno Tech",
+      avatar: "BT",
+      message: "🎥 Tutorial de como usar",
+      time: "10:40",
+      type: "video"
+    }
+  ];
+
+  const sendMessage = () => {
+    if (!chatMessage.trim()) return;
+    setChatMessage("");
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -179,8 +231,12 @@ const Index = () => {
             </button>
           </nav>
           <div className="flex items-center space-x-4">
-            <Button variant="outline">Login</Button>
-            <Button className="bg-purple-600 hover:bg-purple-700">Começar Agora</Button>
+            <Link to="/login">
+              <Button variant="outline">Login</Button>
+            </Link>
+            <Link to="/pricing">
+              <Button className="bg-purple-600 hover:bg-purple-700">Começar Agora</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -200,18 +256,24 @@ const Index = () => {
               Seus concorrentes vão se perguntar como você ficou tão rico tão rápido.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-4">
-                <Rocket className="w-5 h-5 mr-2" />
-                Começar Agora
-              </Button>
-              <Button size="lg" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 text-lg px-8 py-4">
-                <Brain className="w-5 h-5 mr-2" />
-                Testar IA Grátis
-              </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-4">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Ver Planos
-              </Button>
+              <Link to="/pricing">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-4">
+                  <Rocket className="w-5 h-5 mr-2" />
+                  Começar Agora
+                </Button>
+              </Link>
+              <Link to="/carousel-generator">
+                <Button size="lg" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 text-lg px-8 py-4">
+                  <Brain className="w-5 h-5 mr-2" />
+                  Testar IA Grátis
+                </Button>
+              </Link>
+              <Link to="/pricing">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-4">
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Ver Planos
+                </Button>
+              </Link>
             </div>
             <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
               <div className="flex items-center">
@@ -346,10 +408,23 @@ const Index = () => {
                         onChange={(e) => setNewPost(e.target.value)}
                         className="border-gray-200"
                       />
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        <Send className="w-4 h-4 mr-2" />
-                        Publicar
-                      </Button>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="sm">
+                            <ImageIcon className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Paperclip className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Smile className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <Button className="bg-purple-600 hover:bg-purple-700">
+                          <Send className="w-4 h-4 mr-2" />
+                          Publicar
+                        </Button>
+                      </div>
                     </div>
                     <div className="space-y-4">
                       {communityPosts.map((post, index) => (
@@ -387,40 +462,80 @@ const Index = () => {
                 </Card>
               </div>
 
-              {/* Chat */}
+              {/* Enhanced Chat */}
               <div>
-                <Card className="h-96">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
-                      Chat da Comunidade
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col h-full">
-                    <div className="flex-1 space-y-2 mb-4 overflow-y-auto">
-                      <div className="text-sm">
-                        <span className="font-medium text-purple-600">Carlos:</span>
-                        <span className="text-gray-700 ml-2">Alguém testou a nova IA?</span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium text-purple-600">Ana:</span>
-                        <span className="text-gray-700 ml-2">Sim! Resultado insano 🔥</span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium text-purple-600">Pedro:</span>
-                        <span className="text-gray-700 ml-2">Me passa o link?</span>
+                <Card className="h-[600px] flex flex-col">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center">
+                        <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
+                        Chat da Comunidade
+                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-500">847 online</span>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Input
-                        placeholder="Digite sua mensagem..."
-                        value={chatMessage}
-                        onChange={(e) => setChatMessage(e.target.value)}
-                        className="border-gray-200"
-                      />
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                        <Send className="w-4 h-4" />
-                      </Button>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex flex-col">
+                    <div className="flex-1 space-y-3 mb-4 overflow-y-auto">
+                      {chatHistory.map((chat) => (
+                        <div key={chat.id} className="flex items-start space-x-3 group">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
+                              {chat.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="text-sm font-medium text-gray-900">{chat.author}</span>
+                              <span className="text-xs text-gray-500">{chat.time}</span>
+                            </div>
+                            {chat.type === "text" ? (
+                              <p className="text-sm text-gray-700 break-words">{chat.message}</p>
+                            ) : chat.type === "image" ? (
+                              <div className="bg-gray-100 rounded-lg p-2 text-sm text-gray-600">
+                                📸 {chat.content}
+                              </div>
+                            ) : (
+                              <div className="bg-gray-100 rounded-lg p-2 text-sm text-gray-600">
+                                🎥 {chat.message}
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t pt-4">
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Paperclip className="w-4 h-4" />
+                        </Button>
+                        <Input
+                          placeholder="Digite sua mensagem..."
+                          value={chatMessage}
+                          onChange={(e) => setChatMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                          className="border-gray-200 flex-1"
+                        />
+                        <Button variant="ghost" size="sm">
+                          <Smile className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="bg-purple-600 hover:bg-purple-700"
+                          onClick={sendMessage}
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
