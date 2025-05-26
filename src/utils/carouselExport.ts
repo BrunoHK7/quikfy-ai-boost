@@ -12,7 +12,23 @@ export const generateFrameImage = async (
   if (!ctx) throw new Error('Could not get canvas context');
 
   // Set canvas dimensions
-  const [width, height] = project.dimensions === '1080x1080' ? [1080, 1080] : [1080, 1350];
+  let width, height;
+  switch (project.dimensions) {
+    case '1080x1080':
+      width = height = 1080;
+      break;
+    case '1080x1350':
+      width = 1080;
+      height = 1350;
+      break;
+    case '1080x1920':
+      width = 1080;
+      height = 1920;
+      break;
+    default:
+      width = height = 1080;
+  }
+  
   canvas.width = width;
   canvas.height = height;
 
@@ -42,13 +58,6 @@ export const generateFrameImage = async (
   const textY = margin;
   const textWidth = width - (margin * 2);
   const textHeight = height - (margin * 2);
-
-  // Draw margin guides (visual only, not in export)
-  if (project.marginEnabled) {
-    ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(margin, margin, textWidth, textHeight);
-  }
 
   // Set text properties
   const fontSize = frame.fontSize * (width / 400); // Scale for export
@@ -119,6 +128,75 @@ export const generateFrameImage = async (
           ctx.fill();
           break;
       }
+    }
+    
+    if (element.type === 'image' && element.src) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = element.src!;
+        });
+        const x = (element.x / 400) * width;
+        const y = (element.y / 400) * height;
+        const w = (element.width / 400) * width;
+        const h = (element.height / 400) * height;
+        ctx.drawImage(img, x, y, w, h);
+      } catch (error) {
+        console.warn('Failed to load element image:', error);
+      }
+    }
+  }
+
+  // Draw signature if exists
+  if (project.signatureImage) {
+    try {
+      const signatureImg = new Image();
+      signatureImg.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        signatureImg.onload = resolve;
+        signatureImg.onerror = reject;
+        signatureImg.src = project.signatureImage!;
+      });
+
+      const signatureSize = project.signatureSize;
+      let x, y;
+
+      switch (project.signaturePosition) {
+        case 'top-left':
+          x = 20;
+          y = 20;
+          break;
+        case 'top-center':
+          x = (width - signatureSize) / 2;
+          y = 20;
+          break;
+        case 'top-right':
+          x = width - signatureSize - 20;
+          y = 20;
+          break;
+        case 'bottom-left':
+          x = 20;
+          y = height - signatureSize - 20;
+          break;
+        case 'bottom-center':
+          x = (width - signatureSize) / 2;
+          y = height - signatureSize - 20;
+          break;
+        case 'bottom-right':
+          x = width - signatureSize - 20;
+          y = height - signatureSize - 20;
+          break;
+        default:
+          x = width - signatureSize - 20;
+          y = height - signatureSize - 20;
+      }
+
+      ctx.drawImage(signatureImg, x, y, signatureSize, signatureSize);
+    } catch (error) {
+      console.warn('Failed to load signature image:', error);
     }
   }
 

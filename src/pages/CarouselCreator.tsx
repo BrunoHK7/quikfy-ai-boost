@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,17 +27,20 @@ import {
   Underline,
   Home,
   Menu,
-  X
+  X,
+  PenTool
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useCarouselProjects, CarouselProject, CarouselFrame, CarouselElement } from "@/hooks/useCarouselProjects";
 import { downloadFramesAsZip } from "@/utils/carouselExport";
 import { GraphicElementsPicker } from "@/components/carousel/GraphicElementsPicker";
+import { EmojiPicker } from "@/components/carousel/EmojiPicker";
 
 const CarouselCreator = () => {
   const { saveProject } = useCarouselProjects();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const [project, setProject] = useState<CarouselProject>({
     id: Date.now().toString(),
@@ -49,6 +51,8 @@ const CarouselCreator = () => {
     fontFamily: 'Inter',
     marginEnabled: true,
     marginSize: 250,
+    signaturePosition: 'bottom-right',
+    signatureSize: 60,
     frames: [
       {
         id: '1',
@@ -152,6 +156,36 @@ const CarouselCreator = () => {
     toast("Elemento adicionado!");
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const currentText = activeFrame.text;
+      const newText = currentText.substring(0, start) + emoji + currentText.substring(end);
+      
+      updateActiveFrame({ text: newText });
+      
+      // Restore cursor position
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    }
+  };
+
+  const handleSignatureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        updateProject({ signatureImage: e.target?.result as string });
+        toast("Assinatura adicionada!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const saveProjectToStorage = async () => {
     setIsSaving(true);
     try {
@@ -178,9 +212,16 @@ const CarouselCreator = () => {
   };
 
   const getDimensions = () => {
-    return project.dimensions === '1080x1080' 
-      ? { width: 400, height: 400 }
-      : { width: 400, height: 500 };
+    switch (project.dimensions) {
+      case '1080x1080':
+        return { width: 400, height: 400 };
+      case '1080x1350':
+        return { width: 400, height: 500 };
+      case '1080x1920':
+        return { width: 400, height: 712 };
+      default:
+        return { width: 400, height: 400 };
+    }
   };
 
   const getMarginStyle = () => {
@@ -190,8 +231,45 @@ const CarouselCreator = () => {
     const scaledMargin = project.marginSize * scaleFactor;
     
     return {
-      padding: `${scaledMargin}px`,
-      border: `2px dashed rgba(139, 92, 246, 0.3)`
+      padding: `${scaledMargin}px`
+    };
+  };
+
+  const getSignatureStyle = () => {
+    if (!project.signatureImage) return {};
+    
+    const dimensions = getDimensions();
+    const scaleFactor = dimensions.width / 1080;
+    const size = project.signatureSize * scaleFactor;
+    
+    let position = {};
+    switch (project.signaturePosition) {
+      case 'top-left':
+        position = { top: '10px', left: '10px' };
+        break;
+      case 'top-center':
+        position = { top: '10px', left: '50%', transform: 'translateX(-50%)' };
+        break;
+      case 'top-right':
+        position = { top: '10px', right: '10px' };
+        break;
+      case 'bottom-left':
+        position = { bottom: '10px', left: '10px' };
+        break;
+      case 'bottom-center':
+        position = { bottom: '10px', left: '50%', transform: 'translateX(-50%)' };
+        break;
+      case 'bottom-right':
+        position = { bottom: '10px', right: '10px' };
+        break;
+    }
+    
+    return {
+      position: 'absolute' as const,
+      width: `${size}px`,
+      height: `${size}px`,
+      objectFit: 'contain' as const,
+      ...position
     };
   };
 
@@ -204,6 +282,7 @@ const CarouselCreator = () => {
             <Link to="/" className="flex items-center space-x-2">
               <Brain className="w-8 h-8 text-purple-600" />
               <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+              <Badge className="bg-purple-100 text-purple-700">QuikDesign</Badge>
             </Link>
             
             {/* Desktop Header */}
@@ -272,7 +351,7 @@ const CarouselCreator = () => {
               <CardContent className="space-y-4">
                 <div>
                   <Label className="text-xs">Dimensões</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div className="grid grid-cols-3 gap-2 mt-1">
                     <Button
                       variant={project.dimensions === '1080x1080' ? "default" : "outline"}
                       size="sm"
@@ -286,6 +365,13 @@ const CarouselCreator = () => {
                       onClick={() => updateProject({ dimensions: '1080x1350' })}
                     >
                       4:5
+                    </Button>
+                    <Button
+                      variant={project.dimensions === '1080x1920' ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => updateProject({ dimensions: '1080x1920' })}
+                    >
+                      9:16
                     </Button>
                   </div>
                 </div>
@@ -312,6 +398,49 @@ const CarouselCreator = () => {
                       />
                     </div>
                   )}
+                </div>
+
+                {/* Assinatura */}
+                <div>
+                  <Label className="text-xs">Assinatura</Label>
+                  <div className="space-y-2 mt-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSignatureUpload}
+                      className="text-xs"
+                    />
+                    {project.signatureImage && (
+                      <>
+                        <div>
+                          <Label className="text-xs">Posição</Label>
+                          <select
+                            value={project.signaturePosition}
+                            onChange={(e) => updateProject({ signaturePosition: e.target.value as any })}
+                            className="w-full mt-1 p-2 border rounded text-xs"
+                          >
+                            <option value="top-left">Superior Esquerda</option>
+                            <option value="top-center">Superior Centro</option>
+                            <option value="top-right">Superior Direita</option>
+                            <option value="bottom-left">Inferior Esquerda</option>
+                            <option value="bottom-center">Inferior Centro</option>
+                            <option value="bottom-right">Inferior Direita</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Tamanho: {project.signatureSize}px</Label>
+                          <Slider
+                            value={[project.signatureSize]}
+                            onValueChange={(value) => updateProject({ signatureSize: value[0] })}
+                            max={200}
+                            min={30}
+                            step={10}
+                            className="mt-2"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -489,6 +618,15 @@ const CarouselCreator = () => {
                         )}
                       </div>
                     ))}
+
+                    {/* Assinatura */}
+                    {project.signatureImage && (
+                      <img
+                        src={project.signatureImage}
+                        alt="Assinatura"
+                        style={getSignatureStyle()}
+                      />
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -505,12 +643,19 @@ const CarouselCreator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
-                  value={activeFrame.text}
-                  onChange={(e) => updateActiveFrame({ text: e.target.value })}
-                  className="min-h-[100px] text-sm"
-                  placeholder="Digite o texto do quadro..."
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Texto</Label>
+                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                  </div>
+                  <Textarea
+                    ref={textareaRef}
+                    value={activeFrame.text}
+                    onChange={(e) => updateActiveFrame({ text: e.target.value })}
+                    className="min-h-[100px] text-sm"
+                    placeholder="Digite o texto do quadro..."
+                  />
+                </div>
 
                 {/* Formatação de Texto */}
                 <div className="flex space-x-1">

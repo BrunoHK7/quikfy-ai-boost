@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 export interface CarouselProject {
   id: string;
   name: string;
-  dimensions: '1080x1080' | '1080x1350';
+  dimensions: '1080x1080' | '1080x1350' | '1080x1920';
   backgroundColor: string;
   textColor: string;
   fontFamily: string;
   marginEnabled: boolean;
   marginSize: number;
+  signatureImage?: string;
+  signaturePosition: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  signatureSize: number;
   frames: CarouselFrame[];
   createdAt: Date;
   updatedAt: Date;

@@ -9,9 +9,7 @@ import {
   Square, 
   Circle, 
   ArrowRight, 
-  Minus,
-  Triangle,
-  Star
+  Minus
 } from 'lucide-react';
 import { CarouselElement } from '@/hooks/useCarouselProjects';
 
@@ -26,9 +24,7 @@ export const GraphicElementsPicker = ({ onAddElement }: GraphicElementsPickerPro
     { icon: Square, shape: 'rectangle', name: 'Retângulo' },
     { icon: Circle, shape: 'circle', name: 'Círculo' },
     { icon: ArrowRight, shape: 'arrow', name: 'Seta' },
-    { icon: Minus, shape: 'line', name: 'Linha' },
-    { icon: Triangle, shape: 'triangle', name: 'Triângulo' },
-    { icon: Star, shape: 'star', name: 'Estrela' }
+    { icon: Minus, shape: 'line', name: 'Linha' }
   ];
 
   const addShape = (shape: string) => {
@@ -106,7 +102,7 @@ export const GraphicElementsPicker = ({ onAddElement }: GraphicElementsPickerPro
         {/* Formas Básicas */}
         <div>
           <Label className="text-xs mb-2 block">Formas Básicas</Label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {shapes.map((shape) => (
               <Button
                 key={shape.shape}
