@@ -56,7 +56,7 @@ const App: React.FC = () => (
             } />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/carousel-generator" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresPremium={true}>
                 <CarouselGenerator />
               </ProtectedRoute>
             } />
@@ -71,12 +71,12 @@ const App: React.FC = () => (
               </ProtectedRoute>
             } />
             <Route path="/podcasts" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresPremium={true}>
                 <Podcasts />
               </ProtectedRoute>
             } />
             <Route path="/content-feed" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiresPremium={true}>
                 <ContentFeed />
               </ProtectedRoute>
             } />

@@ -20,8 +20,13 @@ import {
   Palette
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
+import { useProfile } from "@/hooks/useProfile";
 
 const Index = () => {
+  const { profile } = useProfile();
+  const isAdmin = profile?.role === 'admin';
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -35,15 +40,39 @@ const Index = () => {
             <Link to="/carousel-creator" className="text-gray-600 hover:text-purple-600 transition-colors">
               QuikDesign
             </Link>
-            <Link to="/carousel-generator" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
-              IA Carrossel <Lock className="w-3 h-3 ml-1" />
-            </Link>
-            <Link to="/podcasts" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
-              Podcasts <Lock className="w-3 h-3 ml-1" />
-            </Link>
-            <Link to="/content-feed" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
-              Conteúdo <Lock className="w-3 h-3 ml-1" />
-            </Link>
+            <AdminAccessWrapper
+              fallback={
+                <Link to="/carousel-generator" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                  IA Carrossel <Lock className="w-3 h-3 ml-1" />
+                </Link>
+              }
+            >
+              <Link to="/carousel-generator" className="text-gray-600 hover:text-purple-600 transition-colors">
+                IA Carrossel
+              </Link>
+            </AdminAccessWrapper>
+            <AdminAccessWrapper
+              fallback={
+                <Link to="/podcasts" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                  Podcasts <Lock className="w-3 h-3 ml-1" />
+                </Link>
+              }
+            >
+              <Link to="/podcasts" className="text-gray-600 hover:text-purple-600 transition-colors">
+                Podcasts
+              </Link>
+            </AdminAccessWrapper>
+            <AdminAccessWrapper
+              fallback={
+                <Link to="/content-feed" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                  Conteúdo <Lock className="w-3 h-3 ml-1" />
+                </Link>
+              }
+            >
+              <Link to="/content-feed" className="text-gray-600 hover:text-purple-600 transition-colors">
+                Conteúdo
+              </Link>
+            </AdminAccessWrapper>
             <Link to="/pricing" className="text-gray-600 hover:text-purple-600 transition-colors">
               Preços
             </Link>
@@ -101,12 +130,14 @@ const Index = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/pricing">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 px-8 py-3">
-                <Crown className="w-5 h-5 mr-2" />
-                Assinar Agora
-              </Button>
-            </Link>
+            {!isAdmin && (
+              <Link to="/pricing">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 px-8 py-3">
+                  <Crown className="w-5 h-5 mr-2" />
+                  Assinar Agora
+                </Button>
+              </Link>
+            )}
             <Link to="/carousel-creator">
               <Button size="lg" variant="outline" className="border-purple-200 px-8 py-3">
                 <Palette className="w-5 h-5 mr-2" />
@@ -145,12 +176,22 @@ const Index = () => {
             </Card>
 
             <Card className="text-center hover:shadow-lg transition-shadow relative">
-              <div className="absolute top-2 right-2">
-                <Lock className="w-4 h-4 text-gray-400" />
-              </div>
+              <AdminAccessWrapper
+                fallback={
+                  <div className="absolute top-2 right-2">
+                    <Lock className="w-4 h-4 text-gray-400" />
+                  </div>
+                }
+              >
+                {isAdmin && (
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-blue-100 text-blue-700 text-xs">ADMIN</Badge>
+                  </div>
+                )}
+              </AdminAccessWrapper>
               <CardHeader>
-                <Badge className="bg-orange-100 text-orange-700 mx-auto mb-2 w-fit">
-                  PREMIUM
+                <Badge className={`mx-auto mb-2 w-fit ${isAdmin ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
                 </Badge>
                 <Brain className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <CardTitle className="text-lg">IA Carrossel</CardTitle>
@@ -159,21 +200,41 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link to="/pricing">
-                  <Button variant="outline" className="w-full">
-                    Assinar para Usar
-                  </Button>
-                </Link>
+                <AdminAccessWrapper
+                  fallback={
+                    <Link to="/pricing">
+                      <Button variant="outline" className="w-full">
+                        Assinar para Usar
+                      </Button>
+                    </Link>
+                  }
+                >
+                  <Link to="/carousel-generator">
+                    <Button variant="outline" className="w-full">
+                      Usar IA Carrossel
+                    </Button>
+                  </Link>
+                </AdminAccessWrapper>
               </CardContent>
             </Card>
 
             <Card className="text-center hover:shadow-lg transition-shadow relative">
-              <div className="absolute top-2 right-2">
-                <Lock className="w-4 h-4 text-gray-400" />
-              </div>
+              <AdminAccessWrapper
+                fallback={
+                  <div className="absolute top-2 right-2">
+                    <Lock className="w-4 h-4 text-gray-400" />
+                  </div>
+                }
+              >
+                {isAdmin && (
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-blue-100 text-blue-700 text-xs">ADMIN</Badge>
+                  </div>
+                )}
+              </AdminAccessWrapper>
               <CardHeader>
-                <Badge className="bg-orange-100 text-orange-700 mx-auto mb-2 w-fit">
-                  PREMIUM
+                <Badge className={`mx-auto mb-2 w-fit ${isAdmin ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
                 </Badge>
                 <Mic className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <CardTitle className="text-lg">Podcasts</CardTitle>
@@ -182,21 +243,41 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link to="/pricing">
-                  <Button variant="outline" className="w-full">
-                    Assinar para Acessar
-                  </Button>
-                </Link>
+                <AdminAccessWrapper
+                  fallback={
+                    <Link to="/pricing">
+                      <Button variant="outline" className="w-full">
+                        Assinar para Acessar
+                      </Button>
+                    </Link>
+                  }
+                >
+                  <Link to="/podcasts">
+                    <Button variant="outline" className="w-full">
+                      Acessar Podcasts
+                    </Button>
+                  </Link>
+                </AdminAccessWrapper>
               </CardContent>
             </Card>
 
             <Card className="text-center hover:shadow-lg transition-shadow relative">
-              <div className="absolute top-2 right-2">
-                <Lock className="w-4 h-4 text-gray-400" />
-              </div>
+              <AdminAccessWrapper
+                fallback={
+                  <div className="absolute top-2 right-2">
+                    <Lock className="w-4 h-4 text-gray-400" />
+                  </div>
+                }
+              >
+                {isAdmin && (
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-blue-100 text-blue-700 text-xs">ADMIN</Badge>
+                  </div>
+                )}
+              </AdminAccessWrapper>
               <CardHeader>
-                <Badge className="bg-orange-100 text-orange-700 mx-auto mb-2 w-fit">
-                  PREMIUM
+                <Badge className={`mx-auto mb-2 w-fit ${isAdmin ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
                 </Badge>
                 <Video className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <CardTitle className="text-lg">Conteúdo Exclusivo</CardTitle>
@@ -205,11 +286,21 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link to="/pricing">
-                  <Button variant="outline" className="w-full">
-                    Assinar para Ver
-                  </Button>
-                </Link>
+                <AdminAccessWrapper
+                  fallback={
+                    <Link to="/pricing">
+                      <Button variant="outline" className="w-full">
+                        Assinar para Ver
+                      </Button>
+                    </Link>
+                  }
+                >
+                  <Link to="/content-feed">
+                    <Button variant="outline" className="w-full">
+                      Ver Conteúdo
+                    </Button>
+                  </Link>
+                </AdminAccessWrapper>
               </CardContent>
             </Card>
           </div>
@@ -282,11 +373,13 @@ const Index = () => {
             Junte-se a milhares de criadores que já faturam milhões com nossa plataforma
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/pricing">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3">
-                Começar Agora
-              </Button>
-            </Link>
+            {!isAdmin && (
+              <Link to="/pricing">
+                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3">
+                  Começar Agora
+                </Button>
+              </Link>
+            )}
             <Link to="/carousel-creator">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 px-8 py-3">
                 Experimentar QuikDesign

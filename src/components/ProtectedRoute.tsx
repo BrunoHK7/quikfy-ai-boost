@@ -1,16 +1,20 @@
 
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiresAdmin?: boolean;
+  requiresPremium?: boolean;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = false }: ProtectedRouteProps) => {
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -27,6 +31,21 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user.email_confirmed_at) {
     return <Navigate to="/email-verification" replace />;
+  }
+
+  // Admin users bypass all restrictions
+  if (profile?.role === 'admin') {
+    return <>{children}</>;
+  }
+
+  // Check admin requirement
+  if (requiresAdmin) {
+    return <Navigate to="/pricing" replace />;
+  }
+
+  // Check premium requirement (pro, vip users can access)
+  if (requiresPremium && profile?.role === 'free') {
+    return <Navigate to="/pricing" replace />;
   }
 
   return <>{children}</>;
