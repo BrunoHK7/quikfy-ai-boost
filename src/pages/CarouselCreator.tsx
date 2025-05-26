@@ -20,53 +20,35 @@ import {
   Settings,
   Eye,
   Upload,
-  Undo,
-  Redo,
   AlignLeft,
   AlignCenter,
   AlignRight,
   Bold,
   Italic,
-  Underline
+  Underline,
+  Home,
+  Menu,
+  X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-
-interface CarouselFrame {
-  id: string;
-  text: string;
-  backgroundColor: string;
-  textColor: string;
-  fontSize: number;
-  textAlign: 'left' | 'center' | 'right';
-  isBold: boolean;
-  isItalic: boolean;
-  isUnderline: boolean;
-  lineHeight: number;
-  letterSpacing: number;
-  backgroundImage?: string;
-  elements: any[];
-}
-
-interface CarouselProject {
-  id: string;
-  name: string;
-  dimensions: '1080x1080' | '1080x1350';
-  backgroundColor: string;
-  textColor: string;
-  fontFamily: string;
-  frames: CarouselFrame[];
-  createdAt: Date;
-}
+import { useCarouselProjects, CarouselProject, CarouselFrame, CarouselElement } from "@/hooks/useCarouselProjects";
+import { downloadFramesAsZip } from "@/utils/carouselExport";
+import { GraphicElementsPicker } from "@/components/carousel/GraphicElementsPicker";
 
 const CarouselCreator = () => {
+  const { saveProject } = useCarouselProjects();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const [project, setProject] = useState<CarouselProject>({
-    id: '',
+    id: Date.now().toString(),
     name: 'Novo Carrossel',
     dimensions: '1080x1080',
     backgroundColor: '#ffffff',
     textColor: '#131313',
     fontFamily: 'Inter',
+    marginEnabled: true,
+    marginSize: 250,
     frames: [
       {
         id: '1',
@@ -83,15 +65,13 @@ const CarouselCreator = () => {
         elements: []
       }
     ],
-    createdAt: new Date()
+    createdAt: new Date(),
+    updatedAt: new Date()
   });
 
   const [activeFrameId, setActiveFrameId] = useState('1');
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [showAIPanel, setShowAIPanel] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const activeFrame = project.frames.find(f => f.id === activeFrameId) || project.frames[0];
 
@@ -165,61 +145,36 @@ const CarouselCreator = () => {
     toast("Quadro excluído!");
   };
 
-  const generateWithAI = async () => {
-    if (!aiPrompt.trim()) return;
-    
-    setIsGeneratingAI(true);
+  const addElement = (element: CarouselElement) => {
+    updateActiveFrame({
+      elements: [...activeFrame.elements, element]
+    });
+    toast("Elemento adicionado!");
+  };
+
+  const saveProjectToStorage = async () => {
+    setIsSaving(true);
     try {
-      // Simular geração de IA (aqui você integraria com a API da OpenAI)
-      setTimeout(() => {
-        const aiFrames = [
-          "🎯 Problema: Você ainda não descobriu o poder desta ferramenta?",
-          "💡 Agitação: Seus concorrentes já estão criando conteúdo incrível",
-          "🚀 Solução: QUIKFY Carrossel - Crie designs profissionais em minutos",
-          "⚡ Benefício 1: Interface intuitiva e ferramentas profissionais",
-          "💰 Benefício 2: Economize tempo e dinheiro em design",
-          "🎓 Benefício 3: Templates e IA para máxima produtividade",
-          "🔥 Prova Social: Milhares de criadores já usam",
-          "💎 Oferta: Comece a criar agora mesmo",
-          "⏰ Urgência: Não perca tempo com ferramentas complexas",
-          "✅ CTA: Clique e transforme suas ideias em realidade"
-        ];
-
-        const newFrames = aiFrames.map((text, index) => ({
-          id: (index + 1).toString(),
-          text,
-          backgroundColor: project.backgroundColor,
-          textColor: project.textColor,
-          fontSize: 24,
-          textAlign: 'center' as const,
-          isBold: false,
-          isItalic: false,
-          isUnderline: false,
-          lineHeight: 1.5,
-          letterSpacing: 0,
-          elements: []
-        }));
-
-        updateProject({ frames: newFrames });
-        setActiveFrameId('1');
-        setIsGeneratingAI(false);
-        setShowAIPanel(false);
-        toast("Carrossel gerado com IA!");
-      }, 3000);
+      const savedProject = saveProject(project);
+      updateProject({ id: savedProject.id });
+      toast("Projeto salvo com sucesso!");
     } catch (error) {
-      toast("Erro ao gerar com IA");
-      setIsGeneratingAI(false);
+      toast("Erro ao salvar projeto");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const saveProject = () => {
-    // Aqui você salvaria no Supabase
-    toast("Projeto salvo com sucesso!");
-  };
-
-  const exportProject = () => {
-    // Aqui você implementaria a exportação
-    toast("Exportando projeto...");
+  const exportProject = async () => {
+    setIsExporting(true);
+    try {
+      await downloadFramesAsZip(project);
+      toast("Download iniciado!");
+    } catch (error) {
+      toast("Erro ao exportar projeto");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const getDimensions = () => {
@@ -228,69 +183,85 @@ const CarouselCreator = () => {
       : { width: 400, height: 500 };
   };
 
+  const getMarginStyle = () => {
+    if (!project.marginEnabled) return {};
+    
+    const scaleFactor = 400 / 1080; // Scale margin for preview
+    const scaledMargin = project.marginSize * scaleFactor;
+    
+    return {
+      padding: `${scaledMargin}px`,
+      border: `2px dashed rgba(139, 92, 246, 0.3)`
+    };
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
-          </Link>
-          
-          <div className="flex items-center space-x-3">
-            <Input
-              value={project.name}
-              onChange={(e) => updateProject({ name: e.target.value })}
-              className="w-48 text-center font-medium"
-            />
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center space-x-2">
+              <Brain className="w-8 h-8 text-purple-600" />
+              <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            </Link>
+            
+            {/* Desktop Header */}
+            <div className="hidden md:flex items-center space-x-3">
+              <Input
+                value={project.name}
+                onChange={(e) => updateProject({ name: e.target.value })}
+                className="w-48 text-center font-medium"
+              />
+              <Button onClick={saveProjectToStorage} disabled={isSaving} variant="outline">
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? "Salvando..." : "Salvar"}
+              </Button>
+              <Button onClick={exportProject} disabled={isExporting} className="bg-purple-600 hover:bg-purple-700">
+                <Download className="w-4 h-4 mr-2" />
+                {isExporting ? "Exportando..." : "Download"}
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
             <Button
-              onClick={() => setShowAIPanel(!showAIPanel)}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               variant="outline"
-              className="border-purple-200"
+              size="sm"
+              className="md:hidden"
             >
-              <Brain className="w-4 h-4 mr-2" />
-              IA
-            </Button>
-            <Button onClick={saveProject} variant="outline">
-              <Save className="w-4 h-4 mr-2" />
-              Salvar
-            </Button>
-            <Button onClick={exportProject} className="bg-purple-600 hover:bg-purple-700">
-              <Download className="w-4 h-4 mr-2" />
-              Download
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </Button>
           </div>
+
+          {/* Mobile Header Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pt-4 border-t space-y-3">
+              <Input
+                value={project.name}
+                onChange={(e) => updateProject({ name: e.target.value })}
+                className="w-full text-center font-medium"
+                placeholder="Nome do projeto"
+              />
+              <div className="flex space-x-2">
+                <Button onClick={saveProjectToStorage} disabled={isSaving} variant="outline" className="flex-1">
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? "Salvando..." : "Salvar"}
+                </Button>
+                <Button onClick={exportProject} disabled={isExporting} className="flex-1 bg-purple-600 hover:bg-purple-700">
+                  <Download className="w-4 h-4 mr-2" />
+                  {isExporting ? "Exportando..." : "Download"}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* AI Panel */}
-      {showAIPanel && (
-        <div className="border-b bg-purple-50 p-4">
-          <div className="container mx-auto max-w-4xl">
-            <div className="flex space-x-4">
-              <Input
-                placeholder="Ex: Gere um carrossel sobre 'Como aumentar vendas com IA'"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                className="flex-1"
-              />
-              <Button
-                onClick={generateWithAI}
-                disabled={isGeneratingAI}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isGeneratingAI ? "Gerando..." : "Gerar com IA"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar Esquerda - Configurações Globais */}
-          <div className="col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center">
@@ -317,6 +288,30 @@ const CarouselCreator = () => {
                       4:5
                     </Button>
                   </div>
+                </div>
+
+                {/* Configuração de Margem */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-xs">Margens</Label>
+                    <Switch
+                      checked={project.marginEnabled}
+                      onCheckedChange={(checked) => updateProject({ marginEnabled: checked })}
+                    />
+                  </div>
+                  {project.marginEnabled && (
+                    <div>
+                      <Label className="text-xs">Tamanho: {project.marginSize}px</Label>
+                      <Slider
+                        value={[project.marginSize]}
+                        onValueChange={(value) => updateProject({ marginSize: value[0] })}
+                        max={400}
+                        min={50}
+                        step={25}
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -422,7 +417,7 @@ const CarouselCreator = () => {
           </div>
 
           {/* Área Central - Editor */}
-          <div className="col-span-6">
+          <div className="lg:col-span-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center justify-between">
@@ -442,12 +437,13 @@ const CarouselCreator = () => {
                     style={{
                       width: getDimensions().width,
                       height: getDimensions().height,
-                      backgroundColor: activeFrame.backgroundColor
+                      backgroundColor: activeFrame.backgroundColor,
+                      ...getMarginStyle()
                     }}
                   >
-                    {/* Margens de Segurança */}
+                    {/* Área de Texto */}
                     <div
-                      className="absolute inset-0 flex items-center justify-center p-12"
+                      className="absolute inset-0 flex items-center justify-center"
                       style={{
                         fontFamily: project.fontFamily,
                         fontSize: `${activeFrame.fontSize}px`,
@@ -460,16 +456,39 @@ const CarouselCreator = () => {
                         textDecoration: activeFrame.isUnderline ? 'underline' : 'none'
                       }}
                     >
-                      <div className="w-full h-full flex items-center justify-center text-center">
+                      <div className="w-full h-full flex items-center justify-center text-center p-4">
                         {activeFrame.text}
                       </div>
                     </div>
-                    
-                    {/* Guias de Margem */}
-                    <div className="absolute top-0 left-12 right-12 h-1 bg-purple-200 opacity-50"></div>
-                    <div className="absolute bottom-0 left-12 right-12 h-1 bg-purple-200 opacity-50"></div>
-                    <div className="absolute top-0 left-12 bottom-0 w-1 bg-purple-200 opacity-50"></div>
-                    <div className="absolute top-0 right-12 bottom-0 w-1 bg-purple-200 opacity-50"></div>
+
+                    {/* Elementos Gráficos */}
+                    {activeFrame.elements.map((element) => (
+                      <div
+                        key={element.id}
+                        className="absolute"
+                        style={{
+                          left: element.x,
+                          top: element.y,
+                          width: element.width,
+                          height: element.height,
+                          backgroundColor: element.type === 'shape' ? element.color : 'transparent'
+                        }}
+                      >
+                        {element.type === 'image' && element.src && (
+                          <img
+                            src={element.src}
+                            alt="Element"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                        {element.type === 'shape' && element.shape === 'circle' && (
+                          <div
+                            className="w-full h-full rounded-full"
+                            style={{ backgroundColor: element.color }}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -477,7 +496,7 @@ const CarouselCreator = () => {
           </div>
 
           {/* Sidebar Direita - Configurações do Quadro */}
-          <div className="col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center">
@@ -621,30 +640,7 @@ const CarouselCreator = () => {
             </Card>
 
             {/* Elementos Gráficos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Elementos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Upload className="w-3 h-3 mr-2" />
-                    Upload Imagem
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Palette className="w-3 h-3 mr-2" />
-                    Formas
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Type className="w-3 h-3 mr-2" />
-                    Ícones
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <GraphicElementsPicker onAddElement={addElement} />
           </div>
         </div>
       </div>
