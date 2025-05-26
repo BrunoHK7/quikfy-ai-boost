@@ -12,6 +12,16 @@ interface ProfileProjectsProps {
 }
 
 export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsProps) => {
+  const formatDate = (date: Date | string) => {
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Error formatting date:', error, date);
+      return 'Data inválida';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -70,7 +80,7 @@ export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsPr
                 </div>
                 
                 <div className="text-xs text-gray-500 mb-4">
-                  Criado em {project.createdAt.toLocaleDateString('pt-BR')}
+                  Criado em {formatDate(project.createdAt)}
                 </div>
                 
                 <div className="flex space-x-2">

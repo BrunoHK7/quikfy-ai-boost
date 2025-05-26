@@ -52,7 +52,14 @@ export const useCarouselProjects = () => {
   useEffect(() => {
     const savedProjects = localStorage.getItem('carousel-projects');
     if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
+      const parsedProjects = JSON.parse(savedProjects);
+      // Convert date strings back to Date objects
+      const projectsWithDates = parsedProjects.map((project: any) => ({
+        ...project,
+        createdAt: new Date(project.createdAt),
+        updatedAt: new Date(project.updatedAt)
+      }));
+      setProjects(projectsWithDates);
     }
   }, []);
 
