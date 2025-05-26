@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +15,10 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
+  const [occupation, setOccupation] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +41,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password, fullName, phone);
+      const { error } = await signUp(email, password, fullName, phone, city, state, country, occupation);
 
       if (error) {
         if (error.message.includes("already registered")) {
@@ -76,7 +81,7 @@ const Register = () => {
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Nome Completo</Label>
+                <Label htmlFor="fullName">Nome Completo *</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -89,7 +94,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -102,7 +107,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone (opcional)</Label>
+                <Label htmlFor="phone">Telefone *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -110,11 +115,67 @@ const Register = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="border-gray-200 focus:border-purple-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="city">Cidade *</Label>
+                  <Input
+                    id="city"
+                    type="text"
+                    placeholder="São Paulo"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="border-gray-200 focus:border-purple-500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="state">Estado *</Label>
+                  <Input
+                    id="state"
+                    type="text"
+                    placeholder="SP"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="border-gray-200 focus:border-purple-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">País *</Label>
+                <Input
+                  id="country"
+                  type="text"
+                  placeholder="Brasil"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="border-gray-200 focus:border-purple-500"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="occupation">Ocupação *</Label>
+                <Select value={occupation} onValueChange={setOccupation} required>
+                  <SelectTrigger className="border-gray-200 focus:border-purple-500">
+                    <SelectValue placeholder="Selecione sua ocupação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="empresario">Empresário</SelectItem>
+                    <SelectItem value="autonomo">Autônomo</SelectItem>
+                    <SelectItem value="funcionario">Funcionário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha *</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -137,7 +198,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"

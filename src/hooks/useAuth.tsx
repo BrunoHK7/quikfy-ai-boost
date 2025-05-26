@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone: string, city: string, state: string, country: string, occupation: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resendConfirmation: (email: string) => Promise<{ error: any }>;
@@ -41,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string, city: string, state: string, country: string, occupation: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -49,7 +48,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           data: {
             full_name: fullName,
-            phone: phone || '',
+            phone: phone,
+            city: city,
+            state: state,
+            country: country,
+            occupation: occupation,
           },
         },
       });

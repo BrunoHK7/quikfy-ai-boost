@@ -11,27 +11,39 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          city: string | null
+          country: string | null
           created_at: string
           full_name: string
           id: string
+          occupation: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          state: string | null
           updated_at: string
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           created_at?: string
           full_name: string
           id: string
+          occupation?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           updated_at?: string
         }
         Update: {
+          city?: string | null
+          country?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          occupation?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           updated_at?: string
         }
         Relationships: []

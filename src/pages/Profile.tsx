@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Brain, 
   Camera, 
@@ -19,19 +21,66 @@ import {
   Link as LinkIcon,
   Settings,
   ImageIcon,
-  Play,
   Trash2,
-  Copy,
-  ExternalLink
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCarouselProjects } from "@/hooks/useCarouselProjects";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [bio, setBio] = useState("Empreendedor digital apaixonado por tecnologia e IA. Transformando negócios através da automação e estratégias inovadoras. 🚀");
+  const [loading, setLoading] = useState(false);
   const { projects, deleteProject } = useCarouselProjects();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const { signOut } = useAuth();
+
+  // Form states for editing
+  const [editFullName, setEditFullName] = useState(profile?.full_name || "");
+  const [editPhone, setEditPhone] = useState(profile?.phone || "");
+  const [editCity, setEditCity] = useState(profile?.city || "");
+  const [editState, setEditState] = useState(profile?.state || "");
+  const [editCountry, setEditCountry] = useState(profile?.country || "");
+  const [editOccupation, setEditOccupation] = useState(profile?.occupation || "");
+
+  // Update form when profile loads
+  useState(() => {
+    if (profile) {
+      setEditFullName(profile.full_name);
+      setEditPhone(profile.phone);
+      setEditCity(profile.city);
+      setEditState(profile.state);
+      setEditCountry(profile.country);
+      setEditOccupation(profile.occupation);
+    }
+  });
+
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    try {
+      const { error } = await updateProfile({
+        full_name: editFullName,
+        phone: editPhone,
+        city: editCity,
+        state: editState,
+        country: editCountry,
+        occupation: editOccupation,
+      });
+
+      if (error) {
+        toast.error("Erro ao atualizar perfil");
+      } else {
+        toast.success("Perfil atualizado com sucesso!");
+        setIsEditing(false);
+      }
+    } catch (error) {
+      toast.error("Erro inesperado ao atualizar perfil");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Tem certeza que deseja excluir este projeto?")) {
@@ -39,6 +88,54 @@ const Profile = () => {
       toast("Projeto excluído com sucesso!");
     }
   };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge className="bg-red-100 text-red-700 border-red-200">ADMIN</Badge>;
+      case 'vip':
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">VIP MEMBER</Badge>;
+      case 'pro':
+        return <Badge className="bg-purple-100 text-purple-700 border-purple-200">PRO MEMBER</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-200">FREE MEMBER</Badge>;
+    }
+  };
+
+  const getOccupationLabel = (occupation: string) => {
+    switch (occupation) {
+      case 'empresario':
+        return 'Empresário';
+      case 'autonomo':
+        return 'Autônomo';
+      case 'funcionario':
+        return 'Funcionário';
+      default:
+        return occupation;
+    }
+  };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Erro ao carregar perfil</p>
+          <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -49,10 +146,15 @@ const Profile = () => {
             <Brain className="w-8 h-8 text-purple-600" />
             <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
           </Link>
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Configurações
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Button>
+            <Button variant="outline" onClick={signOut}>
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -66,55 +168,122 @@ const Profile = () => {
                 <div className="relative">
                   <Avatar className="w-32 h-32">
                     <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl">CM</AvatarFallback>
+                    <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl">
+                      {profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <button className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors">
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
-                <Badge className="bg-purple-100 text-purple-700 border-purple-200">
-                  GOLD MEMBER
-                </Badge>
+                {getRoleBadge(profile.role)}
               </div>
 
               {/* Profile Info */}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-4">
-                  <h1 className="text-3xl font-bold text-gray-900">Carlos Miranda</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">{profile.full_name}</h1>
                   <Button 
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
                     variant="outline"
                     className="border-purple-600 text-purple-600"
+                    disabled={loading}
                   >
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    {isEditing ? "Salvar" : "Editar Perfil"}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        {isEditing ? "Salvar" : "Editar Perfil"}
+                      </>
+                    )}
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    São Paulo, BR
-                  </div>
-                  <div className="flex items-center text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Membro desde Mar 2024
-                  </div>
-                  <div className="flex items-center text-gray-600">
-                    <LinkIcon className="w-4 h-4 mr-2" />
-                    carlosmiranda.com
-                  </div>
-                </div>
-
                 {isEditing ? (
-                  <Textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="border-gray-200"
-                    rows={3}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Nome Completo</label>
+                      <Input
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Telefone</label>
+                      <Input
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Cidade</label>
+                      <Input
+                        value={editCity}
+                        onChange={(e) => setEditCity(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Estado</label>
+                      <Input
+                        value={editState}
+                        onChange={(e) => setEditState(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">País</label>
+                      <Input
+                        value={editCountry}
+                        onChange={(e) => setEditCountry(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Ocupação</label>
+                      <Select value={editOccupation} onValueChange={setEditOccupation}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="empresario">Empresário</SelectItem>
+                          <SelectItem value="autonomo">Autônomo</SelectItem>
+                          <SelectItem value="funcionario">Funcionário</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-gray-700 leading-relaxed">{bio}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="flex items-center text-gray-600">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      {profile.city}, {profile.state}, {profile.country}
+                    </div>
+                    <div className="flex items-center text-gray-600">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Membro desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                    <div className="flex items-center text-gray-600">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      {getOccupationLabel(profile.occupation)}
+                    </div>
+                  </div>
+                )}
+
+                {isEditing && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsEditing(false)}
+                    className="mr-2"
+                  >
+                    Cancelar
+                  </Button>
                 )}
               </div>
             </div>
@@ -145,11 +314,11 @@ const Profile = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-green-600">R$ 234.560</div>
+                        <div className="text-3xl font-bold text-green-600">R$ 0</div>
                         <div className="text-sm text-gray-600">Total Faturado</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-3xl font-bold text-purple-600">R$ 45.890</div>
+                        <div className="text-3xl font-bold text-purple-600">R$ 0</div>
                         <div className="text-sm text-gray-600">Este Mês</div>
                       </div>
                     </div>
@@ -199,10 +368,6 @@ const Profile = () => {
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Criar Post
                     </Button>
-                    <Button variant="outline" className="w-full">
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Editar Perfil
-                    </Button>
                   </CardContent>
                 </Card>
 
@@ -219,11 +384,11 @@ const Profile = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Posts na Comunidade</span>
-                        <span className="font-semibold">47</span>
+                        <span className="font-semibold">0</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Lives Assistidas</span>
-                        <span className="font-semibold">12</span>
+                        <span className="font-semibold">0</span>
                       </div>
                     </div>
                   </CardContent>
@@ -324,13 +489,13 @@ const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center space-x-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Trophy className="w-6 h-6 text-yellow-600" />
+                  <div className="flex items-center space-x-4 p-4 rounded-lg bg-green-50 border border-green-200">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <ImageIcon className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-medium">Primeiro 100K</div>
-                      <div className="text-sm text-gray-600">Primeiro faturamento de 6 dígitos</div>
+                      <div className="font-medium">Designer Pro</div>
+                      <div className="text-sm text-gray-600">{projects.length} carrosséis criados</div>
                     </div>
                   </div>
                   
@@ -339,28 +504,8 @@ const Profile = () => {
                       <Star className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                      <div className="font-medium">Master do Copy</div>
-                      <div className="text-sm text-gray-600">100+ copies criados</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Influencer</div>
-                      <div className="text-sm text-gray-600">50+ posts na comunidade</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 p-4 rounded-lg bg-green-50 border border-green-200">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <ImageIcon className="w-6 h-6 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Designer Pro</div>
-                      <div className="text-sm text-gray-600">{projects.length} carrosséis criados</div>
+                      <div className="font-medium">Membro {profile.role.toUpperCase()}</div>
+                      <div className="text-sm text-gray-600">Status atual da conta</div>
                     </div>
                   </div>
                 </div>
