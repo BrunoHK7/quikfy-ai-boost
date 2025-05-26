@@ -11,6 +11,8 @@ interface UserProfile {
   state: string;
   country: string;
   occupation: string;
+  bio: string;
+  avatar_url: string;
   role: 'free' | 'pro' | 'vip' | 'admin';
   created_at: string;
   updated_at: string;
@@ -63,6 +65,8 @@ export const useProfile = () => {
           state: user.user_metadata?.state || '',
           country: user.user_metadata?.country || '',
           occupation: user.user_metadata?.occupation || '',
+          bio: '',
+          avatar_url: '',
           role: 'free' as const
         };
 
@@ -111,10 +115,44 @@ export const useProfile = () => {
     }
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!user) return { error: 'User not authenticated' };
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error('Error uploading avatar:', uploadError);
+        return { error: uploadError };
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await updateProfile({ avatar_url: publicUrl });
+      
+      if (updateError) {
+        return { error: updateError };
+      }
+
+      return { data: publicUrl };
+    } catch (error) {
+      console.error('Error in uploadAvatar:', error);
+      return { error };
+    }
+  };
+
   return {
     profile,
     loading,
     updateProfile,
+    uploadAvatar,
     refetch: fetchOrCreateProfile
   };
 };

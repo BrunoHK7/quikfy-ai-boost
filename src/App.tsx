@@ -16,6 +16,7 @@ import CarouselGenerator from "./pages/CarouselGenerator";
 import CarouselCreator from "./pages/CarouselCreator";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
+import FinancialManagement from "./pages/FinancialManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,11 @@ const App = () => (
             <Route path="/carousel-creator" element={
               <ProtectedRoute>
                 <CarouselCreator />
+              </ProtectedRoute>
+            } />
+            <Route path="/financial-management" element={
+              <ProtectedRoute>
+                <FinancialManagement />
               </ProtectedRoute>
             } />
             <Route path="/podcasts" element={

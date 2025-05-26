@@ -1,14 +1,24 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Camera, Trophy, ImageIcon, MessageSquare } from "lucide-react";
+import { DollarSign, ImageIcon, MessageSquare, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useFinancialData } from "@/hooks/useFinancialData";
 
 interface ProfileStatsProps {
   projectsCount: number;
 }
 
 export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
+  const { getTotalRevenue, getCurrentMonthRevenue, loading } = useFinancialData();
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Stats Cards */}
@@ -24,38 +34,37 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">R$ 0</div>
+                <div className="text-3xl font-bold text-green-600">
+                  {loading ? "..." : formatCurrency(getTotalRevenue())}
+                </div>
                 <div className="text-sm text-gray-600">Total Faturado</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">R$ 0</div>
+                <div className="text-3xl font-bold text-purple-600">
+                  {loading ? "..." : formatCurrency(getCurrentMonthRevenue())}
+                </div>
                 <div className="text-sm text-gray-600">Este Mês</div>
               </div>
             </div>
-            <Button className="w-full mt-4 bg-green-600 hover:bg-green-700">
-              <Trophy className="w-4 h-4 mr-2" />
-              Comprovar Faturamento
-            </Button>
+            <Link to="/financial-management">
+              <Button className="w-full mt-4 bg-green-600 hover:bg-green-700">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Gestão Financeira
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
-        {/* Recent Photos */}
+        {/* Profile Photos Preview */}
         <Card>
           <CardHeader>
-            <CardTitle>Fotos Recentes</CardTitle>
+            <CardTitle>Fotos do Perfil</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-gray-400" />
-                </div>
-              ))}
+            <div className="text-center py-4">
+              <p className="text-gray-500 mb-4">Suas fotos aparecerão aqui</p>
+              <p className="text-sm text-gray-400">Veja na aba "Fotos" para gerenciar suas imagens</p>
             </div>
-            <Button variant="outline" className="w-full mt-4">
-              <Camera className="w-4 h-4 mr-2" />
-              Adicionar Foto
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -72,6 +81,12 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Criar Carrossel
+              </Button>
+            </Link>
+            <Link to="/financial-management">
+              <Button variant="outline" className="w-full border-green-600 text-green-600 hover:bg-green-50">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Gestão Financeira
               </Button>
             </Link>
             <Button variant="outline" className="w-full">

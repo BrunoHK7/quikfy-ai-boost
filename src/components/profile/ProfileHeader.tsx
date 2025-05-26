@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Edit3, MapPin, Calendar, MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,11 +13,14 @@ import { toast } from "sonner";
 interface ProfileHeaderProps {
   profile: any;
   updateProfile: (updates: any) => Promise<{ error?: any }>;
+  uploadAvatar: (file: File) => Promise<{ error?: any; data?: string }>;
 }
 
-export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, updateProfile, uploadAvatar }: ProfileHeaderProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states for editing with fallback values
   const [editFullName, setEditFullName] = useState(profile?.full_name || "");
@@ -25,6 +29,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
   const [editState, setEditState] = useState(profile?.state || "");
   const [editCountry, setEditCountry] = useState(profile?.country || "");
   const [editOccupation, setEditOccupation] = useState(profile?.occupation || "");
+  const [editBio, setEditBio] = useState(profile?.bio || "");
 
   const handleSaveProfile = async () => {
     setLoading(true);
@@ -36,6 +41,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
         state: editState,
         country: editCountry,
         occupation: editOccupation,
+        bio: editBio,
       });
 
       if (error) {
@@ -48,6 +54,38 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
       toast.error("Erro inesperado ao atualizar perfil");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5MB");
+      return;
+    }
+
+    setAvatarLoading(true);
+    try {
+      const { error } = await uploadAvatar(file);
+      
+      if (error) {
+        toast.error("Erro ao fazer upload da imagem");
+      } else {
+        toast.success("Avatar atualizado com sucesso!");
+      }
+    } catch (error) {
+      toast.error("Erro inesperado ao fazer upload");
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
@@ -91,14 +129,29 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <Avatar className="w-32 h-32">
-                <AvatarImage src="/placeholder.svg" />
+                <AvatarImage src={profile.avatar_url} />
                 <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl">
                   {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors">
-                <Camera className="w-4 h-4" />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarLoading}
+                className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors disabled:opacity-50"
+              >
+                {avatarLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
             {getRoleBadge(profile.role)}
           </div>
@@ -127,60 +180,79 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
               </Button>
             </div>
 
+            {/* Bio */}
+            {!isEditing && profile.bio && (
+              <div className="mb-4">
+                <p className="text-gray-700">{profile.bio}</p>
+              </div>
+            )}
+
             {isEditing ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Nome Completo</label>
-                  <Input
-                    value={editFullName}
-                    onChange={(e) => setEditFullName(e.target.value)}
-                    className="mt-1"
-                  />
+              <div className="space-y-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Nome Completo</label>
+                    <Input
+                      value={editFullName}
+                      onChange={(e) => setEditFullName(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Telefone</label>
+                    <Input
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Cidade</label>
+                    <Input
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Estado</label>
+                    <Input
+                      value={editState}
+                      onChange={(e) => setEditState(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">País</label>
+                    <Input
+                      value={editCountry}
+                      onChange={(e) => setEditCountry(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Ocupação</label>
+                    <Select value={editOccupation} onValueChange={setEditOccupation}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="empresario">Empresário</SelectItem>
+                        <SelectItem value="autonomo">Autônomo</SelectItem>
+                        <SelectItem value="funcionario">Funcionário</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Telefone</label>
-                  <Input
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
+                  <label className="text-sm font-medium text-gray-700">Bio</label>
+                  <Textarea
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="Conte um pouco sobre você..."
                     className="mt-1"
+                    rows={3}
                   />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Cidade</label>
-                  <Input
-                    value={editCity}
-                    onChange={(e) => setEditCity(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Estado</label>
-                  <Input
-                    value={editState}
-                    onChange={(e) => setEditState(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">País</label>
-                  <Input
-                    value={editCountry}
-                    onChange={(e) => setEditCountry(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Ocupação</label>
-                  <Select value={editOccupation} onValueChange={setEditOccupation}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="empresario">Empresário</SelectItem>
-                      <SelectItem value="autonomo">Autônomo</SelectItem>
-                      <SelectItem value="funcionario">Funcionário</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             ) : (

@@ -11,10 +11,11 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
+import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
 
 const Profile = () => {
   const { projects, deleteProject } = useCarouselProjects();
-  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const { profile, loading: profileLoading, updateProfile, uploadAvatar } = useProfile();
   const { signOut, user } = useAuth();
 
   const handleDeleteProject = (projectId: string) => {
@@ -76,13 +77,14 @@ const Profile = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Profile Header */}
-        <ProfileHeader profile={profile} updateProfile={updateProfile} />
+        <ProfileHeader profile={profile} updateProfile={updateProfile} uploadAvatar={uploadAvatar} />
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="projects">Meus Projetos ({projects.length})</TabsTrigger>
+            <TabsTrigger value="photos">Fotos</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
           </TabsList>
 
@@ -94,6 +96,11 @@ const Profile = () => {
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-6">
             <ProfileProjects projects={projects} onDeleteProject={handleDeleteProject} />
+          </TabsContent>
+
+          {/* Photos Tab */}
+          <TabsContent value="photos" className="space-y-6">
+            <ProfilePhotos />
           </TabsContent>
 
           {/* Achievements Tab */}
