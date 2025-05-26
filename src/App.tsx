@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import EmailVerification from "./pages/EmailVerification";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
+import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import CarouselGenerator from "./pages/CarouselGenerator";
 import CarouselCreator from "./pages/CarouselCreator";
@@ -44,6 +46,12 @@ const App: React.FC = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/public-profile/:userId" element={<PublicProfile />} />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } />
             <Route path="/pricing" element={<Pricing />} />

@@ -1,27 +1,44 @@
 
-import { Brain, Settings, Loader2 } from "lucide-react";
+import { Brain, Settings, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { useCarouselProjects } from "@/hooks/useCarouselProjects";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfilePhotos } from "@/hooks/useProfilePhotos";
 import { toast } from "sonner";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
+import { ProfileOverviewPhotos } from "@/components/profile/ProfileOverviewPhotos";
+import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
+import { useState } from "react";
 
 const Profile = () => {
   const { projects, deleteProject } = useCarouselProjects();
   const { profile, loading: profileLoading, updateProfile, uploadAvatar } = useProfile();
+  const { photos, uploadPhoto } = useProfilePhotos();
   const { signOut, user } = useAuth();
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Tem certeza que deseja excluir este projeto?")) {
       deleteProject(projectId);
       toast("Projeto excluído com sucesso!");
+    }
+  };
+
+  const handlePhotoUpload = async (file: File, caption: string) => {
+    const { error } = await uploadPhoto(file, caption);
+    
+    if (error) {
+      toast.error("Erro ao fazer upload da foto");
+    } else {
+      toast.success("Foto adicionada com sucesso!");
+      setPhotoDialogOpen(false);
     }
   };
 
@@ -64,10 +81,12 @@ const Profile = () => {
             <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
           </Link>
           <div className="flex items-center space-x-2">
-            <Button variant="outline">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
+            <Link to="/settings">
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Configurações
+              </Button>
+            </Link>
             <Button variant="outline" onClick={signOut}>
               Sair
             </Button>
@@ -78,6 +97,28 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Profile Header */}
         <ProfileHeader profile={profile} updateProfile={updateProfile} uploadAvatar={uploadAvatar} />
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 mb-8">
+          <Link to="/carousel-generator">
+            <Button className="bg-purple-600 hover:bg-purple-700">
+              Criar Carrossel
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            onClick={() => setPhotoDialogOpen(true)}
+            className="border-purple-600 text-purple-600"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Foto
+          </Button>
+          <Link to="/financial-management">
+            <Button variant="outline">
+              Gestão Financeira
+            </Button>
+          </Link>
+        </div>
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
@@ -91,6 +132,7 @@ const Profile = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <ProfileStats projectsCount={projects.length} />
+            <ProfileOverviewPhotos photos={photos} />
           </TabsContent>
 
           {/* Projects Tab */}
@@ -108,6 +150,13 @@ const Profile = () => {
             <ProfileAchievements profile={profile} projectsCount={projects.length} />
           </TabsContent>
         </Tabs>
+
+        {/* Photo Upload Dialog */}
+        <PhotoUploadDialog 
+          open={photoDialogOpen}
+          onOpenChange={setPhotoDialogOpen}
+          onUpload={handlePhotoUpload}
+        />
       </div>
     </div>
   );
