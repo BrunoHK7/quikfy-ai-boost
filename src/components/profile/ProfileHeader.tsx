@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Edit3, MapPin, Calendar, MessageSquare, Loader2 } from "lucide-react";
-import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
 
 interface ProfileHeaderProps {
@@ -19,7 +18,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Form states for editing
+  // Form states for editing with fallback values
   const [editFullName, setEditFullName] = useState(profile?.full_name || "");
   const [editPhone, setEditPhone] = useState(profile?.phone || "");
   const [editCity, setEditCity] = useState(profile?.city || "");
@@ -66,6 +65,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
   };
 
   const getOccupationLabel = (occupation: string) => {
+    if (!occupation) return 'Não informado';
     switch (occupation) {
       case 'empresario':
         return 'Empresário';
@@ -78,6 +78,11 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
     }
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
     <Card className="mb-8">
       <CardContent className="p-8">
@@ -88,7 +93,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
               <Avatar className="w-32 h-32">
                 <AvatarImage src="/placeholder.svg" />
                 <AvatarFallback className="bg-purple-100 text-purple-600 text-2xl">
-                  {profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>
               <button className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors">
@@ -101,7 +106,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
           {/* Profile Info */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl font-bold text-gray-900">{profile.full_name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{profile.full_name || 'Usuário'}</h1>
               <Button 
                 onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
                 variant="outline"
@@ -182,7 +187,7 @@ export const ProfileHeader = ({ profile, updateProfile }: ProfileHeaderProps) =>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="flex items-center text-gray-600">
                   <MapPin className="w-4 h-4 mr-2" />
-                  {profile.city}, {profile.state}, {profile.country}
+                  {profile.city || 'Cidade'}, {profile.state || 'Estado'}, {profile.country || 'País'}
                 </div>
                 <div className="flex items-center text-gray-600">
                   <Calendar className="w-4 h-4 mr-2" />

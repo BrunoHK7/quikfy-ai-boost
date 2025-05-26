@@ -15,7 +15,7 @@ import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 const Profile = () => {
   const { projects, deleteProject } = useCarouselProjects();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Tem certeza que deseja excluir este projeto?")) {
@@ -23,6 +23,13 @@ const Profile = () => {
       toast("Projeto excluído com sucesso!");
     }
   };
+
+  console.log('Profile component state:', { 
+    user: user?.email, 
+    profile: profile?.full_name, 
+    profileLoading, 
+    projectsCount: projects.length 
+  });
 
   if (profileLoading) {
     return (
