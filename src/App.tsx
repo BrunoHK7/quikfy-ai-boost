@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Pricing from "./pages/Pricing";
 import CarouselGenerator from "./pages/CarouselGenerator";
+import CarouselCreator from "./pages/CarouselCreator";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
 import NotFound from "./pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/carousel-generator" element={<CarouselGenerator />} />
+          <Route path="/carousel-creator" element={<CarouselCreator />} />
           <Route path="/podcasts" element={<Podcasts />} />
           <Route path="/content-feed" element={<ContentFeed />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
