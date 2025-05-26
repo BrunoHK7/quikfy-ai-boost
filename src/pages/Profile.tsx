@@ -1,3 +1,4 @@
+
 import { Brain, Settings, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +13,6 @@ import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
-import { ProfileOverviewPhotos } from "@/components/profile/ProfileOverviewPhotos";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
 import { useState } from "react";
 
@@ -97,23 +97,6 @@ const Profile = () => {
         {/* Profile Header */}
         <ProfileHeader profile={profile} updateProfile={updateProfile} uploadAvatar={uploadAvatar} />
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <Link to="/carousel-generator">
-            <Button className="bg-purple-600 hover:bg-purple-700">
-              Criar Carrossel
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            onClick={() => setPhotoDialogOpen(true)}
-            className="border-purple-600 text-purple-600"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Foto
-          </Button>
-        </div>
-
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
@@ -126,7 +109,6 @@ const Profile = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <ProfileStats projectsCount={projects.length} />
-            <ProfileOverviewPhotos photos={photos} />
           </TabsContent>
 
           {/* Projects Tab */}

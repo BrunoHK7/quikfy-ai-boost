@@ -1,9 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, ImageIcon, MessageSquare, TrendingUp } from "lucide-react";
+import { DollarSign, ImageIcon, MessageSquare, TrendingUp, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFinancialData } from "@/hooks/useFinancialData";
+import { useState } from "react";
+import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
+import { useProfilePhotos } from "@/hooks/useProfilePhotos";
+import { toast } from "sonner";
 
 interface ProfileStatsProps {
   projectsCount: number;
@@ -11,12 +15,25 @@ interface ProfileStatsProps {
 
 export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
   const { getTotalRevenue, getCurrentMonthRevenue, loading } = useFinancialData();
+  const { uploadPhoto } = useProfilePhotos();
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const handlePhotoUpload = async (file: File, caption: string) => {
+    const { error } = await uploadPhoto(file, caption);
+    
+    if (error) {
+      toast.error("Erro ao fazer upload da foto");
+    } else {
+      toast.success("Foto adicionada com sucesso!");
+      setPhotoDialogOpen(false);
+    }
   };
 
   return (
@@ -54,19 +71,6 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
             </Link>
           </CardContent>
         </Card>
-
-        {/* Profile Photos Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fotos do Perfil</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-4">
-              <p className="text-gray-500 mb-4">Suas fotos aparecerão aqui</p>
-              <p className="text-sm text-gray-400">Veja na aba "Fotos" para gerenciar suas imagens</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Action Buttons & Achievements */}
@@ -83,12 +87,14 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
                 Criar Carrossel
               </Button>
             </Link>
-            <Link to="/financial-management">
-              <Button variant="outline" className="w-full border-green-600 text-green-600 hover:bg-green-50">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Gestão Financeira
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setPhotoDialogOpen(true)}
+              variant="outline" 
+              className="w-full border-purple-600 text-purple-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Foto
+            </Button>
             <Button variant="outline" className="w-full">
               <MessageSquare className="w-4 h-4 mr-2" />
               Criar Post
@@ -119,6 +125,13 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Photo Upload Dialog */}
+      <PhotoUploadDialog 
+        open={photoDialogOpen}
+        onOpenChange={setPhotoDialogOpen}
+        onUpload={handlePhotoUpload}
+      />
     </div>
   );
 };
