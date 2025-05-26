@@ -39,7 +39,7 @@ export const useProfile = () => {
     try {
       console.log('Fetching profile for user:', user.id);
       
-      // Try to fetch existing profile
+      // Try to fetch existing profile with all fields including show_public_profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -54,7 +54,12 @@ export const useProfile = () => {
 
       if (data) {
         console.log('Profile found:', data);
-        setProfile(data);
+        // Ensure show_public_profile has a default value if it's null
+        const profileData = {
+          ...data,
+          show_public_profile: data.show_public_profile ?? false
+        };
+        setProfile(profileData);
       } else {
         console.log('No profile found, creating new profile');
         // Create a new profile if none exists
@@ -68,7 +73,8 @@ export const useProfile = () => {
           occupation: user.user_metadata?.occupation || '',
           bio: '',
           avatar_url: '',
-          role: 'free' as const
+          role: 'free' as const,
+          show_public_profile: false
         };
 
         const { data: createdProfile, error: createError } = await supabase
