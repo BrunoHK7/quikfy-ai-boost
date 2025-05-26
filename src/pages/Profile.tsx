@@ -1,4 +1,3 @@
-
 import { Brain, Settings, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,11 +112,6 @@ const Profile = () => {
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Foto
           </Button>
-          <Link to="/financial-management">
-            <Button variant="outline">
-              Gestão Financeira
-            </Button>
-          </Link>
         </div>
 
         {/* Tabs for Profile Content */}

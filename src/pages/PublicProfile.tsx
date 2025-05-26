@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Brain, MapPin, Calendar, MessageSquare, ArrowLeft } from "lucide-react";
@@ -20,7 +19,6 @@ interface PublicProfileData {
   occupation: string;
   role: string;
   created_at: string;
-  show_public_profile: boolean;
 }
 
 interface Photo {
@@ -47,7 +45,7 @@ const PublicProfile = () => {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, bio, avatar_url, city, state, country, occupation, role, created_at')
         .eq('id', id)
         .eq('show_public_profile', true)
         .single();
