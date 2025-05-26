@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Brain, ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,16 +8,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useTranslation } from "@/contexts/TranslationContext";
 import { toast } from "sonner";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const { profile, updateProfile } = useProfile();
+  const { preferences, updatePreferences } = useUserPreferences();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   
   // Settings state
   const [showPublicProfile, setShowPublicProfile] = useState(false);
   const [language, setLanguage] = useState("pt");
+  const [theme, setTheme] = useState("light");
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
 
@@ -24,22 +30,33 @@ const Settings = () => {
     if (profile) {
       setShowPublicProfile(profile.show_public_profile || false);
     }
-  }, [profile]);
+    if (preferences) {
+      setLanguage(preferences.language || "pt");
+      setTheme(preferences.theme || "light");
+    }
+  }, [profile, preferences]);
 
   const handleSaveSettings = async () => {
     setLoading(true);
     try {
-      const { error } = await updateProfile({
+      // Update profile settings
+      const profileResult = await updateProfile({
         show_public_profile: showPublicProfile,
       });
 
-      if (error) {
-        toast.error("Erro ao salvar configurações");
+      // Update user preferences
+      const preferencesResult = await updatePreferences({
+        language,
+        theme,
+      });
+
+      if (profileResult.error || preferencesResult.error) {
+        toast.error(t('message.error'));
       } else {
-        toast.success("Configurações salvas com sucesso!");
+        toast.success(t('message.settingsSaved'));
       }
     } catch (error) {
-      toast.error("Erro inesperado ao salvar configurações");
+      toast.error(t('message.error'));
     } finally {
       setLoading(false);
     }
@@ -48,7 +65,6 @@ const Settings = () => {
   const handleDeleteAccount = async () => {
     if (confirm("Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.")) {
       try {
-        // In a real app, you would call a server function to delete the account
         toast.error("Funcionalidade em desenvolvimento. Entre em contato com o suporte.");
       } catch (error) {
         toast.error("Erro ao excluir conta");
@@ -64,18 +80,18 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-2xl font-bold text-foreground">QUIKFY</span>
           </Link>
           <Link to="/profile">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar ao Perfil
+              {t('nav.profile')}
             </Button>
           </Link>
         </div>
@@ -83,22 +99,22 @@ const Settings = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Configurações</h1>
-          <p className="text-gray-600">Gerencie suas preferências e configurações de conta</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('settings.title')}</h1>
+          <p className="text-muted-foreground">Gerencie suas preferências e configurações de conta</p>
         </div>
 
         <div className="space-y-6">
           {/* Privacy Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Privacidade</CardTitle>
+              <CardTitle>{t('settings.privacy')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <div className="text-base">Perfil Público</div>
-                  <div className="text-sm text-gray-500">
-                    Permite que outros usuários vejam seu perfil publicamente
+                  <div className="text-base">{t('settings.publicProfile')}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('settings.publicProfileDesc')}
                   </div>
                 </div>
                 <Switch
@@ -108,9 +124,9 @@ const Settings = () => {
               </div>
               
               {showPublicProfile && getPublicProfileUrl() && (
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-700 mb-2">Seu perfil público está disponível em:</p>
-                  <p className="text-sm font-mono bg-white p-2 rounded border break-all">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-300 mb-2">Seu perfil público está disponível em:</p>
+                  <p className="text-sm font-mono bg-white dark:bg-gray-800 p-2 rounded border break-all">
                     {getPublicProfileUrl()}
                   </p>
                 </div>
@@ -121,14 +137,14 @@ const Settings = () => {
           {/* Language Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Idioma</CardTitle>
+              <CardTitle>{t('settings.language')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <div className="text-base">Idioma da Interface</div>
-                  <div className="text-sm text-gray-500">
-                    Escolha o idioma da aplicação
+                  <div className="text-base">{t('settings.language')}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('settings.languageDesc')}
                   </div>
                 </div>
                 <Select value={language} onValueChange={setLanguage}>
@@ -136,9 +152,35 @@ const Settings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pt">Português (BR)</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="pt">{t('language.portuguese')}</SelectItem>
+                    <SelectItem value="en">{t('language.english')}</SelectItem>
+                    <SelectItem value="es">{t('language.spanish')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.theme')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-base">{t('settings.theme')}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('settings.themeDesc')}
+                  </div>
+                </div>
+                <Select value={theme} onValueChange={setTheme}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">{t('theme.light')}</SelectItem>
+                    <SelectItem value="dark">{t('theme.dark')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -148,14 +190,14 @@ const Settings = () => {
           {/* Notification Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Notificações</CardTitle>
+              <CardTitle>{t('settings.notifications')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <div className="text-base">Notificações por Email</div>
-                  <div className="text-sm text-gray-500">
-                    Receba atualizações importantes por email
+                  <div className="text-base">{t('settings.emailNotifications')}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('settings.emailNotificationsDesc')}
                   </div>
                 </div>
                 <Switch
@@ -166,9 +208,9 @@ const Settings = () => {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <div className="text-base">Emails de Marketing</div>
-                  <div className="text-sm text-gray-500">
-                    Receba novidades e ofertas especiais
+                  <div className="text-base">{t('settings.marketingEmails')}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t('settings.marketingEmailsDesc')}
                   </div>
                 </div>
                 <Switch
@@ -182,18 +224,18 @@ const Settings = () => {
           {/* Account Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Conta</CardTitle>
+              <CardTitle>{t('settings.account')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
                   <div className="text-base mb-2">Email da Conta</div>
-                  <div className="text-sm text-gray-500">{user?.email}</div>
+                  <div className="text-sm text-muted-foreground">{user?.email}</div>
                 </div>
                 
                 <div className="border-t pt-4">
-                  <div className="text-base text-red-600 mb-2">Zona de Perigo</div>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <div className="text-base text-red-600 mb-2">{t('settings.dangerZone')}</div>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Ações irreversíveis relacionadas à sua conta
                   </p>
                   <Button 
@@ -201,7 +243,7 @@ const Settings = () => {
                     onClick={handleDeleteAccount}
                     size="sm"
                   >
-                    Excluir Conta
+                    {t('settings.deleteAccount')}
                   </Button>
                 </div>
               </div>
@@ -218,12 +260,12 @@ const Settings = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
+                  {t('message.saving')}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Salvar Configurações
+                  {t('settings.saveSettings')}
                 </>
               )}
             </Button>

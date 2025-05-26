@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TranslationProvider } from "@/contexts/TranslationContext";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -31,59 +33,70 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent: React.FC = () => {
+  const { preferences } = useUserPreferences();
+  const currentLanguage = (preferences?.language || 'pt') as 'pt' | 'en' | 'es';
+
+  return (
+    <TranslationProvider language={currentLanguage}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/email-verification" element={<EmailVerification />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/public-profile/:userId" element={<PublicProfile />} />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/carousel-generator" element={
+            <ProtectedRoute requiresPremium={true}>
+              <CarouselGenerator />
+            </ProtectedRoute>
+          } />
+          <Route path="/carousel-creator" element={
+            <ProtectedRoute>
+              <CarouselCreator />
+            </ProtectedRoute>
+          } />
+          <Route path="/financial-management" element={
+            <ProtectedRoute>
+              <FinancialManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/podcasts" element={
+            <ProtectedRoute requiresPremium={true}>
+              <Podcasts />
+            </ProtectedRoute>
+          } />
+          <Route path="/content-feed" element={
+            <ProtectedRoute requiresPremium={true}>
+              <ContentFeed />
+            </ProtectedRoute>
+          } />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TranslationProvider>
+  );
+};
+
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/email-verification" element={<EmailVerification />} />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/public-profile/:userId" element={<PublicProfile />} />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/carousel-generator" element={
-              <ProtectedRoute requiresPremium={true}>
-                <CarouselGenerator />
-              </ProtectedRoute>
-            } />
-            <Route path="/carousel-creator" element={
-              <ProtectedRoute>
-                <CarouselCreator />
-              </ProtectedRoute>
-            } />
-            <Route path="/financial-management" element={
-              <ProtectedRoute>
-                <FinancialManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/podcasts" element={
-              <ProtectedRoute requiresPremium={true}>
-                <Podcasts />
-              </ProtectedRoute>
-            } />
-            <Route path="/content-feed" element={
-              <ProtectedRoute requiresPremium={true}>
-                <ContentFeed />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AppContent />
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
