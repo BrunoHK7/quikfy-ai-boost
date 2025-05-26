@@ -54,12 +54,7 @@ export const useProfile = () => {
 
       if (data) {
         console.log('Profile found:', data);
-        // Ensure show_public_profile has a default value if it's null
-        const profileData = {
-          ...data,
-          show_public_profile: data.show_public_profile ?? false
-        };
-        setProfile(profileData);
+        setProfile(data);
       } else {
         console.log('No profile found, creating new profile');
         // Create a new profile if none exists

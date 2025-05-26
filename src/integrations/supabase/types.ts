@@ -120,6 +120,7 @@ export type Database = {
           occupation: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          show_public_profile: boolean
           state: string | null
           updated_at: string
         }
@@ -134,6 +135,7 @@ export type Database = {
           occupation?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          show_public_profile?: boolean
           state?: string | null
           updated_at?: string
         }
@@ -148,6 +150,7 @@ export type Database = {
           occupation?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          show_public_profile?: boolean
           state?: string | null
           updated_at?: string
         }
