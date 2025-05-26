@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,9 +14,7 @@ import {
   Save, 
   Plus, 
   Trash2, 
-  Move,
   Type,
-  Palette,
   Settings,
   Eye,
   Upload,
@@ -25,16 +24,13 @@ import {
   Bold,
   Italic,
   Underline,
-  Home,
   Menu,
-  X,
-  PenTool
+  X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { useCarouselProjects, CarouselProject, CarouselFrame, CarouselElement } from "@/hooks/useCarouselProjects";
+import { useCarouselProjects, CarouselProject, CarouselFrame } from "@/hooks/useCarouselProjects";
 import { downloadFramesAsZip } from "@/utils/carouselExport";
-import { GraphicElementsPicker } from "@/components/carousel/GraphicElementsPicker";
 import { EmojiPicker } from "@/components/carousel/EmojiPicker";
 
 const CarouselCreator = () => {
@@ -149,13 +145,6 @@ const CarouselCreator = () => {
     toast("Quadro excluído!");
   };
 
-  const addElement = (element: CarouselElement) => {
-    updateActiveFrame({
-      elements: [...activeFrame.elements, element]
-    });
-    toast("Elemento adicionado!");
-  };
-
   const handleEmojiSelect = (emoji: string) => {
     if (textareaRef.current) {
       const textarea = textareaRef.current;
@@ -224,14 +213,19 @@ const CarouselCreator = () => {
     }
   };
 
-  const getMarginStyle = () => {
-    if (!project.marginEnabled) return {};
-    
-    const scaleFactor = 400 / 1080; // Scale margin for preview
-    const scaledMargin = project.marginSize * scaleFactor;
+  const getContentAreaStyle = () => {
+    const dimensions = getDimensions();
+    const scaleFactor = dimensions.width / 1080;
+    const scaledMargin = project.marginEnabled ? project.marginSize * scaleFactor : 0;
     
     return {
-      padding: `${scaledMargin}px`
+      padding: `${scaledMargin}px`,
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxSizing: 'border-box' as const
     };
   };
 
@@ -566,58 +560,32 @@ const CarouselCreator = () => {
                     style={{
                       width: getDimensions().width,
                       height: getDimensions().height,
-                      backgroundColor: activeFrame.backgroundColor,
-                      ...getMarginStyle()
+                      backgroundColor: activeFrame.backgroundColor
                     }}
                   >
-                    {/* Área de Texto */}
-                    <div
-                      className="absolute inset-0 flex items-center justify-center"
-                      style={{
-                        fontFamily: project.fontFamily,
-                        fontSize: `${activeFrame.fontSize}px`,
-                        color: activeFrame.textColor,
-                        textAlign: activeFrame.textAlign,
-                        lineHeight: activeFrame.lineHeight,
-                        letterSpacing: `${activeFrame.letterSpacing}px`,
-                        fontWeight: activeFrame.isBold ? 'bold' : 'normal',
-                        fontStyle: activeFrame.isItalic ? 'italic' : 'normal',
-                        textDecoration: activeFrame.isUnderline ? 'underline' : 'none'
-                      }}
-                    >
-                      <div className="w-full h-full flex items-center justify-center text-center p-4">
-                        {activeFrame.text}
-                      </div>
-                    </div>
-
-                    {/* Elementos Gráficos */}
-                    {activeFrame.elements.map((element) => (
+                    {/* Área de Texto com Margem */}
+                    <div style={getContentAreaStyle()}>
                       <div
-                        key={element.id}
-                        className="absolute"
+                        className="w-full h-full flex items-center"
                         style={{
-                          left: element.x,
-                          top: element.y,
-                          width: element.width,
-                          height: element.height,
-                          backgroundColor: element.type === 'shape' ? element.color : 'transparent'
+                          fontFamily: project.fontFamily,
+                          fontSize: `${activeFrame.fontSize}px`,
+                          color: activeFrame.textColor,
+                          textAlign: activeFrame.textAlign,
+                          lineHeight: activeFrame.lineHeight,
+                          letterSpacing: `${activeFrame.letterSpacing}px`,
+                          fontWeight: activeFrame.isBold ? 'bold' : 'normal',
+                          fontStyle: activeFrame.isItalic ? 'italic' : 'normal',
+                          textDecoration: activeFrame.isUnderline ? 'underline' : 'none',
+                          justifyContent: activeFrame.textAlign === 'left' ? 'flex-start' : 
+                                          activeFrame.textAlign === 'right' ? 'flex-end' : 'center'
                         }}
                       >
-                        {element.type === 'image' && element.src && (
-                          <img
-                            src={element.src}
-                            alt="Element"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                        {element.type === 'shape' && element.shape === 'circle' && (
-                          <div
-                            className="w-full h-full rounded-full"
-                            style={{ backgroundColor: element.color }}
-                          />
-                        )}
+                        <div className="w-full">
+                          {activeFrame.text}
+                        </div>
                       </div>
-                    ))}
+                    </div>
 
                     {/* Assinatura */}
                     {project.signatureImage && (
@@ -783,9 +751,6 @@ const CarouselCreator = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Elementos Gráficos */}
-            <GraphicElementsPicker onAddElement={addElement} />
           </div>
         </div>
       </div>
