@@ -4,18 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit3, Trash2, ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Project {
-  id: string;
-  name: string;
-  frames: any[];
-  dimensions: string;
-  createdAt: string;
-  fontFamily: string;
-}
+import { CarouselProject } from "@/hooks/useCarouselProjects";
 
 interface ProfileProjectsProps {
-  projects: Project[];
+  projects: CarouselProject[];
   onDeleteProject: (projectId: string) => void;
 }
 
@@ -78,7 +70,7 @@ export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsPr
                 </div>
                 
                 <div className="text-xs text-gray-500 mb-4">
-                  Criado em {new Date(project.createdAt).toLocaleDateString('pt-BR')}
+                  Criado em {project.createdAt.toLocaleDateString('pt-BR')}
                 </div>
                 
                 <div className="flex space-x-2">
