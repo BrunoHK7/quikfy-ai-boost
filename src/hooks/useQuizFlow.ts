@@ -331,33 +331,25 @@ const cleanTextForJson = (text: string): string => {
 const formatBriefingText = (data: BriefingData): string => {
   const stepList = data.content.step_by_step
     .map((step, index) => `${index + 1}. ${cleanTextForJson(step)}`)
-    .join('\n');
+    .join('|');
   
-  let briefingText = `Objetivo: ${cleanTextForJson(data.objective)}
-Estilo de comunicação: ${cleanTextForJson(data.communication_style)}
-Vetor emocional: ${cleanTextForJson(data.emotional_vector)}
-Emoção principal: ${cleanTextForJson(data.main_emotion)}
-Tópico: ${cleanTextForJson(data.content.main_topic)}
-História ou resultado: ${cleanTextForJson(data.content.results_or_story)}
-Contraste: ${cleanTextForJson(data.content.contrast)}
-Passos:
-${stepList}`;
+  let briefingText = `Objetivo: ${cleanTextForJson(data.objective)}|Estilo de comunicação: ${cleanTextForJson(data.communication_style)}|Vetor emocional: ${cleanTextForJson(data.emotional_vector)}|Emoção principal: ${cleanTextForJson(data.main_emotion)}|Tópico: ${cleanTextForJson(data.content.main_topic)}|História ou resultado: ${cleanTextForJson(data.content.results_or_story)}|Contraste: ${cleanTextForJson(data.content.contrast)}|Passos: ${stepList}`;
 
   // Add conditional fields if they exist
   if (data.content.lead_magnet) {
-    briefingText += `\nLead magnet: ${cleanTextForJson(data.content.lead_magnet)}`;
+    briefingText += `|Lead magnet: ${cleanTextForJson(data.content.lead_magnet)}`;
   }
   
   if (data.content.lead_access_method) {
-    briefingText += `\nMétodo de acesso: ${cleanTextForJson(data.content.lead_access_method)}`;
+    briefingText += `|Método de acesso: ${cleanTextForJson(data.content.lead_access_method)}`;
   }
   
   if (data.content.product) {
-    briefingText += `\nProduto: ${cleanTextForJson(data.content.product)}`;
+    briefingText += `|Produto: ${cleanTextForJson(data.content.product)}`;
   }
   
   if (data.content.buy_method) {
-    briefingText += `\nMétodo de compra: ${cleanTextForJson(data.content.buy_method)}`;
+    briefingText += `|Método de compra: ${cleanTextForJson(data.content.buy_method)}`;
   }
 
   return briefingText;
@@ -421,15 +413,10 @@ export const useQuizFlow = () => {
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         mode: 'no-cors',
-        body: JSON.stringify({
-          briefing: briefingText,
-          user_id: data.user_id,
-          project_id: data.project_id,
-          created_at: data.created_at
-        }),
+        body: briefingText,
       });
 
       console.log('Dados enviados com sucesso para o webhook');
