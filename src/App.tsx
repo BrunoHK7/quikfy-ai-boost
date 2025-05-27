@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,7 +16,6 @@ import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
-import CarouselGenerator from "./pages/CarouselGenerator";
 import CarouselCreator from "./pages/CarouselCreator";
 import CarouselBriefing from "./pages/CarouselBriefing";
 import Podcasts from "./pages/Podcasts";
@@ -60,7 +58,7 @@ const AppContent: React.FC = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/carousel-generator" element={
             <ProtectedRoute requiresPremium={true}>
-              <CarouselGenerator />
+              <CarouselBriefing />
             </ProtectedRoute>
           } />
           <Route path="/carousel-creator" element={
