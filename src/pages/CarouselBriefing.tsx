@@ -17,13 +17,15 @@ const CarouselBriefing: React.FC = () => {
     totalQuestions,
     answers,
     isCompleted,
+    isSubmitting,
     handleAnswer,
     goToPreviousQuestion,
-    questions
+    questions,
+    briefingData
   } = useQuizFlow();
 
   if (isCompleted) {
-    return <QuizResults answers={answers} />;
+    return <QuizResults answers={answers} briefingData={briefingData} />;
   }
 
   const question = questions[currentQuestionIndex];
@@ -34,15 +36,18 @@ const CarouselBriefing: React.FC = () => {
         {/* Header with progress */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              onClick={goToPreviousQuestion}
-              disabled={currentQuestionIndex === 0}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={goToPreviousQuestion}
+                disabled={currentQuestionIndex === 0}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">Carrossel 10X</h1>
+            </div>
             <span className="text-sm text-muted-foreground">
               {currentQuestionIndex + 1} de {totalQuestions}
             </span>
@@ -76,6 +81,7 @@ const CarouselBriefing: React.FC = () => {
                 placeholder={question.placeholder || "Digite sua resposta aqui..."}
                 onSubmit={(value) => handleAnswer(question.id, value)}
                 value={answers[question.id] || ''}
+                disabled={isSubmitting}
               />
             )}
           </CardContent>

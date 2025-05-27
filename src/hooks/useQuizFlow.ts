@@ -1,5 +1,7 @@
 
 import { useState, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface Question {
   id: string;
@@ -15,6 +17,28 @@ interface Question {
     dependsOn: string;
     value: string;
   };
+}
+
+interface BriefingData {
+  objective: string;
+  communication_style: string;
+  swearing_permission: string;
+  emotional_vector: string;
+  tone_of_voice: string;
+  main_emotion: string;
+  content: {
+    main_topic: string;
+    results_or_story: string;
+    contrast: string;
+    step_by_step: string[];
+    lead_magnet: string | null;
+    lead_access_method: string | null;
+    product: string | null;
+    buy_method: string | null;
+  };
+  user_id: string;
+  project_id: string;
+  created_at: string;
 }
 
 const questions: Question[] = [
@@ -276,9 +300,19 @@ const questions: Question[] = [
   }
 ];
 
+const mapAnswerToLabel = (questionId: string, answerId: string): string => {
+  const question = questions.find(q => q.id === questionId);
+  if (!question || !question.options) return answerId;
+  
+  const option = question.options.find(opt => opt.id === answerId);
+  return option ? option.title : answerId;
+};
+
 export const useQuizFlow = () => {
+  const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter questions based on conditional logic
   const filteredQuestions = useMemo(() => {
@@ -293,8 +327,94 @@ export const useQuizFlow = () => {
   const currentQuestion = filteredQuestions[currentQuestionIndex];
   const isCompleted = currentQuestionIndex >= filteredQuestions.length;
 
-  const handleAnswer = (questionId: string, answer: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  const formatBriefingData = (): BriefingData => {
+    const stepByStepText = answers.passoAPasso || '';
+    const stepByStepArray = stepByStepText
+      .split(/\n|,/)
+      .map(step => step.trim())
+      .filter(step => step.length > 0);
+
+    return {
+      objective: mapAnswerToLabel('objetivo', answers.objetivo),
+      communication_style: mapAnswerToLabel('estiloComunicacao', answers.estiloComunicacao),
+      swearing_permission: mapAnswerToLabel('palavroes', answers.palavroes),
+      emotional_vector: mapAnswerToLabel('vetorEmocional', answers.vetorEmocional),
+      tone_of_voice: mapAnswerToLabel('tomFala', answers.tomFala),
+      main_emotion: mapAnswerToLabel('emocao', answers.emocao),
+      content: {
+        main_topic: answers.assunto || '',
+        results_or_story: answers.resultados || '',
+        contrast: answers.contraste || '',
+        step_by_step: stepByStepArray,
+        lead_magnet: answers.iscaDigital || null,
+        lead_access_method: answers.acessoIsca || null,
+        product: answers.produto || null,
+        buy_method: answers.comoComprar || null,
+      },
+      user_id: user?.id || '',
+      project_id: `project_${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+  };
+
+  const sendToWebhook = async (data: BriefingData) => {
+    try {
+      console.log('Enviando dados para o webhook:', data);
+      
+      const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors',
+        body: JSON.stringify(data),
+      });
+
+      console.log('Dados enviados com sucesso para o webhook');
+      
+      toast({
+        title: "Briefing Enviado!",
+        description: "Seu briefing foi enviado com sucesso para processamento.",
+      });
+    } catch (error) {
+      console.error('Erro ao enviar para o webhook:', error);
+      
+      toast({
+        title: "Erro no Envio",
+        description: "Houve um erro ao enviar o briefing. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAnswer = async (questionId: string, answer: string) => {
+    const newAnswers = { ...answers, [questionId]: answer };
+    setAnswers(newAnswers);
+    
+    // Check if this is the last question
+    const nextIndex = currentQuestionIndex + 1;
+    if (nextIndex >= filteredQuestions.length) {
+      // Quiz completed, send to webhook
+      setIsSubmitting(true);
+      const briefingData = formatBriefingData();
+      briefingData.content = {
+        ...briefingData.content,
+        [questionId === 'passoAPasso' ? 'step_by_step' : 
+         questionId === 'assunto' ? 'main_topic' :
+         questionId === 'resultados' ? 'results_or_story' :
+         questionId === 'contraste' ? 'contrast' :
+         questionId === 'iscaDigital' ? 'lead_magnet' :
+         questionId === 'acessoIsca' ? 'lead_access_method' :
+         questionId === 'produto' ? 'product' :
+         questionId === 'comoComprar' ? 'buy_method' : questionId
+        ]: questionId === 'passoAPasso' 
+          ? answer.split(/\n|,/).map(step => step.trim()).filter(step => step.length > 0)
+          : answer
+      };
+      
+      await sendToWebhook(briefingData);
+      setIsSubmitting(false);
+    }
     
     // Auto-advance for multiple choice questions
     if (currentQuestion?.type === 'multiple') {
@@ -319,8 +439,10 @@ export const useQuizFlow = () => {
     totalQuestions: filteredQuestions.length,
     answers,
     isCompleted,
+    isSubmitting,
     handleAnswer,
     goToPreviousQuestion,
-    questions: filteredQuestions
+    questions: filteredQuestions,
+    briefingData: isCompleted ? formatBriefingData() : null
   };
 };
