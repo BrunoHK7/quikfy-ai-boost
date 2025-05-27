@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, CheckCircle } from 'lucide-react';
+import { StandardHeader } from '@/components/StandardHeader';
 import { useNavigate } from 'react-router-dom';
 
 interface BriefingData {
@@ -56,6 +56,12 @@ export const QuizResults: React.FC<QuizResultsProps> = ({ answers, briefingData 
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
+        <StandardHeader 
+          title="Carrossel 10X" 
+          backTo="/"
+          showBackButton={false}
+        />
+        
         <Card className="border-none shadow-lg">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">

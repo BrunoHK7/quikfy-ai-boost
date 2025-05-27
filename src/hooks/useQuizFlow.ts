@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -308,6 +307,39 @@ const mapAnswerToLabel = (questionId: string, answerId: string): string => {
   return option ? option.title : answerId;
 };
 
+const formatBriefingText = (data: BriefingData): string => {
+  const stepList = data.content.step_by_step.map((step, index) => `${index + 1}. ${step}`).join('\n');
+  
+  let briefingText = `Objetivo: ${data.objective}
+Estilo de comunicação: ${data.communication_style}
+Vetor emocional: ${data.emotional_vector}
+Emoção principal: ${data.main_emotion}
+Tópico: ${data.content.main_topic}
+História ou resultado: ${data.content.results_or_story}
+Contraste: ${data.content.contrast}
+Passos:
+${stepList}`;
+
+  // Add conditional fields if they exist
+  if (data.content.lead_magnet) {
+    briefingText += `\nLead magnet: ${data.content.lead_magnet}`;
+  }
+  
+  if (data.content.lead_access_method) {
+    briefingText += `\nMétodo de acesso: ${data.content.lead_access_method}`;
+  }
+  
+  if (data.content.product) {
+    briefingText += `\nProduto: ${data.content.product}`;
+  }
+  
+  if (data.content.buy_method) {
+    briefingText += `\nMétodo de compra: ${data.content.buy_method}`;
+  }
+
+  return briefingText;
+};
+
 export const useQuizFlow = () => {
   const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -361,13 +393,20 @@ export const useQuizFlow = () => {
     try {
       console.log('Enviando dados para o webhook:', data);
       
+      const briefingText = formatBriefingText(data);
+      
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         mode: 'no-cors',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          briefing: briefingText,
+          user_id: data.user_id,
+          project_id: data.project_id,
+          created_at: data.created_at
+        }),
       });
 
       console.log('Dados enviados com sucesso para o webhook');

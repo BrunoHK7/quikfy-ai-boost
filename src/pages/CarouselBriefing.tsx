@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { MultipleChoiceQuestion } from '@/components/quiz/MultipleChoiceQuestion';
 import { OpenQuestion } from '@/components/quiz/OpenQuestion';
 import { QuizResults } from '@/components/quiz/QuizResults';
+import { StandardHeader } from '@/components/StandardHeader';
 import { useQuizFlow } from '@/hooks/useQuizFlow';
 
 const CarouselBriefing: React.FC = () => {
@@ -33,33 +34,23 @@ const CarouselBriefing: React.FC = () => {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header with progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={goToPreviousQuestion}
-                disabled={currentQuestionIndex === 0}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Button>
-              <h1 className="text-2xl font-bold text-primary">Carrossel 10X</h1>
-            </div>
+        {/* Standard Header */}
+        <StandardHeader 
+          title="Carrossel 10X" 
+          backTo="/"
+          rightContent={
             <span className="text-sm text-muted-foreground">
               {currentQuestionIndex + 1} de {totalQuestions}
             </span>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
-            />
-          </div>
+          }
+        />
+        
+        {/* Progress bar */}
+        <div className="w-full bg-muted rounded-full h-2 mb-8">
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+          />
         </div>
 
         {/* Question content */}
