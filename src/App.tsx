@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import CarouselGenerator from "./pages/CarouselGenerator";
 import CarouselCreator from "./pages/CarouselCreator";
+import CarouselBriefing from "./pages/CarouselBriefing";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
 import FinancialManagement from "./pages/FinancialManagement";
@@ -65,6 +66,11 @@ const AppContent: React.FC = () => {
           <Route path="/carousel-creator" element={
             <ProtectedRoute>
               <CarouselCreator />
+            </ProtectedRoute>
+          } />
+          <Route path="/carousel-briefing" element={
+            <ProtectedRoute>
+              <CarouselBriefing />
             </ProtectedRoute>
           } />
           <Route path="/financial-management" element={
