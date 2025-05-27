@@ -307,34 +307,57 @@ const mapAnswerToLabel = (questionId: string, answerId: string): string => {
   return option ? option.title : answerId;
 };
 
-const formatBriefingText = (data: BriefingData): string => {
-  const stepList = data.content.step_by_step.map((step, index) => `${index + 1}. ${step}`).join('\n');
+// Function to clean text for JSON compatibility
+const cleanTextForJson = (text: string): string => {
+  if (!text) return '';
   
-  let briefingText = `Objetivo: ${data.objective}
-Estilo de comunicação: ${data.communication_style}
-Vetor emocional: ${data.emotional_vector}
-Emoção principal: ${data.main_emotion}
-Tópico: ${data.content.main_topic}
-História ou resultado: ${data.content.results_or_story}
-Contraste: ${data.content.contrast}
+  return text
+    .replace(/"/g, '') // Remove quotes
+    .replace(/'/g, '') // Remove single quotes
+    .replace(/`/g, '') // Remove backticks
+    .replace(/\{/g, '') // Remove opening braces
+    .replace(/\}/g, '') // Remove closing braces
+    .replace(/\[/g, '') // Remove opening brackets
+    .replace(/\]/g, '') // Remove closing brackets
+    .replace(/,/g, ' ') // Replace commas with spaces
+    .replace(/\\/g, '') // Remove backslashes
+    .replace(/\n/g, ' ') // Replace line breaks with spaces
+    .replace(/\r/g, ' ') // Replace carriage returns with spaces
+    .replace(/\t/g, ' ') // Replace tabs with spaces
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .trim(); // Remove leading/trailing spaces
+};
+
+const formatBriefingText = (data: BriefingData): string => {
+  const stepList = data.content.step_by_step
+    .map((step, index) => `${index + 1}. ${cleanTextForJson(step)}`)
+    .join('\n');
+  
+  let briefingText = `Objetivo: ${cleanTextForJson(data.objective)}
+Estilo de comunicação: ${cleanTextForJson(data.communication_style)}
+Vetor emocional: ${cleanTextForJson(data.emotional_vector)}
+Emoção principal: ${cleanTextForJson(data.main_emotion)}
+Tópico: ${cleanTextForJson(data.content.main_topic)}
+História ou resultado: ${cleanTextForJson(data.content.results_or_story)}
+Contraste: ${cleanTextForJson(data.content.contrast)}
 Passos:
 ${stepList}`;
 
   // Add conditional fields if they exist
   if (data.content.lead_magnet) {
-    briefingText += `\nLead magnet: ${data.content.lead_magnet}`;
+    briefingText += `\nLead magnet: ${cleanTextForJson(data.content.lead_magnet)}`;
   }
   
   if (data.content.lead_access_method) {
-    briefingText += `\nMétodo de acesso: ${data.content.lead_access_method}`;
+    briefingText += `\nMétodo de acesso: ${cleanTextForJson(data.content.lead_access_method)}`;
   }
   
   if (data.content.product) {
-    briefingText += `\nProduto: ${data.content.product}`;
+    briefingText += `\nProduto: ${cleanTextForJson(data.content.product)}`;
   }
   
   if (data.content.buy_method) {
-    briefingText += `\nMétodo de compra: ${data.content.buy_method}`;
+    briefingText += `\nMétodo de compra: ${cleanTextForJson(data.content.buy_method)}`;
   }
 
   return briefingText;
