@@ -38,19 +38,36 @@ const CarouselResult: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Pegar sessionId do localStorage ou da URL
-    const storedSessionId = localStorage.getItem('carouselSessionId');
+    console.log('🔍 CarouselResult - Starting sessionId recovery...');
+    
+    // Tentar recuperar sessionId da URL primeiro
     const urlParams = new URLSearchParams(location.search);
     const urlSessionId = urlParams.get('sessionId');
     
-    const currentSessionId = urlSessionId || storedSessionId;
-    console.log('📍 CarouselResult - SessionId found:', currentSessionId);
+    // Tentar recuperar do localStorage
+    const storedSessionId = localStorage.getItem('carouselSessionId');
     
-    if (currentSessionId) {
-      setSessionId(currentSessionId);
+    console.log('📄 URL sessionId:', urlSessionId);
+    console.log('💾 Stored sessionId:', storedSessionId);
+    
+    // Priorizar URL, depois localStorage
+    const finalSessionId = urlSessionId || storedSessionId;
+    
+    if (finalSessionId) {
+      console.log('✅ SessionId found:', finalSessionId);
+      setSessionId(finalSessionId);
     } else {
-      console.log('❌ CarouselResult - No sessionId found, redirecting...');
-      navigate('/carousel-generator');
+      console.log('❌ No sessionId found, redirecting to generator...');
+      toast({
+        title: "Sessão perdida",
+        description: "Não foi possível encontrar a sessão do carrossel. Redirecionando...",
+        variant: "destructive",
+      });
+      
+      // Delay antes de redirecionar para mostrar o toast
+      setTimeout(() => {
+        navigate('/carousel-generator');
+      }, 2000);
     }
   }, [location, navigate]);
 

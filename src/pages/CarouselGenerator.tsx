@@ -68,7 +68,7 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Consumir créditos
+      // Consumir créditos primeiro
       const creditResult = await consumeCredits(
         'carousel_generation', 
         3, 
@@ -85,17 +85,26 @@ const CarouselGenerator = () => {
         return;
       }
 
-      // Gerar sessionId ÚNICO
+      // Gerar sessionId único
       const timestamp = Date.now();
       const random = Math.random().toString(36).substr(2, 9);
       const sessionId = `session_${timestamp}_${random}`;
       
-      console.log('🚀 Generated sessionId:', sessionId);
+      console.log('🆔 Generated unique sessionId:', sessionId);
       
-      // Armazenar no localStorage ANTES de navegar
+      // Limpar sessionId anterior e armazenar o novo
+      localStorage.removeItem('carouselSessionId');
       localStorage.setItem('carouselSessionId', sessionId);
       
-      // Preparar dados em bundles separados para o Make
+      // Verificar se foi armazenado corretamente
+      const storedSessionId = localStorage.getItem('carouselSessionId');
+      console.log('💾 Stored sessionId verification:', storedSessionId);
+      
+      if (storedSessionId !== sessionId) {
+        throw new Error('Failed to store sessionId in localStorage');
+      }
+
+      // Preparar dados estruturados para o Make
       const sessionBundle = {
         sessionId: sessionId,
         timestamp: new Date().toISOString(),
@@ -113,9 +122,9 @@ const CarouselGenerator = () => {
         userData: userDataBundle
       };
 
-      console.log('📤 Sending to Make webhook with data:', makeData);
+      console.log('📤 Sending structured data to Make:', makeData);
 
-      // URL do webhook do Make
+      // URL do webhook do Make (substitua pela URL real)
       const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
       
       // Enviar para o Make
@@ -130,18 +139,23 @@ const CarouselGenerator = () => {
       console.log('📨 Make webhook response status:', response.status);
       
       if (!response.ok) {
-        console.error('❌ Make webhook failed:', response.status);
-        // Criar resposta fallback em caso de erro
+        console.error('❌ Make webhook failed with status:', response.status);
+        // Criar resposta fallback em caso de erro do Make
         await createFallbackResponse(sessionId, prompt, niche);
       } else {
         console.log('✅ Make webhook sent successfully');
       }
 
-      // Navegar para resultado APÓS enviar os dados
-      navigate('/carousel-result');
+      // Pequeno delay para garantir que tudo foi processado
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Navegar para resultado com sessionId na URL também
+      navigate(`/carousel-result?sessionId=${sessionId}`);
 
     } catch (error) {
-      console.error('❌ Error in generation process:', error);
+      console.error('❌ Error in carousel generation:', error);
+      
+      // Reembolsar créditos em caso de erro
       await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
       
       toast({
@@ -155,7 +169,7 @@ const CarouselGenerator = () => {
   };
 
   const createFallbackResponse = async (sessionId: string, prompt: string, niche: string) => {
-    console.log('🔄 Creating fallback response for session:', sessionId);
+    console.log('🔄 Creating fallback response for sessionId:', sessionId);
     
     const fallbackContent = `### Carrossel de Alto Impacto
 
@@ -190,12 +204,12 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
         });
 
       if (error) {
-        console.error('❌ Fallback storage failed:', error);
+        console.error('❌ Failed to store fallback response:', error);
       } else {
-        console.log('✅ Fallback response stored successfully');
+        console.log('✅ Fallback response stored successfully for sessionId:', sessionId);
       }
     } catch (err) {
-      console.error('❌ Fallback creation error:', err);
+      console.error('❌ Error creating fallback response:', err);
     }
   };
 
