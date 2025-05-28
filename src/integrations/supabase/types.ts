@@ -249,11 +249,36 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_responses: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          session_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          session_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          session_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_webhook_responses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

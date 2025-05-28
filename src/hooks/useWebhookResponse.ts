@@ -22,15 +22,28 @@ export const useWebhookResponse = () => {
       try {
         console.log(`Polling for webhook response, attempt ${pollCount + 1}`);
         
-        // Query the webhook_responses table
+        // Use direct SQL query to avoid TypeScript issues with table types
         const { data, error: queryError } = await supabase
-          .from('webhook_responses')
-          .select('content')
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .rpc('get_latest_webhook_response');
         
         if (queryError) {
           console.error('Error querying webhook responses:', queryError);
+          // If the function doesn't exist, fall back to a simple query
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('webhook_responses' as any)
+            .select('content')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (fallbackError) {
+            console.error('Fallback query also failed:', fallbackError);
+          } else if (fallbackData && fallbackData.length > 0) {
+            console.log('Found webhook response:', fallbackData[0].content);
+            setResponse(fallbackData[0].content);
+            setIsLoading(false);
+            localStorage.removeItem('carouselSessionId');
+            return;
+          }
         } else if (data && data.length > 0) {
           console.log('Found webhook response:', data[0].content);
           setResponse(data[0].content);
