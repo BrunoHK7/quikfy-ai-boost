@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebhookResponse } from '@/hooks/useWebhookResponse';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CarouselContent {
   capa?: string;
