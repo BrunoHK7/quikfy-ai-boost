@@ -9,6 +9,8 @@ export const useWebhookResponse = () => {
 
   useEffect(() => {
     const sessionId = localStorage.getItem('carouselSessionId');
+    console.log('Session ID from localStorage:', sessionId);
+    
     if (!sessionId) {
       setError('No session found');
       setIsLoading(false);
@@ -25,14 +27,21 @@ export const useWebhookResponse = () => {
         // Query the webhook_responses table specifically for this session
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
-          .select('content')
+          .select('*')
           .eq('session_id', sessionId)
           .order('created_at', { ascending: false })
           .limit(1);
         
         if (queryError) {
           console.error('Error querying webhook responses:', queryError);
-        } else if (data && data.length > 0) {
+          setError('Erro ao consultar respostas do webhook');
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Query result:', data);
+        
+        if (data && data.length > 0) {
           console.log('Found webhook response for session:', sessionId, data[0].content);
           setResponse(data[0].content);
           setIsLoading(false);
@@ -58,12 +67,12 @@ export const useWebhookResponse = () => {
       }
     };
 
-    // Start polling after a short delay
-    setTimeout(pollForResponse, 1000);
+    // Start polling immediately
+    pollForResponse();
 
     // Cleanup on unmount
     return () => {
-      localStorage.removeItem('carouselSessionId');
+      // Don't remove session on cleanup, only on success or timeout
     };
   }, []);
 

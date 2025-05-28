@@ -47,8 +47,21 @@ serve(async (req) => {
       
       console.log('Extracted response content:', responseContent)
       
-      // Generate a unique session ID if not provided
-      let sessionId = parsedData.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      // Extract session ID from the parsed data or generate one
+      let sessionId = parsedData.sessionId || parsedData.session_id
+      
+      if (!sessionId) {
+        // Try to extract from URL parameters if present
+        const url = new URL(req.url)
+        sessionId = url.searchParams.get('sessionId') || url.searchParams.get('session_id')
+      }
+      
+      if (!sessionId) {
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        console.log('Generated new session ID:', sessionId)
+      } else {
+        console.log('Using provided session ID:', sessionId)
+      }
       
       // Store in webhook_responses table with session_id
       const { error: insertError } = await supabase
@@ -61,6 +74,16 @@ serve(async (req) => {
       
       if (insertError) {
         console.error('Error storing webhook response:', insertError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
+          { 
+            status: 500,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
+        )
       } else {
         console.log('Webhook response stored with session:', sessionId)
       }
