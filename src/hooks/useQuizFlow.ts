@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -424,14 +423,6 @@ export const useQuizFlow = () => {
 
       console.log('Dados enviados com sucesso para o webhook');
       
-      // Navigate to result page after successful submission
-      navigate('/carousel-result', { 
-        state: { 
-          briefingData: data,
-          answers: answers 
-        } 
-      });
-      
     } catch (error) {
       console.error('Erro ao enviar para o webhook:', error);
       
@@ -451,7 +442,10 @@ export const useQuizFlow = () => {
     // Check if this is the last question
     const nextIndex = currentQuestionIndex + 1;
     if (nextIndex >= filteredQuestions.length) {
-      // Quiz completed, send to webhook
+      // Navigate immediately to loading page
+      navigate('/carousel-result');
+      
+      // Send to webhook in background
       setIsSubmitting(true);
       const briefingData = formatBriefingData();
       briefingData.content = {
