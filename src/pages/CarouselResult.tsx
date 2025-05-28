@@ -22,7 +22,8 @@ const CarouselResult: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { response, isLoading, error } = useWebhookResponse();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const { response, isLoading, error } = useWebhookResponse(sessionId);
   const [carouselContent, setCarouselContent] = useState<CarouselContent>({});
   const [currentLoadingIndex, setCurrentLoadingIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -35,6 +36,23 @@ const CarouselResult: React.FC = () => {
     'Ajustando tom...',
     'Finalizando carrossel...'
   ];
+
+  useEffect(() => {
+    // Pegar sessionId do localStorage ou da URL
+    const storedSessionId = localStorage.getItem('carouselSessionId');
+    const urlParams = new URLSearchParams(location.search);
+    const urlSessionId = urlParams.get('sessionId');
+    
+    const currentSessionId = urlSessionId || storedSessionId;
+    console.log('📍 CarouselResult - SessionId found:', currentSessionId);
+    
+    if (currentSessionId) {
+      setSessionId(currentSessionId);
+    } else {
+      console.log('❌ CarouselResult - No sessionId found, redirecting...');
+      navigate('/carousel-generator');
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -214,8 +232,37 @@ const CarouselResult: React.FC = () => {
   };
 
   const generateNewCarousel = () => {
+    // Limpar sessionId
+    localStorage.removeItem('carouselSessionId');
     navigate('/carousel-generator');
   };
+
+  if (!sessionId) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-7xl mx-auto">
+          <StandardHeader 
+            title="Carrossel 10X" 
+            backTo="/carousel-generator"
+          />
+          
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-bold text-destructive">
+                Sessão não encontrada
+              </h2>
+              <p className="text-muted-foreground">
+                Não foi possível identificar a sessão do carrossel.
+              </p>
+              <Button onClick={generateNewCarousel} className="mt-4">
+                Gerar Novo Carrossel
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -234,6 +281,9 @@ const CarouselResult: React.FC = () => {
               </h2>
               <p className="text-muted-foreground">
                 Estamos criando seu carrossel personalizado...
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Session ID: {sessionId}
               </p>
             </div>
             

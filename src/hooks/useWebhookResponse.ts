@@ -2,30 +2,35 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useWebhookResponse = () => {
+export const useWebhookResponse = (sessionId: string | null) => {
   const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔍 useWebhookResponse - Starting to poll for latest response');
+    if (!sessionId) {
+      console.log('❌ useWebhookResponse - No sessionId provided');
+      setIsLoading(false);
+      setError('Session ID não fornecido');
+      return;
+    }
+
+    console.log('🔍 useWebhookResponse - Starting to poll for sessionId:', sessionId);
     
     let pollCount = 0;
-    const maxPolls = 30; // 1 minuto
+    const maxPolls = 60; // 2 minutos
     let intervalId: NodeJS.Timeout;
     
     const pollForResponse = async () => {
       try {
         pollCount++;
-        console.log(`🔄 useWebhookResponse - Poll ${pollCount}/${maxPolls}`);
+        console.log(`🔄 useWebhookResponse - Poll ${pollCount}/${maxPolls} for session ${sessionId}`);
         
-        // Buscar a resposta mais recente (últimos 5 minutos)
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        
+        // Buscar resposta específica para este sessionId
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
           .select('*')
-          .gte('created_at', fiveMinutesAgo)
+          .eq('session_id', sessionId)
           .order('created_at', { ascending: false })
           .limit(1);
         
@@ -36,13 +41,12 @@ export const useWebhookResponse = () => {
           return;
         }
         
-        console.log(`📊 useWebhookResponse - Query result:`, data);
-        console.log(`📊 useWebhookResponse - Found ${data?.length || 0} records`);
+        console.log(`📊 useWebhookResponse - Query result for ${sessionId}:`, data);
         
         if (data && data.length > 0) {
-          const latestResponse = data[0];
-          console.log('✅ useWebhookResponse - Found response:', latestResponse);
-          setResponse(latestResponse.content);
+          const response = data[0];
+          console.log('✅ useWebhookResponse - Found response for session:', response);
+          setResponse(response.content);
           setIsLoading(false);
           
           // Parar o polling
@@ -53,8 +57,8 @@ export const useWebhookResponse = () => {
         }
 
         if (pollCount >= maxPolls) {
-          console.log('⏰ useWebhookResponse - Timeout reached');
-          setError('Timeout: Não recebemos resposta após 1 minuto');
+          console.log('⏰ useWebhookResponse - Timeout reached for session:', sessionId);
+          setError('Timeout: Não recebemos resposta após 2 minutos');
           setIsLoading(false);
           
           if (intervalId) {
@@ -74,20 +78,24 @@ export const useWebhookResponse = () => {
       }
     };
 
-    // Fazer primeira busca imediatamente
-    pollForResponse();
-    
-    // Continuar polling a cada 2 segundos
-    intervalId = setInterval(pollForResponse, 2000);
+    // Fazer primeira busca após 3 segundos (dar tempo pro Make)
+    const initialTimeout = setTimeout(() => {
+      pollForResponse();
+      // Continuar polling a cada 2 segundos
+      intervalId = setInterval(pollForResponse, 2000);
+    }, 3000);
 
     // Cleanup
     return () => {
-      console.log('🧹 useWebhookResponse - Cleanup');
+      console.log('🧹 useWebhookResponse - Cleanup for session:', sessionId);
+      if (initialTimeout) {
+        clearTimeout(initialTimeout);
+      }
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, []);
+  }, [sessionId]);
 
   return { response, isLoading, error };
 };
