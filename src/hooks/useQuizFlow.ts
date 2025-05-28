@@ -412,52 +412,37 @@ export const useQuizFlow = () => {
       
       const briefingText = formatBriefingText(data);
       
-      // Preparar dados estruturados para o Make (igual ao CarouselGenerator)
-      const sessionBundle = {
+      // Preparar dados estruturados para o Make - sessionId separado do briefing
+      const payloadData = {
         sessionId: sessionId,
+        briefing: briefingText,
         timestamp: new Date().toISOString(),
         userId: user?.id || '',
         type: 'carousel_quiz_generation'
       };
 
-      const userDataBundle = {
-        briefing: briefingText
-      };
-
-      const makeData = {
-        session: sessionBundle,
-        userData: userDataBundle
-      };
-
-      console.log('📤 useQuizFlow - Sending structured data to Make:', makeData);
+      console.log('📤 useQuizFlow - Sending data to Make:', payloadData);
       
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(makeData),
+        body: JSON.stringify(payloadData),
       });
 
       console.log('📨 useQuizFlow - Make webhook response status:', response.status);
       
       if (!response.ok) {
         console.error('❌ useQuizFlow - Make webhook failed with status:', response.status);
-        throw new Error(`Webhook failed with status: ${response.status}`);
+        // Don't throw error, just log it - the sessionId is already stored for polling
       } else {
         console.log('✅ useQuizFlow - Make webhook sent successfully');
       }
       
     } catch (error) {
       console.error('❌ useQuizFlow - Erro ao enviar para o webhook:', error);
-      
-      toast({
-        title: "Erro no Envio",
-        description: "Houve um erro ao enviar o briefing. Tente novamente.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      throw error;
+      // Don't show error toast or throw error - just log it
     }
   };
 
@@ -492,22 +477,27 @@ export const useQuizFlow = () => {
 
         // Preparar briefing data com a última resposta
         const briefingData = formatBriefingData();
-        briefingData.content = {
-          ...briefingData.content,
-          [questionId === 'passoAPasso' ? 'step_by_step' : 
-           questionId === 'assunto' ? 'main_topic' :
-           questionId === 'resultados' ? 'results_or_story' :
-           questionId === 'contraste' ? 'contrast' :
-           questionId === 'iscaDigital' ? 'lead_magnet' :
-           questionId === 'acessoIsca' ? 'lead_access_method' :
-           questionId === 'produto' ? 'product' :
-           questionId === 'comoComprar' ? 'buy_method' : questionId
-          ]: questionId === 'passoAPasso' 
-            ? answer.split(/\n|,/).map(step => step.trim()).filter(step => step.length > 0)
-            : answer
-        };
+        
+        // Atualizar com a última resposta dependendo do tipo de pergunta
+        if (questionId === 'passoAPasso') {
+          briefingData.content.step_by_step = answer.split(/\n|,/).map(step => step.trim()).filter(step => step.length > 0);
+        } else if (questionId === 'assunto') {
+          briefingData.content.main_topic = answer;
+        } else if (questionId === 'resultados') {
+          briefingData.content.results_or_story = answer;
+        } else if (questionId === 'contraste') {
+          briefingData.content.contrast = answer;
+        } else if (questionId === 'iscaDigital') {
+          briefingData.content.lead_magnet = answer;
+        } else if (questionId === 'acessoIsca') {
+          briefingData.content.lead_access_method = answer;
+        } else if (questionId === 'produto') {
+          briefingData.content.product = answer;
+        } else if (questionId === 'comoComprar') {
+          briefingData.content.buy_method = answer;
+        }
 
-        // Enviar para o webhook com sessionId
+        // Enviar para o webhook com sessionId separado
         await sendToWebhook(briefingData, sessionId);
         
         // Pequeno delay para garantir que tudo foi processado
