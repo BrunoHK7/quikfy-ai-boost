@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } = "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Brain, 
@@ -15,49 +15,106 @@ import {
   RefreshCw,
   Sparkles,
   Target,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useCredits } from "@/hooks/useCredits";
+import { CreditDisplay } from "@/components/credits/CreditDisplay";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const CarouselGenerator = () => {
   const [prompt, setPrompt] = useState("");
   const [niche, setNiche] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedCarousel, setGeneratedCarousel] = useState<string[]>([]);
+  const { userCredits, consumeCredits, refundCredits } = useCredits();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
-    
+    if (!prompt.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, descreva seu produto/serviço antes de gerar o carrossel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para gerar carrosséis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar créditos antes de prosseguir
+    if (userCredits && userCredits.plan_type !== 'admin' && userCredits.current_credits < 3) {
+      toast({
+        title: "Créditos insuficientes",
+        description: "Você precisa de 3 créditos para gerar um carrossel. Faça um upgrade do seu plano para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simular geração (aqui você integraria com o GPT personalizado)
-    setTimeout(() => {
-      const mockCarousel = [
-        "🎯 Slide 1: Problema - Você ainda não descobriu o poder da IA?",
-        "💡 Slide 2: Agitação - Enquanto isso, seus concorrentes faturam milhões",
-        "🚀 Slide 3: Solução - QUIKFY: A plataforma que vai mudar tudo",
-        "⚡ Slide 4: Benefício 1 - Automatize 90% do seu marketing",
-        "💰 Slide 5: Benefício 2 - Aumente seu faturamento em 300%",
-        "🎓 Slide 6: Benefício 3 - Aprenda com quem já faturou milhões",
-        "🔥 Slide 7: Prova Social - +50.000 alunos transformados",
-        "💎 Slide 8: Oferta - Acesso completo por apenas R$ 30/mês",
-        "⏰ Slide 9: Urgência - Vagas limitadas até meia-noite",
-        "✅ Slide 10: CTA - Link na bio para garantir sua vaga"
-      ];
+    try {
+      // Consumir créditos antes de iniciar a geração
+      const creditResult = await consumeCredits(
+        'carousel_generation', 
+        3, 
+        `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
+      );
+
+      if (!creditResult.success) {
+        toast({
+          title: "Erro ao consumir créditos",
+          description: creditResult.error || "Não foi possível processar os créditos.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      // Armazenar uma sessão única para este carrossel
+      const sessionId = `carousel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('carouselSessionId', sessionId);
+
+      // Simular envio para webhook/API (aqui você faria a chamada real)
+      const webhookData = {
+        sessionId,
+        prompt: prompt.trim(),
+        niche: niche.trim() || 'Geral',
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Enviando dados para geração:', webhookData);
+
+      // Navegar para a página de resultado (que irá fazer polling)
+      navigate('/carousel-result');
+
+    } catch (error) {
+      console.error('Erro ao gerar carrossel:', error);
       
-      setGeneratedCarousel(mockCarousel);
+      // Reembolsar créditos em caso de erro
+      await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
+      
+      toast({
+        title: "Erro na geração",
+        description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
+        variant: "destructive",
+      });
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const copyAllSlides = () => {
-    const allText = generatedCarousel.join('\n\n');
-    navigator.clipboard.writeText(allText);
-  };
+  const canGenerate = userCredits && (userCredits.plan_type === 'admin' || userCredits.current_credits >= 3);
 
   return (
     <div className="min-h-screen bg-white">
@@ -68,10 +125,13 @@ const CarouselGenerator = () => {
             <Brain className="w-8 h-8 text-purple-600" />
             <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
           </Link>
-          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
-            <Sparkles className="w-4 h-4 mr-2" />
-            IA Carrossel Pro
-          </Badge>
+          <div className="flex items-center space-x-4">
+            <CreditDisplay />
+            <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+              <Sparkles className="w-4 h-4 mr-2" />
+              IA Carrossel Pro
+            </Badge>
+          </div>
         </div>
       </header>
 
@@ -123,7 +183,7 @@ const CarouselGenerator = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prompt">Descreva seu produto/serviço</Label>
+                <Label htmlFor="prompt">Descreva seu produto/serviço *</Label>
                 <Textarea
                   id="prompt"
                   placeholder="Ex: Curso completo de marketing digital com IA, ensina desde o básico até estratégias avançadas para faturar 6 dígitos. Inclui ferramentas exclusivas, comunidade VIP e mentoria..."
@@ -155,9 +215,23 @@ const CarouselGenerator = () => {
                 </div>
               </div>
 
+              {/* Aviso de créditos */}
+              {!canGenerate && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-800">Créditos insuficientes</p>
+                    <p className="text-yellow-700">
+                      Você precisa de 3 créditos para gerar um carrossel. 
+                      Faça um upgrade do seu plano para continuar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <Button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || isGenerating}
+                disabled={!prompt.trim() || isGenerating || !canGenerate}
                 className="w-full bg-purple-600 hover:bg-purple-700 py-3"
               >
                 {isGenerating ? (
@@ -168,7 +242,7 @@ const CarouselGenerator = () => {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Gerar Carrossel com IA
+                    Gerar Carrossel com IA (3 créditos)
                   </>
                 )}
               </Button>
@@ -179,91 +253,60 @@ const CarouselGenerator = () => {
             </CardContent>
           </Card>
 
-          {/* Output Section */}
+          {/* Preview Section */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
-                  Seu Carrossel Gerado
-                </CardTitle>
-                {generatedCarousel.length > 0 && (
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyAllSlides}
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copiar Tudo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Baixar
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <CardTitle className="flex items-center">
+                <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
+                Preview do Carrossel
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {generatedCarousel.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>Seu carrossel aparecerá aqui após a geração</p>
-                  <p className="text-sm mt-2">Preencha os campos ao lado e clique em "Gerar"</p>
-                </div>
-              ) : (
-                <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                  {generatedCarousel.map((slide, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 relative group">
-                      <div className="flex items-start justify-between">
-                        <p className="text-gray-800 leading-relaxed flex-1 pr-8">
-                          {slide}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(slide)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="text-center py-12 text-gray-500">
+                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Seu carrossel aparecerá aqui após a geração</p>
+                <p className="text-sm mt-2">5 cards quadrados organizados em grid</p>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tips Section */}
-        {generatedCarousel.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>💡 Dicas para Maximizar Resultados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-purple-900 mb-2">📱 Design</h4>
-                  <p className="text-purple-700">Use cores contrastantes e fontes legíveis. Cada slide deve ter uma informação principal clara.</p>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">⏰ Timing</h4>
-                  <p className="text-blue-700">Poste nos horários de maior engajamento do seu público (geralmente 19h-21h).</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">📊 Métricas</h4>
-                  <p className="text-green-700">Acompanhe alcance, saves e cliques no link. Teste variações do mesmo conteúdo.</p>
-                </div>
+        {/* Informações sobre créditos */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>💳 Sistema de Créditos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">🆓 Plano Free</h4>
+                <p className="text-gray-700">3 créditos (não renováveis)</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">⚡ Plano Essential</h4>
+                <p className="text-green-700">50 créditos/mês (não cumulativos)</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">🚀 Plano Pro</h4>
+                <p className="text-blue-700">200 créditos/mês (cumulativos)</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-medium text-purple-900 mb-2">💎 Plano VIP</h4>
+                <p className="text-purple-700">500 créditos/mês (cumulativos)</p>
+              </div>
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h4 className="font-medium text-yellow-900 mb-2">👑 Plano Admin</h4>
+                <p className="text-yellow-700">Acesso ilimitado</p>
+              </div>
+            </div>
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-blue-800 text-sm">
+                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado. 
+                Se ocorrer erro no processo, os créditos são reembolsados automaticamente.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

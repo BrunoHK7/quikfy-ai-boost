@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StandardHeader } from '@/components/StandardHeader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Copy, Save, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebhookResponse } from '@/hooks/useWebhookResponse';
 import { supabase } from '@/integrations/supabase/client';
+import { CarouselCard } from '@/components/carousel/CarouselCard';
 
 interface CarouselContent {
   capa?: string;
@@ -67,7 +68,6 @@ const CarouselResult: React.FC = () => {
     
     const sections: CarouselContent = {};
     
-    // Try to parse as JSON first
     try {
       const jsonData = JSON.parse(text);
       if (jsonData.resposta) {
@@ -77,12 +77,11 @@ const CarouselResult: React.FC = () => {
       // If not JSON, use text as is
     }
     
-    // Clean markdown formatting
     text = text
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-      .replace(/### /g, '') // Remove h3 markdown
-      .replace(/## /g, '') // Remove h2 markdown
-      .replace(/\n\n/g, '\n') // Replace double newlines with single
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/### /g, '')
+      .replace(/## /g, '')
+      .replace(/\n\n/g, '\n')
       .trim();
     
     const lines = text.split('\n');
@@ -92,7 +91,6 @@ const CarouselResult: React.FC = () => {
     for (const line of lines) {
       const trimmedLine = line.trim();
       
-      // Skip empty lines and lines that look like titles without content
       if (!trimmedLine || trimmedLine === 'Carrossel de Alto Impacto para Atrair Seguidores') {
         continue;
       }
@@ -128,7 +126,6 @@ const CarouselResult: React.FC = () => {
         currentSection = 'cta';
         currentContent = trimmedLine.replace(/cta.*?:/i, '').trim();
       } else if (currentSection && trimmedLine) {
-        // Skip lines that are just explanatory text
         if (!trimmedLine.includes('Este carrossel visa') && 
             !trimmedLine.includes('Se desejar') && 
             !trimmedLine.includes('O que deseja fazer')) {
@@ -137,12 +134,10 @@ const CarouselResult: React.FC = () => {
       }
     }
 
-    // Add the last section
     if (currentSection && currentContent) {
       sections[currentSection as keyof CarouselContent] = currentContent.trim();
     }
 
-    // Clean up content - remove quotes if they wrap the entire content
     Object.keys(sections).forEach(key => {
       const content = sections[key as keyof CarouselContent];
       if (content && content.startsWith('"') && content.endsWith('"')) {
@@ -225,7 +220,7 @@ const CarouselResult: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
             backTo="/carousel-generator"
@@ -242,12 +237,10 @@ const CarouselResult: React.FC = () => {
               </p>
             </div>
             
-            <div className="w-full max-w-2xl space-y-4">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-28 w-full" />
-              <Skeleton className="h-36 w-full" />
-              <Skeleton className="h-20 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 w-full max-w-6xl">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="aspect-square w-full" />
+              ))}
             </div>
           </div>
         </div>
@@ -258,7 +251,7 @@ const CarouselResult: React.FC = () => {
   if (error || Object.keys(carouselContent).length === 0) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
             backTo="/carousel-generator"
@@ -282,82 +275,47 @@ const CarouselResult: React.FC = () => {
     );
   }
 
+  const carouselCards = [
+    { key: 'capa', title: 'Capa', color: 'primary' },
+    { key: 'contexto', title: 'Contexto', color: 'blue' },
+    { key: 'reflexao', title: 'Reflexão', color: 'orange' },
+    { key: 'passoAPasso', title: 'Passo a Passo', color: 'green' },
+    { key: 'cta', title: 'CTA', color: 'red' }
+  ].filter(card => carouselContent[card.key as keyof CarouselContent]);
+
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <StandardHeader 
           title="Carrossel 10X" 
           backTo="/carousel-generator"
         />
         
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-primary">
               Seu Carrossel Está Pronto! 🎉
             </h2>
             <p className="text-muted-foreground">
-              Aqui está o seu conteúdo otimizado para conversão
+              Aqui estão os {carouselCards.length} cards do seu carrossel otimizado para conversão
             </p>
           </div>
 
-          <div className="space-y-6">
-            {carouselContent.capa && (
-              <Card className="border-l-4 border-l-primary">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-primary mb-3">Capa</h3>
-                  <p className="text-foreground whitespace-pre-line leading-relaxed">
-                    {carouselContent.capa}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {carouselContent.contexto && (
-              <Card className="border-l-4 border-l-blue-500">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-blue-600 mb-3">Contexto</h3>
-                  <p className="text-foreground whitespace-pre-line leading-relaxed">
-                    {carouselContent.contexto}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {carouselContent.reflexao && (
-              <Card className="border-l-4 border-l-orange-500">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-orange-600 mb-3">Reflexão</h3>
-                  <p className="text-foreground whitespace-pre-line leading-relaxed">
-                    {carouselContent.reflexao}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {carouselContent.passoAPasso && (
-              <Card className="border-l-4 border-l-green-500">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-green-600 mb-3">Passo a Passo</h3>
-                  <p className="text-foreground whitespace-pre-line leading-relaxed">
-                    {carouselContent.passoAPasso}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {carouselContent.cta && (
-              <Card className="border-l-4 border-l-purple-500">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-purple-600 mb-3">CTA</h3>
-                  <p className="text-foreground whitespace-pre-line leading-relaxed">
-                    {carouselContent.cta}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+          {/* Grid de Cards Quadrados */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {carouselCards.map((card, index) => (
+              <CarouselCard
+                key={card.key}
+                title={card.title}
+                content={carouselContent[card.key as keyof CarouselContent] || ''}
+                color={card.color}
+                index={index + 1}
+              />
+            ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-8">
+          {/* Botões de Ação */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-8 max-w-2xl mx-auto">
             <Button 
               onClick={copyAllContent}
               className="flex-1 flex items-center gap-2"

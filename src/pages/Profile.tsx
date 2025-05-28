@@ -1,5 +1,5 @@
 
-import { Brain, Settings, Loader2, Plus } from "lucide-react";
+import { Brain, Settings, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
@@ -14,12 +14,14 @@ import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
+import { CreditDisplay } from "@/components/credits/CreditDisplay";
+import { CreditHistory } from "@/components/credits/CreditHistory";
 import { useState } from "react";
 
 const Profile = () => {
   const { projects, deleteProject } = useCarouselProjects();
   const { profile, loading: profileLoading, updateProfile, uploadAvatar } = useProfile();
-  const { photos, uploadPhoto } = useProfilePhotos();
+  const { uploadPhoto } = useProfilePhotos();
   const { signOut, user } = useAuth();
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
 
@@ -99,11 +101,13 @@ const Profile = () => {
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="projects">Meus Projetos ({projects.length})</TabsTrigger>
             <TabsTrigger value="photos">Fotos</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
+            <TabsTrigger value="credits">Créditos</TabsTrigger>
+            <TabsTrigger value="credit-history">Histórico</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -124,6 +128,16 @@ const Profile = () => {
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
             <ProfileAchievements profile={profile} projectsCount={projects.length} />
+          </TabsContent>
+
+          {/* Credits Tab */}
+          <TabsContent value="credits" className="space-y-6">
+            <CreditDisplay showDetails={true} />
+          </TabsContent>
+
+          {/* Credit History Tab */}
+          <TabsContent value="credit-history" className="space-y-6">
+            <CreditHistory />
           </TabsContent>
         </Tabs>
 

@@ -36,6 +36,42 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_history: {
+        Row: {
+          action: string
+          created_at: string
+          credits_after: number
+          credits_before: number
+          credits_used: number
+          description: string | null
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          credits_after: number
+          credits_before: number
+          credits_used: number
+          description?: string | null
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          credits_after?: number
+          credits_before?: number
+          credits_used?: number
+          description?: string | null
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -222,6 +258,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          created_at: string
+          current_credits: number
+          id: string
+          last_reset_date: string | null
+          plan_type: string
+          total_credits_ever: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_credits?: number
+          id?: string
+          last_reset_date?: string | null
+          plan_type?: string
+          total_credits_ever?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_credits?: number
+          id?: string
+          last_reset_date?: string | null
+          plan_type?: string
+          total_credits_ever?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -279,6 +348,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      consume_credits: {
+        Args: {
+          _user_id: string
+          _action: string
+          _credits_to_consume: number
+          _description?: string
+        }
+        Returns: Json
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -287,6 +365,14 @@ export type Database = {
         Args: {
           _user_id: string
           _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
+      refund_credits: {
+        Args: {
+          _user_id: string
+          _credits_to_refund: number
+          _description: string
         }
         Returns: boolean
       }
