@@ -406,35 +406,50 @@ export const useQuizFlow = () => {
     };
   };
 
-  const sendToWebhook = async (data: BriefingData) => {
+  const sendToWebhook = async (data: BriefingData, sessionId: string) => {
     try {
-      console.log('Enviando dados para o webhook:', data);
+      console.log('🚀 useQuizFlow - Enviando dados para o webhook com sessionId:', sessionId);
       
       const briefingText = formatBriefingText(data);
       
-      // Use the project URL for webhook response
-      const projectDomain = 'https://ctzzjfasmnimbskpphuy.supabase.co';
-      const callbackUrl = `${projectDomain}/functions/v1/webhook-receiver`;
-      
-      const requestBody = briefingText;
-      
-      // Store a session ID to track this request
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('carouselSessionId', sessionId);
+      // Preparar dados estruturados para o Make (igual ao CarouselGenerator)
+      const sessionBundle = {
+        sessionId: sessionId,
+        timestamp: new Date().toISOString(),
+        userId: user?.id || '',
+        type: 'carousel_quiz_generation'
+      };
+
+      const userDataBundle = {
+        briefing: briefingText
+      };
+
+      const makeData = {
+        session: sessionBundle,
+        userData: userDataBundle
+      };
+
+      console.log('📤 useQuizFlow - Sending structured data to Make:', makeData);
       
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain',
+          'Content-Type': 'application/json',
         },
-        mode: 'no-cors',
-        body: requestBody,
+        body: JSON.stringify(makeData),
       });
 
-      console.log('Dados enviados com sucesso para o webhook');
+      console.log('📨 useQuizFlow - Make webhook response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('❌ useQuizFlow - Make webhook failed with status:', response.status);
+        throw new Error(`Webhook failed with status: ${response.status}`);
+      } else {
+        console.log('✅ useQuizFlow - Make webhook sent successfully');
+      }
       
     } catch (error) {
-      console.error('Erro ao enviar para o webhook:', error);
+      console.error('❌ useQuizFlow - Erro ao enviar para o webhook:', error);
       
       toast({
         title: "Erro no Envio",
@@ -442,6 +457,7 @@ export const useQuizFlow = () => {
         variant: "destructive",
       });
       setIsSubmitting(false);
+      throw error;
     }
   };
 
@@ -452,28 +468,60 @@ export const useQuizFlow = () => {
     // Check if this is the last question
     const nextIndex = currentQuestionIndex + 1;
     if (nextIndex >= filteredQuestions.length) {
-      // Navigate immediately to loading page
-      navigate('/carousel-result');
-      
-      // Send to webhook in background
       setIsSubmitting(true);
-      const briefingData = formatBriefingData();
-      briefingData.content = {
-        ...briefingData.content,
-        [questionId === 'passoAPasso' ? 'step_by_step' : 
-         questionId === 'assunto' ? 'main_topic' :
-         questionId === 'resultados' ? 'results_or_story' :
-         questionId === 'contraste' ? 'contrast' :
-         questionId === 'iscaDigital' ? 'lead_magnet' :
-         questionId === 'acessoIsca' ? 'lead_access_method' :
-         questionId === 'produto' ? 'product' :
-         questionId === 'comoComprar' ? 'buy_method' : questionId
-        ]: questionId === 'passoAPasso' 
-          ? answer.split(/\n|,/).map(step => step.trim()).filter(step => step.length > 0)
-          : answer
-      };
       
-      await sendToWebhook(briefingData);
+      try {
+        // Gerar sessionId único ANTES de navegar
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substr(2, 9);
+        const sessionId = `quiz_session_${timestamp}_${random}`;
+        
+        console.log('🆔 useQuizFlow - Generated unique sessionId:', sessionId);
+        
+        // Armazenar sessionId no localStorage
+        localStorage.removeItem('carouselSessionId');
+        localStorage.setItem('carouselSessionId', sessionId);
+        
+        // Verificar se foi armazenado corretamente
+        const storedSessionId = localStorage.getItem('carouselSessionId');
+        console.log('💾 useQuizFlow - Stored sessionId verification:', storedSessionId);
+        
+        if (storedSessionId !== sessionId) {
+          throw new Error('Failed to store sessionId in localStorage');
+        }
+
+        // Preparar briefing data com a última resposta
+        const briefingData = formatBriefingData();
+        briefingData.content = {
+          ...briefingData.content,
+          [questionId === 'passoAPasso' ? 'step_by_step' : 
+           questionId === 'assunto' ? 'main_topic' :
+           questionId === 'resultados' ? 'results_or_story' :
+           questionId === 'contraste' ? 'contrast' :
+           questionId === 'iscaDigital' ? 'lead_magnet' :
+           questionId === 'acessoIsca' ? 'lead_access_method' :
+           questionId === 'produto' ? 'product' :
+           questionId === 'comoComprar' ? 'buy_method' : questionId
+          ]: questionId === 'passoAPasso' 
+            ? answer.split(/\n|,/).map(step => step.trim()).filter(step => step.length > 0)
+            : answer
+        };
+
+        // Enviar para o webhook com sessionId
+        await sendToWebhook(briefingData, sessionId);
+        
+        // Pequeno delay para garantir que tudo foi processado
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Navegar para resultado com sessionId na URL
+        navigate(`/carousel-result?sessionId=${sessionId}`);
+        
+      } catch (error) {
+        console.error('❌ useQuizFlow - Error in quiz completion:', error);
+        setIsSubmitting(false);
+        return;
+      }
+      
       return; // Don't advance to next question since we're navigating away
     }
     
