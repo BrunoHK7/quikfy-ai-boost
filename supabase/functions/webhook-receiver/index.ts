@@ -47,7 +47,7 @@ serve(async (req) => {
       
       console.log('Extracted response content:', responseContent)
       
-      // Extract session ID from the parsed data or generate one
+      // Extract session ID - priorize sessionId over session_id
       let sessionId = parsedData.sessionId || parsedData.session_id
       
       if (!sessionId) {

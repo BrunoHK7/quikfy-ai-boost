@@ -18,7 +18,7 @@ export const useWebhookResponse = () => {
     }
 
     let pollCount = 0;
-    const maxPolls = 30; // Reduzindo para 1 minuto (30 polls)
+    const maxPolls = 30;
     
     const pollForResponse = async () => {
       try {
@@ -39,7 +39,7 @@ export const useWebhookResponse = () => {
           return;
         }
         
-        console.log('Query result:', data);
+        console.log('Query result for session', sessionId, ':', data);
         
         if (data && data.length > 0) {
           console.log('Found webhook response for session:', sessionId, data[0].content);
