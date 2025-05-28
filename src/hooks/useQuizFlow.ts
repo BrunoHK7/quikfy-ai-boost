@@ -1,4 +1,6 @@
+
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -357,6 +359,7 @@ const formatBriefingText = (data: BriefingData): string => {
 
 export const useQuizFlow = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -421,10 +424,14 @@ export const useQuizFlow = () => {
 
       console.log('Dados enviados com sucesso para o webhook');
       
-      toast({
-        title: "Briefing Enviado!",
-        description: "Seu briefing foi enviado com sucesso para processamento.",
+      // Navigate to result page after successful submission
+      navigate('/carousel-result', { 
+        state: { 
+          briefingData: data,
+          answers: answers 
+        } 
       });
+      
     } catch (error) {
       console.error('Erro ao enviar para o webhook:', error);
       
@@ -433,6 +440,7 @@ export const useQuizFlow = () => {
         description: "Houve um erro ao enviar o briefing. Tente novamente.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     }
   };
 
@@ -462,7 +470,7 @@ export const useQuizFlow = () => {
       };
       
       await sendToWebhook(briefingData);
-      setIsSubmitting(false);
+      return; // Don't advance to next question since we're navigating away
     }
     
     // Auto-advance for multiple choice questions

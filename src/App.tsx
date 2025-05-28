@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +19,7 @@ import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import CarouselCreator from "./pages/CarouselCreator";
 import CarouselBriefing from "./pages/CarouselBriefing";
+import CarouselResult from "./pages/CarouselResult";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
 import FinancialManagement from "./pages/FinancialManagement";
@@ -69,6 +71,11 @@ const AppContent: React.FC = () => {
           <Route path="/carousel-briefing" element={
             <ProtectedRoute>
               <CarouselBriefing />
+            </ProtectedRoute>
+          } />
+          <Route path="/carousel-result" element={
+            <ProtectedRoute>
+              <CarouselResult />
             </ProtectedRoute>
           } />
           <Route path="/financial-management" element={
