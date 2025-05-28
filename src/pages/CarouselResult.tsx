@@ -66,12 +66,36 @@ const CarouselResult: React.FC = () => {
     console.log('Parseando conteúdo:', text);
     
     const sections: CarouselContent = {};
+    
+    // Try to parse as JSON first
+    try {
+      const jsonData = JSON.parse(text);
+      if (jsonData.resposta) {
+        text = jsonData.resposta;
+      }
+    } catch (e) {
+      // If not JSON, use text as is
+    }
+    
+    // Clean markdown formatting
+    text = text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+      .replace(/### /g, '') // Remove h3 markdown
+      .replace(/## /g, '') // Remove h2 markdown
+      .replace(/\n\n/g, '\n') // Replace double newlines with single
+      .trim();
+    
     const lines = text.split('\n');
     let currentSection = '';
     let currentContent = '';
 
     for (const line of lines) {
       const trimmedLine = line.trim();
+      
+      // Skip empty lines and lines that look like titles without content
+      if (!trimmedLine || trimmedLine === 'Carrossel de Alto Impacto para Atrair Seguidores') {
+        continue;
+      }
       
       if (trimmedLine.toLowerCase().includes('capa:') || trimmedLine.toLowerCase().startsWith('capa')) {
         if (currentSection && currentContent) {
@@ -97,20 +121,34 @@ const CarouselResult: React.FC = () => {
         }
         currentSection = 'passoAPasso';
         currentContent = trimmedLine.replace(/passo a passo:?/i, '').trim();
-      } else if (trimmedLine.toLowerCase().includes('cta:') || trimmedLine.toLowerCase().startsWith('cta')) {
+      } else if (trimmedLine.toLowerCase().includes('cta') && (trimmedLine.toLowerCase().includes(':') || trimmedLine.toLowerCase().includes('chamada'))) {
         if (currentSection && currentContent) {
           sections[currentSection as keyof CarouselContent] = currentContent.trim();
         }
         currentSection = 'cta';
-        currentContent = trimmedLine.replace(/cta:?/i, '').trim();
+        currentContent = trimmedLine.replace(/cta.*?:/i, '').trim();
       } else if (currentSection && trimmedLine) {
-        currentContent += '\n' + trimmedLine;
+        // Skip lines that are just explanatory text
+        if (!trimmedLine.includes('Este carrossel visa') && 
+            !trimmedLine.includes('Se desejar') && 
+            !trimmedLine.includes('O que deseja fazer')) {
+          currentContent += (currentContent ? '\n' : '') + trimmedLine;
+        }
       }
     }
 
+    // Add the last section
     if (currentSection && currentContent) {
       sections[currentSection as keyof CarouselContent] = currentContent.trim();
     }
+
+    // Clean up content - remove quotes if they wrap the entire content
+    Object.keys(sections).forEach(key => {
+      const content = sections[key as keyof CarouselContent];
+      if (content && content.startsWith('"') && content.endsWith('"')) {
+        sections[key as keyof CarouselContent] = content.slice(1, -1);
+      }
+    });
 
     console.log('Conteúdo parseado:', sections);
     return sections;

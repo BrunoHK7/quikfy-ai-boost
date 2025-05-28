@@ -16,40 +16,32 @@ export const useWebhookResponse = () => {
     }
 
     let pollCount = 0;
-    const maxPolls = 30; // 30 polls = 60 seconds
+    const maxPolls = 60; // 60 polls = 2 minutes
     
     const pollForResponse = async () => {
       try {
-        // Check localStorage first
-        const localResponse = localStorage.getItem('webhookResponse');
-        if (localResponse) {
-          setResponse(localResponse);
+        console.log(`Polling for webhook response, attempt ${pollCount + 1}`);
+        
+        // Query the webhook_responses table
+        const { data, error: queryError } = await supabase
+          .from('webhook_responses')
+          .select('content')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (queryError) {
+          console.error('Error querying webhook responses:', queryError);
+        } else if (data && data.length > 0) {
+          console.log('Found webhook response:', data[0].content);
+          setResponse(data[0].content);
           setIsLoading(false);
-          localStorage.removeItem('webhookResponse');
           localStorage.removeItem('carouselSessionId');
           return;
         }
 
-        // Check URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const responseParam = urlParams.get('response');
-        if (responseParam) {
-          try {
-            const decodedResponse = decodeURIComponent(responseParam);
-            setResponse(decodedResponse);
-            setIsLoading(false);
-            // Clean URL
-            window.history.replaceState({}, '', window.location.pathname);
-            localStorage.removeItem('carouselSessionId');
-            return;
-          } catch (err) {
-            console.error('Error decoding URL response:', err);
-          }
-        }
-
         pollCount++;
         if (pollCount >= maxPolls) {
-          setError('Timeout: Não recebemos resposta do webhook');
+          setError('Timeout: Não recebemos resposta do webhook após 2 minutos');
           setIsLoading(false);
           localStorage.removeItem('carouselSessionId');
           return;
@@ -65,8 +57,8 @@ export const useWebhookResponse = () => {
       }
     };
 
-    // Start polling
-    pollForResponse();
+    // Start polling after a short delay
+    setTimeout(pollForResponse, 1000);
 
     // Cleanup on unmount
     return () => {

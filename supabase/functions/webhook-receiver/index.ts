@@ -7,6 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -20,20 +24,51 @@ serve(async (req) => {
       const body = await req.text()
       console.log('Webhook body received:', body)
       
-      // Store the response in a temporary storage that can be retrieved by the frontend
-      // We'll use a simple approach with localStorage simulation through URL params
-      const responseData = {
-        content: body,
-        timestamp: new Date().toISOString()
+      let parsedData
+      try {
+        parsedData = JSON.parse(body)
+        console.log('Parsed JSON data:', parsedData)
+      } catch (parseError) {
+        console.log('Failed to parse as JSON, treating as plain text:', parseError)
+        parsedData = { content: body }
       }
       
-      console.log('Processed webhook response:', responseData)
+      // Extract the actual response content
+      let responseContent = ''
+      if (parsedData.resposta) {
+        responseContent = parsedData.resposta
+      } else if (parsedData.content) {
+        responseContent = parsedData.content
+      } else if (typeof parsedData === 'string') {
+        responseContent = parsedData
+      } else {
+        responseContent = JSON.stringify(parsedData)
+      }
+      
+      console.log('Extracted response content:', responseContent)
+      
+      // Store in a temporary table for polling
+      const sessionId = `session_${Date.now()}`
+      const { error: insertError } = await supabase
+        .from('webhook_responses')
+        .insert({
+          session_id: sessionId,
+          content: responseContent,
+          created_at: new Date().toISOString()
+        })
+      
+      if (insertError) {
+        console.error('Error storing webhook response:', insertError)
+      } else {
+        console.log('Webhook response stored with session:', sessionId)
+      }
       
       return new Response(
         JSON.stringify({ 
           success: true, 
           message: 'Webhook received successfully',
-          data: responseData 
+          session_id: sessionId,
+          content: responseContent
         }),
         { 
           headers: { 
@@ -58,7 +93,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Webhook error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
         status: 500,
         headers: { 
