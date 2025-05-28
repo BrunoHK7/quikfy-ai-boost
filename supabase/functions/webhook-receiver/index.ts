@@ -47,8 +47,10 @@ serve(async (req) => {
       
       console.log('Extracted response content:', responseContent)
       
-      // Store in a temporary table for polling
-      const sessionId = `session_${Date.now()}`
+      // Generate a unique session ID if not provided
+      let sessionId = parsedData.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
+      // Store in webhook_responses table with session_id
       const { error: insertError } = await supabase
         .from('webhook_responses')
         .insert({

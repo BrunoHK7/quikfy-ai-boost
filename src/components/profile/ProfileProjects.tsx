@@ -2,31 +2,128 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, Trash2, ImageIcon } from "lucide-react";
+import { Edit3, Trash2, ImageIcon, Copy } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CarouselProject } from "@/hooks/useCarouselProjects";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
-interface ProfileProjectsProps {
-  projects: CarouselProject[];
-  onDeleteProject: (projectId: string) => void;
+interface CarouselProject {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsProps) => {
-  const formatDate = (date: Date | string) => {
+interface ProfileProjectsProps {
+  projects: any[]; // Manter para compatibilidade, mas não usar
+  onDeleteProject: (projectId: string) => void; // Manter para compatibilidade, mas não usar
+}
+
+export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: legacyDelete }: ProfileProjectsProps) => {
+  const { user } = useAuth();
+  const [carouselProjects, setCarouselProjects] = useState<CarouselProject[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchCarouselProjects();
+    }
+  }, [user]);
+
+  const fetchCarouselProjects = async () => {
+    if (!user) return;
+    
     try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      return dateObj.toLocaleDateString('pt-BR');
+      const { data, error } = await supabase
+        .from('carousel_projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setCarouselProjects(data || []);
     } catch (error) {
-      console.error('Error formatting date:', error, date);
+      console.error('Erro ao buscar projetos:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os projetos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('carousel_projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setCarouselProjects(prev => prev.filter(p => p.id !== projectId));
+      toast({
+        title: "Projeto Excluído",
+        description: "O projeto foi excluído com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir projeto:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o projeto.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyProjectContent = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({
+      title: "Copiado!",
+      description: "Conteúdo do projeto copiado para a área de transferência.",
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('pt-BR');
+    } catch (error) {
       return 'Data inválida';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Meus Projetos</h2>
+          <Link to="/carousel-generator">
+            <Button className="bg-purple-600 hover:bg-purple-700">
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Novo Carrossel
+            </Button>
+          </Link>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-gray-500">Carregando projetos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Meus Projetos</h2>
-        <Link to="/carousel-creator">
+        <Link to="/carousel-generator">
           <Button className="bg-purple-600 hover:bg-purple-700">
             <ImageIcon className="w-4 h-4 mr-2" />
             Novo Carrossel
@@ -34,13 +131,13 @@ export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsPr
         </Link>
       </div>
 
-      {projects.length === 0 ? (
+      {carouselProjects.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum projeto criado</h3>
             <p className="text-gray-500 mb-6">Comece criando seu primeiro carrossel profissional!</p>
-            <Link to="/carousel-creator">
+            <Link to="/carousel-generator">
               <Button className="bg-purple-600 hover:bg-purple-700">
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Criar Primeiro Carrossel
@@ -50,48 +147,41 @@ export const ProfileProjects = ({ projects, onDeleteProject }: ProfileProjectsPr
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {carouselProjects.map((project) => (
             <Card key={project.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg truncate">{project.name}</CardTitle>
+                    <CardTitle className="text-lg truncate">{project.title}</CardTitle>
                     <p className="text-sm text-gray-500 mt-1">
-                      {project.frames.length} quadros • {project.dimensions}
+                      Criado em {formatDate(project.created_at)}
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {project.dimensions === '1080x1080' ? '1:1' : '4:5'}
+                    Carrossel
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Preview do primeiro quadro */}
-                <div 
-                  className="w-full aspect-square rounded-lg mb-4 flex items-center justify-center text-center p-4 border"
-                  style={{
-                    backgroundColor: project.frames[0]?.backgroundColor || '#ffffff',
-                    color: project.frames[0]?.textColor || '#131313',
-                    fontFamily: project.fontFamily,
-                    fontSize: '12px'
-                  }}
-                >
-                  {project.frames[0]?.text.substring(0, 50)}...
-                </div>
-                
-                <div className="text-xs text-gray-500 mb-4">
-                  Criado em {formatDate(project.createdAt)}
+                {/* Preview do conteúdo */}
+                <div className="w-full bg-gray-50 rounded-lg p-4 mb-4 max-h-32 overflow-hidden">
+                  <p className="text-sm text-gray-700 line-clamp-4">
+                    {project.content.substring(0, 150)}...
+                  </p>
                 </div>
                 
                 <div className="flex space-x-2">
-                  <Link to={`/carousel-creator?project=${project.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Edit3 className="w-3 h-3 mr-1" />
-                      Editar
-                    </Button>
-                  </Link>
                   <Button 
-                    onClick={() => onDeleteProject(project.id)}
+                    onClick={() => copyProjectContent(project.content)}
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copiar
+                  </Button>
+                  <Button 
+                    onClick={() => handleDeleteProject(project.id)}
                     variant="outline" 
                     size="sm"
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"

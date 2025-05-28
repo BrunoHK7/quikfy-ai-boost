@@ -20,19 +20,20 @@ export const useWebhookResponse = () => {
     
     const pollForResponse = async () => {
       try {
-        console.log(`Polling for webhook response, attempt ${pollCount + 1}`);
+        console.log(`Polling for webhook response for session ${sessionId}, attempt ${pollCount + 1}`);
         
-        // Query the webhook_responses table directly
+        // Query the webhook_responses table specifically for this session
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
           .select('content')
+          .eq('session_id', sessionId)
           .order('created_at', { ascending: false })
           .limit(1);
         
         if (queryError) {
           console.error('Error querying webhook responses:', queryError);
         } else if (data && data.length > 0) {
-          console.log('Found webhook response:', data[0].content);
+          console.log('Found webhook response for session:', sessionId, data[0].content);
           setResponse(data[0].content);
           setIsLoading(false);
           localStorage.removeItem('carouselSessionId');

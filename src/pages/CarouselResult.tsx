@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StandardHeader } from '@/components/StandardHeader';
@@ -187,6 +186,7 @@ const CarouselResult: React.FC = () => {
         })
         .join('\n\n');
 
+      // Salvar na tabela carousel_projects do Supabase
       const { error } = await supabase
         .from('carousel_projects')
         .insert({
@@ -199,7 +199,7 @@ const CarouselResult: React.FC = () => {
       
       toast({
         title: "Projeto Salvo!",
-        description: "Seu carrossel foi salvo e estará disponível no seu perfil.",
+        description: "Seu carrossel foi salvo e estará disponível no seu perfil em 'Meus Projetos'.",
       });
     } catch (error) {
       console.error('Erro ao salvar projeto:', error);

@@ -10,8 +10,6 @@ import {
   Brain, 
   ImageIcon, 
   Wand2, 
-  Download, 
-  Copy,
   RefreshCw,
   Sparkles,
   Target,
@@ -23,6 +21,13 @@ import { useCredits } from "@/hooks/useCredits";
 import { CreditDisplay } from "@/components/credits/CreditDisplay";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+
+interface ConsumeCreditsResponse {
+  success: boolean;
+  error?: string;
+  credits_remaining?: number;
+  message?: string;
+}
 
 const CarouselGenerator = () => {
   const [prompt, setPrompt] = useState("");
@@ -69,7 +74,7 @@ const CarouselGenerator = () => {
         'carousel_generation', 
         3, 
         `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
-      );
+      ) as ConsumeCreditsResponse;
 
       if (!creditResult.success) {
         toast({
