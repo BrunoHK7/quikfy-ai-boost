@@ -26,27 +26,61 @@ serve(async (req) => {
       const body = await req.text()
       console.log('Raw webhook body:', body)
       
+      let sessionId = null
       let responseContent = body
       
-      // Se vier JSON, extrair o campo resposta
+      // Tentar extrair sessionId e conteúdo do JSON
       try {
         const parsedData = JSON.parse(body)
+        console.log('Parsed JSON data:', parsedData)
+        
+        // Verificar se vem com sessionId separado
+        if (parsedData.sessionId) {
+          sessionId = parsedData.sessionId
+          console.log('Found sessionId in root:', sessionId)
+        }
+        
+        // Verificar se vem com session bundle
+        if (parsedData.session && parsedData.session.sessionId) {
+          sessionId = parsedData.session.sessionId
+          console.log('Found sessionId in session bundle:', sessionId)
+        }
+        
+        // Extrair o conteúdo da resposta
         if (parsedData.resposta) {
           responseContent = parsedData.resposta
+          console.log('Using resposta field as content')
+        } else if (parsedData.content) {
+          responseContent = parsedData.content
+          console.log('Using content field as content')
+        } else if (parsedData.text) {
+          responseContent = parsedData.text
+          console.log('Using text field as content')
+        } else {
+          console.log('Using entire JSON as content')
+          responseContent = body
         }
-        console.log('Parsed JSON successfully, using resposta field')
+        
       } catch (parseError) {
-        console.log('Not JSON, using raw text')
+        console.log('Not JSON, using raw text as content')
+        responseContent = body
       }
       
+      // Se não temos sessionId, gerar um baseado no timestamp
+      if (!sessionId) {
+        sessionId = `response_${Date.now()}`
+        console.log('Generated fallback sessionId:', sessionId)
+      }
+      
+      console.log('Final sessionId:', sessionId)
       console.log('Final content:', responseContent)
       console.log('Content length:', responseContent.length)
       
-      // Salvar diretamente sem session_id - será a resposta mais recente
+      // Salvar com o sessionId específico
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
-          session_id: `response_${Date.now()}`,
+          session_id: sessionId,
           content: responseContent,
           created_at: new Date().toISOString()
         })
@@ -70,6 +104,7 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'Response saved successfully',
+          session_id: sessionId,
           content_length: responseContent.length,
           inserted_id: insertData?.[0]?.id
         }),

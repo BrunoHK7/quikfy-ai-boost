@@ -84,7 +84,7 @@ const CarouselGenerator = () => {
         return;
       }
 
-      // Gerar sessionId ÚNICO - formato específico para o Make reconhecer
+      // Gerar sessionId ÚNICO
       const timestamp = Date.now();
       const random = Math.random().toString(36).substr(2, 9);
       const sessionId = `session_${timestamp}_${random}`;
@@ -97,23 +97,30 @@ const CarouselGenerator = () => {
       // Navegar para resultado ANTES de fazer qualquer requisição
       navigate('/carousel-result');
 
-      // Preparar dados com estrutura EXATA que o Make espera
-      const makeData = {
+      // Preparar dados em bundles separados para o Make
+      const sessionBundle = {
         sessionId: sessionId,
-        session_id: sessionId, // backup field
-        prompt: prompt.trim(),
-        niche: niche.trim() || 'Geral',
-        userId: user.id,
         timestamp: new Date().toISOString(),
+        userId: user.id,
         type: 'carousel_generation'
       };
 
-      console.log('📤 Sending to Make webhook:', makeData);
+      const userDataBundle = {
+        prompt: prompt.trim(),
+        niche: niche.trim() || 'Geral'
+      };
 
-      // Enviar para o Make de forma assíncrona (não bloquear navegação)
+      const makeData = {
+        session: sessionBundle,
+        userData: userDataBundle
+      };
+
+      console.log('📤 Sending to Make webhook with separated bundles:', makeData);
+
+      // Enviar para o Make de forma assíncrona
       setTimeout(async () => {
         try {
-          // URL EXATA do webhook do Make
+          // URL do webhook do Make
           const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
           
           const response = await fetch(makeWebhookUrl, {
@@ -128,7 +135,6 @@ const CarouselGenerator = () => {
           
           if (!response.ok) {
             console.error('❌ Make webhook failed:', response.status);
-            // Se falhar, criar resposta de fallback
             await createFallbackResponse(sessionId, prompt, niche);
           } else {
             console.log('✅ Make webhook sent successfully');
@@ -136,7 +142,6 @@ const CarouselGenerator = () => {
           
         } catch (error) {
           console.error('❌ Make webhook error:', error);
-          // Criar resposta de fallback
           await createFallbackResponse(sessionId, prompt, niche);
         }
       }, 100);
