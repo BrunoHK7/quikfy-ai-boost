@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,11 +55,10 @@ const CarouselGenerator = () => {
       return;
     }
 
-    // Verificar créditos antes de prosseguir
     if (userCredits && userCredits.plan_type !== 'admin' && userCredits.current_credits < 3) {
       toast({
         title: "Créditos insuficientes",
-        description: "Você precisa de 3 créditos para gerar um carrossel. Faça um upgrade do seu plano para continuar.",
+        description: "Você precisa de 3 créditos para gerar um carrossel.",
         variant: "destructive",
       });
       return;
@@ -69,7 +67,7 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Consumir créditos antes de iniciar a geração
+      // Consumir créditos
       const creditResult = await consumeCredits(
         'carousel_generation', 
         3, 
@@ -86,17 +84,23 @@ const CarouselGenerator = () => {
         return;
       }
 
-      // Gerar sessionId único e bem formatado
-      const sessionId = `carousel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('Generated sessionId:', sessionId);
+      // Gerar sessionId ÚNICO - formato específico para o Make reconhecer
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substr(2, 9);
+      const sessionId = `session_${timestamp}_${random}`;
       
-      // Armazenar sessionId no localStorage
+      console.log('🚀 Generated sessionId:', sessionId);
+      
+      // Armazenar no localStorage
       localStorage.setItem('carouselSessionId', sessionId);
+      
+      // Navegar para resultado ANTES de fazer qualquer requisição
+      navigate('/carousel-result');
 
-      // Preparar dados para envio - estrutura clara e consistente
-      const webhookData = {
-        sessionId: sessionId, // Campo principal
-        session_id: sessionId, // Campo backup
+      // Preparar dados com estrutura EXATA que o Make espera
+      const makeData = {
+        sessionId: sessionId,
+        session_id: sessionId, // backup field
         prompt: prompt.trim(),
         niche: niche.trim() || 'Geral',
         userId: user.id,
@@ -104,39 +108,56 @@ const CarouselGenerator = () => {
         type: 'carousel_generation'
       };
 
-      console.log('Sending data to webhook:', webhookData);
+      console.log('📤 Sending to Make webhook:', makeData);
 
-      // Navegar para resultado ANTES de enviar webhook para evitar timing issues
-      navigate('/carousel-result');
+      // Enviar para o Make de forma assíncrona (não bloquear navegação)
+      setTimeout(async () => {
+        try {
+          // URL EXATA do webhook do Make
+          const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
+          
+          const response = await fetch(makeWebhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(makeData)
+          });
 
-      // Enviar para webhook de forma assíncrona
-      try {
-        const webhookUrl = 'https://ctzzjfasmnimbskpphuy.supabase.co/functions/v1/webhook-receiver';
-        
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData)
-        });
-
-        const responseData = await response.text();
-        console.log('Webhook response:', response.status, responseData);
-
-        if (!response.ok) {
-          console.error('Webhook failed with status:', response.status);
-          // Como fallback, armazenar diretamente na tabela
-          throw new Error('Webhook failed');
+          console.log('📨 Make webhook response status:', response.status);
+          
+          if (!response.ok) {
+            console.error('❌ Make webhook failed:', response.status);
+            // Se falhar, criar resposta de fallback
+            await createFallbackResponse(sessionId, prompt, niche);
+          } else {
+            console.log('✅ Make webhook sent successfully');
+          }
+          
+        } catch (error) {
+          console.error('❌ Make webhook error:', error);
+          // Criar resposta de fallback
+          await createFallbackResponse(sessionId, prompt, niche);
         }
+      }, 100);
 
-      } catch (webhookError) {
-        console.error('Webhook error, using fallback:', webhookError);
-        
-        // Fallback: armazenar diretamente na tabela
-        const { supabase } = await import('@/integrations/supabase/client');
-        
-        const fallbackContent = `## Carrossel de Alto Impacto
+    } catch (error) {
+      console.error('❌ Error in generation process:', error);
+      await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
+      
+      toast({
+        title: "Erro na geração",
+        description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
+        variant: "destructive",
+      });
+      setIsGenerating(false);
+    }
+  };
+
+  const createFallbackResponse = async (sessionId: string, prompt: string, niche: string) => {
+    console.log('🔄 Creating fallback response for session:', sessionId);
+    
+    const fallbackContent = `### Carrossel de Alto Impacto
 
 **Capa:**
 🚀 ${prompt.slice(0, 50)}... pode transformar sua vida!
@@ -157,34 +178,24 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
 **CTA:**
 💬 Comenta AÍ se você quer saber mais sobre essa estratégia que já transformou milhares de vidas! Vou responder todo mundo nos comentários 👇`;
 
-        const { error: insertError } = await supabase
-          .from('webhook_responses')
-          .insert({
-            session_id: sessionId,
-            content: fallbackContent,
-            created_at: new Date().toISOString()
-          });
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { error } = await supabase
+        .from('webhook_responses')
+        .insert({
+          session_id: sessionId,
+          content: fallbackContent,
+          created_at: new Date().toISOString()
+        });
 
-        if (insertError) {
-          console.error('Fallback storage failed:', insertError);
-          throw new Error('Erro ao armazenar resposta');
-        }
-
-        console.log('Fallback content stored successfully for session:', sessionId);
+      if (error) {
+        console.error('❌ Fallback storage failed:', error);
+      } else {
+        console.log('✅ Fallback response stored successfully');
       }
-
-    } catch (error) {
-      console.error('Error generating carousel:', error);
-      
-      // Reembolsar créditos em caso de erro
-      await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
-      
-      toast({
-        title: "Erro na geração",
-        description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
-        variant: "destructive",
-      });
-      setIsGenerating(false);
+    } catch (err) {
+      console.error('❌ Fallback creation error:', err);
     }
   };
 
@@ -260,7 +271,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                 <Label htmlFor="prompt">Descreva seu produto/serviço *</Label>
                 <Textarea
                   id="prompt"
-                  placeholder="Ex: Curso completo de marketing digital com IA, ensina desde o básico até estratégias avançadas para faturar 6 dígitos. Inclui ferramentas exclusivas, comunidade VIP e mentoria..."
+                  placeholder="Ex: Curso completo de marketing digital com IA, ensina desde o básico até estratégias avançadas para faturar 6 dígitos..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   className="border-gray-200 min-h-[120px]"
@@ -268,36 +279,13 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tom de Voz</Label>
-                  <select className="w-full p-2 border border-gray-200 rounded-md">
-                    <option>Profissional</option>
-                    <option>Amigável</option>
-                    <option>Agressivo</option>
-                    <option>Inspirador</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo de Oferta</Label>
-                  <select className="w-full p-2 border border-gray-200 rounded-md">
-                    <option>Curso</option>
-                    <option>Produto Digital</option>
-                    <option>Serviço</option>
-                    <option>Consultoria</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Aviso de créditos */}
               {!canGenerate && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start space-x-3">
                   <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium text-yellow-800">Créditos insuficientes</p>
                     <p className="text-yellow-700">
-                      Você precisa de 3 créditos para gerar um carrossel. 
-                      Faça um upgrade do seu plano para continuar.
+                      Você precisa de 3 créditos para gerar um carrossel.
                     </p>
                   </div>
                 </div>
@@ -320,10 +308,6 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                   </>
                 )}
               </Button>
-
-              <div className="text-xs text-gray-500 text-center">
-                💡 Dica: Seja específico sobre seu produto e público-alvo para melhores resultados
-              </div>
             </CardContent>
           </Card>
 
@@ -339,7 +323,6 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
               <div className="text-center py-12 text-gray-500">
                 <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>Seu carrossel aparecerá aqui após a geração</p>
-                <p className="text-sm mt-2">5 cards quadrados organizados em grid</p>
               </div>
             </CardContent>
           </Card>
@@ -375,8 +358,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
             </div>
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-blue-800 text-sm">
-                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado. 
-                Se ocorrer erro no processo, os créditos são reembolsados automaticamente.
+                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado.
               </p>
             </div>
           </CardContent>

@@ -9,72 +9,93 @@ export const useWebhookResponse = () => {
 
   useEffect(() => {
     const sessionId = localStorage.getItem('carouselSessionId');
-    console.log('useWebhookResponse - Session ID from localStorage:', sessionId);
+    console.log('🔍 useWebhookResponse - Session ID from localStorage:', sessionId);
     
     if (!sessionId) {
-      console.log('useWebhookResponse - No session found');
+      console.log('❌ useWebhookResponse - No session found');
       setError('No session found');
       setIsLoading(false);
       return;
     }
 
     let pollCount = 0;
-    const maxPolls = 60; // Aumentando para 2 minutos
+    const maxPolls = 90; // 3 minutos
+    let intervalId: NodeJS.Timeout;
     
     const pollForResponse = async () => {
       try {
-        console.log(`useWebhookResponse - Polling attempt ${pollCount + 1}/${maxPolls} for session: ${sessionId}`);
+        pollCount++;
+        console.log(`🔄 useWebhookResponse - Poll ${pollCount}/${maxPolls} for session: ${sessionId}`);
         
-        // Query mais específica e detalhada
+        // Query mais específica
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
           .select('*')
           .eq('session_id', sessionId)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(5); // Buscar múltiplos para debug
         
         if (queryError) {
-          console.error('useWebhookResponse - Query error:', queryError);
-          setError('Erro ao consultar respostas do webhook: ' + queryError.message);
+          console.error('❌ useWebhookResponse - Query error:', queryError);
+          setError('Erro ao consultar respostas: ' + queryError.message);
           setIsLoading(false);
           return;
         }
         
-        console.log('useWebhookResponse - Query result for session', sessionId, ':', data);
+        console.log(`📊 useWebhookResponse - Query result:`, data);
+        console.log(`📊 useWebhookResponse - Found ${data?.length || 0} records`);
         
         if (data && data.length > 0) {
-          console.log('useWebhookResponse - Found webhook response:', data[0]);
-          setResponse(data[0].content);
+          const latestResponse = data[0];
+          console.log('✅ useWebhookResponse - Found response:', latestResponse);
+          setResponse(latestResponse.content);
           setIsLoading(false);
-          localStorage.removeItem('carouselSessionId'); // Limpar apenas após sucesso
+          
+          // Limpar session apenas após sucesso
+          localStorage.removeItem('carouselSessionId');
+          
+          // Parar o polling
+          if (intervalId) {
+            clearInterval(intervalId);
+          }
           return;
         }
 
-        pollCount++;
         if (pollCount >= maxPolls) {
-          console.log('useWebhookResponse - Timeout reached after', maxPolls, 'attempts');
-          setError('Timeout: Não recebemos resposta do webhook após 2 minutos');
+          console.log('⏰ useWebhookResponse - Timeout reached');
+          setError('Timeout: Não recebemos resposta após 3 minutos');
           setIsLoading(false);
           localStorage.removeItem('carouselSessionId');
+          
+          if (intervalId) {
+            clearInterval(intervalId);
+          }
           return;
         }
-
-        // Polling a cada 2 segundos
-        setTimeout(pollForResponse, 2000);
         
       } catch (err) {
-        console.error('useWebhookResponse - Polling error:', err);
+        console.error('❌ useWebhookResponse - Polling error:', err);
         setError('Erro ao verificar resposta: ' + (err as Error).message);
         setIsLoading(false);
+        
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
       }
     };
 
-    // Começar polling imediatamente
+    // Fazer primeira busca imediatamente
     pollForResponse();
+    
+    // Continuar polling a cada 2 segundos
+    intervalId = setInterval(pollForResponse, 2000);
 
     // Cleanup
     return () => {
-      console.log('useWebhookResponse - Cleanup for session:', sessionId);
+      console.log('🧹 useWebhookResponse - Cleanup for session:', sessionId);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, []);
 
