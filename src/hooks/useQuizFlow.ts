@@ -412,10 +412,10 @@ export const useQuizFlow = () => {
       
       const briefingText = formatBriefingText(data);
       
-      // Enviar sessionId e briefing em campos separados para o Make
+      // Estrutura de dados CORRETA - sessionId e texto separados
       const payloadData = {
         sessionId: sessionId,
-        briefingText: briefingText,
+        value: briefingText, // APENAS o texto do briefing
         timestamp: new Date().toISOString(),
         userId: user?.id || '',
         type: 'carousel_quiz_generation'
@@ -435,14 +435,12 @@ export const useQuizFlow = () => {
       
       if (!response.ok) {
         console.error('❌ useQuizFlow - Make webhook failed with status:', response.status);
-        // Don't throw error, just log it - the sessionId is already stored for polling
       } else {
         console.log('✅ useQuizFlow - Make webhook sent successfully');
       }
       
     } catch (error) {
       console.error('❌ useQuizFlow - Erro ao enviar para o webhook:', error);
-      // Don't show error toast or throw error - just log it
     }
   };
 
