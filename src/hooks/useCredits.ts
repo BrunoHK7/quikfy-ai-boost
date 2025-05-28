@@ -110,8 +110,8 @@ export const useCredits = () => {
         return { success: false, error: error.message };
       }
 
-      // Type cast the response data
-      const typedResponse = data as ConsumeCreditsResponse;
+      // Safely convert Json response to ConsumeCreditsResponse
+      const typedResponse = data as unknown as ConsumeCreditsResponse;
 
       // Refresh credits after consumption
       await fetchUserCredits();
