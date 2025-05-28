@@ -412,13 +412,19 @@ export const useQuizFlow = () => {
       
       const briefingText = formatBriefingText(data);
       
+      // Add callback URL to receive the response
+      const currentDomain = window.location.origin;
+      const callbackUrl = `${currentDomain}/carousel-result`;
+      
+      const requestBody = `${briefingText}|Callback: ${callbackUrl}`;
+      
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain',
         },
         mode: 'no-cors',
-        body: briefingText,
+        body: requestBody,
       });
 
       console.log('Dados enviados com sucesso para o webhook');

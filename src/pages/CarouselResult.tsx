@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StandardHeader } from '@/components/StandardHeader';
@@ -8,6 +7,7 @@ import { Copy, Save, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CarouselContent {
   capa?: string;
@@ -39,25 +39,76 @@ const CarouselResult: React.FC = () => {
       setCurrentLoadingIndex((prev) => (prev + 1) % loadingTexts.length);
     }, 2000);
 
-    // Listen for webhook response (in a real implementation, this would be handled differently)
-    // For now, we'll wait for the webhook response or timeout after 30 seconds
+    // Listen for webhook response through URL parameters or localStorage
+    const checkForWebhookResponse = () => {
+      // Check if we have webhook response in localStorage
+      const webhookResponse = localStorage.getItem('webhookResponse');
+      
+      if (webhookResponse) {
+        console.log('Resposta do webhook recebida:', webhookResponse);
+        
+        // Parse the webhook response
+        const parsedContent = parseCarouselContent(webhookResponse);
+        setCarouselContent(parsedContent);
+        setIsLoading(false);
+        
+        // Clean up localStorage
+        localStorage.removeItem('webhookResponse');
+        clearInterval(interval);
+        return;
+      }
+
+      // Check URL parameters for webhook response
+      const urlParams = new URLSearchParams(window.location.search);
+      const responseParam = urlParams.get('response');
+      
+      if (responseParam) {
+        console.log('Resposta do webhook via URL:', responseParam);
+        
+        try {
+          const decodedResponse = decodeURIComponent(responseParam);
+          const parsedContent = parseCarouselContent(decodedResponse);
+          setCarouselContent(parsedContent);
+          setIsLoading(false);
+          
+          // Clean URL
+          window.history.replaceState({}, '', window.location.pathname);
+          clearInterval(interval);
+        } catch (error) {
+          console.error('Erro ao decodificar resposta do webhook:', error);
+        }
+      }
+    };
+
+    // Check immediately and then every 2 seconds
+    checkForWebhookResponse();
+    const responseCheck = setInterval(checkForWebhookResponse, 2000);
+
+    // Timeout after 60 seconds
     const timeout = setTimeout(() => {
-      // If no response received, show error or continue with loading state
       setIsLoading(false);
-      toast({
-        title: "Tempo Esgotado",
-        description: "Não recebemos resposta do webhook. Tente novamente.",
-        variant: "destructive",
-      });
-    }, 30000);
+      clearInterval(interval);
+      clearInterval(responseCheck);
+      
+      if (Object.keys(carouselContent).length === 0) {
+        toast({
+          title: "Tempo Esgotado",
+          description: "Não recebemos resposta do webhook. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    }, 60000);
 
     return () => {
       clearInterval(interval);
+      clearInterval(responseCheck);
       clearTimeout(timeout);
     };
-  }, [loadingTexts.length]);
+  }, [loadingTexts.length, carouselContent]);
 
   const parseCarouselContent = (text: string): CarouselContent => {
+    console.log('Parseando conteúdo:', text);
+    
     const sections: CarouselContent = {};
     const lines = text.split('\n');
     let currentSection = '';
@@ -105,6 +156,7 @@ const CarouselResult: React.FC = () => {
       sections[currentSection as keyof CarouselContent] = currentContent.trim();
     }
 
+    console.log('Conteúdo parseado:', sections);
     return sections;
   };
 
@@ -146,9 +198,15 @@ const CarouselResult: React.FC = () => {
         })
         .join('\n\n');
 
-      // Note: This will be fixed once the carousel_projects table is properly added to the types
-      // For now, we'll handle the save differently or wait for the table to be recognized
-      console.log('Saving project with content:', fullContent);
+      const { error } = await supabase
+        .from('carousel_projects')
+        .insert({
+          user_id: user.id,
+          title: `Carrossel - ${new Date().toLocaleDateString()}`,
+          content: fullContent,
+        });
+
+      if (error) throw error;
       
       toast({
         title: "Projeto Salvo!",
@@ -203,7 +261,6 @@ const CarouselResult: React.FC = () => {
     );
   }
 
-  // If no content loaded (webhook didn't respond), show error state
   if (Object.keys(carouselContent).length === 0) {
     return (
       <div className="min-h-screen bg-background p-4">
