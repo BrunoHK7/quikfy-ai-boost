@@ -8,32 +8,26 @@ export const useWebhookResponse = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const sessionId = localStorage.getItem('carouselSessionId');
-    console.log('🔍 useWebhookResponse - Session ID from localStorage:', sessionId);
+    console.log('🔍 useWebhookResponse - Starting to poll for latest response');
     
-    if (!sessionId) {
-      console.log('❌ useWebhookResponse - No session found');
-      setError('No session found');
-      setIsLoading(false);
-      return;
-    }
-
     let pollCount = 0;
-    const maxPolls = 90; // 3 minutos
+    const maxPolls = 30; // 1 minuto
     let intervalId: NodeJS.Timeout;
     
     const pollForResponse = async () => {
       try {
         pollCount++;
-        console.log(`🔄 useWebhookResponse - Poll ${pollCount}/${maxPolls} for session: ${sessionId}`);
+        console.log(`🔄 useWebhookResponse - Poll ${pollCount}/${maxPolls}`);
         
-        // Query mais específica
+        // Buscar a resposta mais recente (últimos 5 minutos)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
           .select('*')
-          .eq('session_id', sessionId)
+          .gte('created_at', fiveMinutesAgo)
           .order('created_at', { ascending: false })
-          .limit(5); // Buscar múltiplos para debug
+          .limit(1);
         
         if (queryError) {
           console.error('❌ useWebhookResponse - Query error:', queryError);
@@ -51,9 +45,6 @@ export const useWebhookResponse = () => {
           setResponse(latestResponse.content);
           setIsLoading(false);
           
-          // Limpar session apenas após sucesso
-          localStorage.removeItem('carouselSessionId');
-          
           // Parar o polling
           if (intervalId) {
             clearInterval(intervalId);
@@ -63,9 +54,8 @@ export const useWebhookResponse = () => {
 
         if (pollCount >= maxPolls) {
           console.log('⏰ useWebhookResponse - Timeout reached');
-          setError('Timeout: Não recebemos resposta após 3 minutos');
+          setError('Timeout: Não recebemos resposta após 1 minuto');
           setIsLoading(false);
-          localStorage.removeItem('carouselSessionId');
           
           if (intervalId) {
             clearInterval(intervalId);
@@ -92,7 +82,7 @@ export const useWebhookResponse = () => {
 
     // Cleanup
     return () => {
-      console.log('🧹 useWebhookResponse - Cleanup for session:', sessionId);
+      console.log('🧹 useWebhookResponse - Cleanup');
       if (intervalId) {
         clearInterval(intervalId);
       }

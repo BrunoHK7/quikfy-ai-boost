@@ -26,61 +26,27 @@ serve(async (req) => {
       const body = await req.text()
       console.log('Raw webhook body:', body)
       
-      let parsedData
-      let responseContent = ''
-      let sessionId = null
+      let responseContent = body
       
-      // Parse JSON
+      // Se vier JSON, extrair o campo resposta
       try {
-        parsedData = JSON.parse(body)
-        console.log('Parsed JSON successfully:', parsedData)
-      } catch (parseError) {
-        console.log('Failed to parse JSON, using as text:', parseError)
-        responseContent = body
-        sessionId = `webhook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      }
-      
-      if (parsedData) {
-        // Extract content
+        const parsedData = JSON.parse(body)
         if (parsedData.resposta) {
           responseContent = parsedData.resposta
-          console.log('Using resposta field')
-        } else if (parsedData.content) {
-          responseContent = parsedData.content
-          console.log('Using content field')
-        } else if (typeof parsedData === 'string') {
-          responseContent = parsedData
-          console.log('Using raw string')
-        } else {
-          responseContent = JSON.stringify(parsedData)
-          console.log('Converting object to string')
         }
-        
-        // Extract session ID - try multiple approaches
-        sessionId = parsedData.sessionId || 
-                   parsedData.session_id || 
-                   parsedData.SessionId ||
-                   parsedData.SESSION_ID ||
-                   new URL(req.url).searchParams.get('sessionId') ||
-                   new URL(req.url).searchParams.get('session_id')
-        
-        if (!sessionId) {
-          sessionId = `webhook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-          console.log('Generated new sessionId:', sessionId)
-        } else {
-          console.log('Found sessionId:', sessionId)
-        }
+        console.log('Parsed JSON successfully, using resposta field')
+      } catch (parseError) {
+        console.log('Not JSON, using raw text')
       }
       
-      console.log('Final sessionId:', sessionId)
-      console.log('Final content length:', responseContent.length)
-      console.log('Content preview:', responseContent.substring(0, 100))
+      console.log('Final content:', responseContent)
+      console.log('Content length:', responseContent.length)
       
-      // Always insert new record (don't check for existing)
+      // Salvar diretamente sem session_id - será a resposta mais recente
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
-          session_id: sessionId,
+          session_id: `response_${Date.now()}`,
           content: responseContent,
           created_at: new Date().toISOString()
         })
@@ -98,27 +64,12 @@ serve(async (req) => {
       }
       
       console.log('Successfully inserted:', insertData)
-      
-      // Verify the data was saved
-      const { data: verifyData, error: verifyError } = await supabase
-        .from('webhook_responses')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-      
-      console.log('Verification query result:', verifyData)
-      if (verifyError) {
-        console.error('Verification error:', verifyError)
-      }
-      
       console.log('=== WEBHOOK RECEIVER SUCCESS ===')
       
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Webhook processed successfully',
-          session_id: sessionId,
+          message: 'Response saved successfully',
           content_length: responseContent.length,
           inserted_id: insertData?.[0]?.id
         }),
