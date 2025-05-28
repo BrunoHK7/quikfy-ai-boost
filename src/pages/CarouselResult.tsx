@@ -7,7 +7,7 @@ import { Copy, Save, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
+import { useWebhookResponse } from '@/hooks/useWebhookResponse';
 
 interface CarouselContent {
   capa?: string;
@@ -21,90 +21,45 @@ const CarouselResult: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const { response, isLoading, error } = useWebhookResponse();
   const [carouselContent, setCarouselContent] = useState<CarouselContent>({});
-  const [loadingTexts] = useState([
+  const [currentLoadingIndex, setCurrentLoadingIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadingTexts = [
     'Pensando...',
     'Aplicando copy...',
     'Uma pitada de emoção...',
     'Criando conexão...',
     'Ajustando tom...',
     'Finalizando carrossel...'
-  ]);
-  const [currentLoadingIndex, setCurrentLoadingIndex] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentLoadingIndex((prev) => (prev + 1) % loadingTexts.length);
     }, 2000);
 
-    // Listen for webhook response through URL parameters or localStorage
-    const checkForWebhookResponse = () => {
-      // Check if we have webhook response in localStorage
-      const webhookResponse = localStorage.getItem('webhookResponse');
-      
-      if (webhookResponse) {
-        console.log('Resposta do webhook recebida:', webhookResponse);
-        
-        // Parse the webhook response
-        const parsedContent = parseCarouselContent(webhookResponse);
-        setCarouselContent(parsedContent);
-        setIsLoading(false);
-        
-        // Clean up localStorage
-        localStorage.removeItem('webhookResponse');
-        clearInterval(interval);
-        return;
-      }
+    return () => clearInterval(interval);
+  }, [loadingTexts.length]);
 
-      // Check URL parameters for webhook response
-      const urlParams = new URLSearchParams(window.location.search);
-      const responseParam = urlParams.get('response');
-      
-      if (responseParam) {
-        console.log('Resposta do webhook via URL:', responseParam);
-        
-        try {
-          const decodedResponse = decodeURIComponent(responseParam);
-          const parsedContent = parseCarouselContent(decodedResponse);
-          setCarouselContent(parsedContent);
-          setIsLoading(false);
-          
-          // Clean URL
-          window.history.replaceState({}, '', window.location.pathname);
-          clearInterval(interval);
-        } catch (error) {
-          console.error('Erro ao decodificar resposta do webhook:', error);
-        }
-      }
-    };
+  useEffect(() => {
+    if (response) {
+      console.log('Resposta do webhook recebida:', response);
+      const parsedContent = parseCarouselContent(response);
+      setCarouselContent(parsedContent);
+    }
+  }, [response]);
 
-    // Check immediately and then every 2 seconds
-    checkForWebhookResponse();
-    const responseCheck = setInterval(checkForWebhookResponse, 2000);
-
-    // Timeout after 60 seconds
-    const timeout = setTimeout(() => {
-      setIsLoading(false);
-      clearInterval(interval);
-      clearInterval(responseCheck);
-      
-      if (Object.keys(carouselContent).length === 0) {
-        toast({
-          title: "Tempo Esgotado",
-          description: "Não recebemos resposta do webhook. Tente novamente.",
-          variant: "destructive",
-        });
-      }
-    }, 60000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(responseCheck);
-      clearTimeout(timeout);
-    };
-  }, [loadingTexts.length, carouselContent]);
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro",
+        description: error,
+        variant: "destructive",
+      });
+    }
+  }, [error]);
 
   const parseCarouselContent = (text: string): CarouselContent => {
     console.log('Parseando conteúdo:', text);
@@ -261,7 +216,7 @@ const CarouselResult: React.FC = () => {
     );
   }
 
-  if (Object.keys(carouselContent).length === 0) {
+  if (error || Object.keys(carouselContent).length === 0) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
@@ -276,7 +231,7 @@ const CarouselResult: React.FC = () => {
                 Ops! Algo deu errado
               </h2>
               <p className="text-muted-foreground">
-                Não conseguimos gerar seu carrossel. Tente novamente.
+                {error || 'Não conseguimos gerar seu carrossel. Tente novamente.'}
               </p>
               <Button onClick={generateNewCarousel} className="mt-4">
                 Tentar Novamente

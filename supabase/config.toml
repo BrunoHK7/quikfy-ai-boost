@@ -1,1 +1,36 @@
+
 project_id = "ctzzjfasmnimbskpphuy"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54325
+image_transformation = true
+request_timeout = 60000
+
+[auth]
+enabled = true
+port = 54326
+site_url = "http://localhost:3000"
+
+[functions.webhook-receiver]
+verify_jwt = false

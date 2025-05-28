@@ -412,11 +412,15 @@ export const useQuizFlow = () => {
       
       const briefingText = formatBriefingText(data);
       
-      // Add callback URL to receive the response
-      const currentDomain = window.location.origin;
-      const callbackUrl = `${currentDomain}/carousel-result`;
+      // Use the project URL for webhook response
+      const projectDomain = 'https://ctzzjfasmnimbskpphuy.supabase.co';
+      const callbackUrl = `${projectDomain}/functions/v1/webhook-receiver`;
       
-      const requestBody = `${briefingText}|Callback: ${callbackUrl}`;
+      const requestBody = briefingText;
+      
+      // Store a session ID to track this request
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('carouselSessionId', sessionId);
       
       const response = await fetch('https://hook.us2.make.com/tgxerfwg3b1w4wprg47gfg4hhtb1a1xc', {
         method: 'POST',
