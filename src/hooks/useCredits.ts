@@ -22,6 +22,13 @@ interface CreditHistoryItem {
   created_at: string;
 }
 
+interface ConsumeCreditsResponse {
+  success: boolean;
+  error?: string;
+  credits_remaining?: number;
+  message?: string;
+}
+
 export const useCredits = () => {
   const { user } = useAuth();
   const [userCredits, setUserCredits] = useState<UserCredits | null>(null);
@@ -45,7 +52,12 @@ export const useCredits = () => {
       }
 
       if (data) {
-        setUserCredits(data);
+        // Type cast the plan_type to ensure it matches our enum
+        const typedData: UserCredits = {
+          ...data,
+          plan_type: data.plan_type as 'free' | 'essential' | 'pro' | 'vip' | 'admin'
+        };
+        setUserCredits(typedData);
       }
     } catch (error) {
       console.error('Error in fetchUserCredits:', error);
@@ -70,14 +82,19 @@ export const useCredits = () => {
         return;
       }
 
-      setCreditHistory(data || []);
+      // Type cast the status field and ensure proper typing
+      const typedData: CreditHistoryItem[] = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'success' | 'refunded' | 'failed'
+      }));
+      setCreditHistory(typedData);
     } catch (error) {
       console.error('Error in fetchCreditHistory:', error);
     }
   };
 
   // Consume credits
-  const consumeCredits = async (action: string, creditsToConsume: number, description?: string) => {
+  const consumeCredits = async (action: string, creditsToConsume: number, description?: string): Promise<ConsumeCreditsResponse> => {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     try {
@@ -93,11 +110,14 @@ export const useCredits = () => {
         return { success: false, error: error.message };
       }
 
+      // Type cast the response data
+      const typedResponse = data as ConsumeCreditsResponse;
+
       // Refresh credits after consumption
       await fetchUserCredits();
       await fetchCreditHistory();
 
-      return data;
+      return typedResponse;
     } catch (error) {
       console.error('Error in consumeCredits:', error);
       return { success: false, error: 'Erro interno' };
