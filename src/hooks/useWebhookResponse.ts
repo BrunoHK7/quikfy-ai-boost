@@ -9,22 +9,23 @@ export const useWebhookResponse = () => {
 
   useEffect(() => {
     const sessionId = localStorage.getItem('carouselSessionId');
-    console.log('Session ID from localStorage:', sessionId);
+    console.log('useWebhookResponse - Session ID from localStorage:', sessionId);
     
     if (!sessionId) {
+      console.log('useWebhookResponse - No session found');
       setError('No session found');
       setIsLoading(false);
       return;
     }
 
     let pollCount = 0;
-    const maxPolls = 30;
+    const maxPolls = 60; // Aumentando para 2 minutos
     
     const pollForResponse = async () => {
       try {
-        console.log(`Polling for webhook response for session ${sessionId}, attempt ${pollCount + 1}`);
+        console.log(`useWebhookResponse - Polling attempt ${pollCount + 1}/${maxPolls} for session: ${sessionId}`);
         
-        // Query the webhook_responses table specifically for this session
+        // Query mais específica e detalhada
         const { data, error: queryError } = await supabase
           .from('webhook_responses')
           .select('*')
@@ -33,46 +34,47 @@ export const useWebhookResponse = () => {
           .limit(1);
         
         if (queryError) {
-          console.error('Error querying webhook responses:', queryError);
-          setError('Erro ao consultar respostas do webhook');
+          console.error('useWebhookResponse - Query error:', queryError);
+          setError('Erro ao consultar respostas do webhook: ' + queryError.message);
           setIsLoading(false);
           return;
         }
         
-        console.log('Query result for session', sessionId, ':', data);
+        console.log('useWebhookResponse - Query result for session', sessionId, ':', data);
         
         if (data && data.length > 0) {
-          console.log('Found webhook response for session:', sessionId, data[0].content);
+          console.log('useWebhookResponse - Found webhook response:', data[0]);
           setResponse(data[0].content);
           setIsLoading(false);
-          localStorage.removeItem('carouselSessionId');
+          localStorage.removeItem('carouselSessionId'); // Limpar apenas após sucesso
           return;
         }
 
         pollCount++;
         if (pollCount >= maxPolls) {
-          setError('Timeout: Não recebemos resposta do webhook após 1 minuto');
+          console.log('useWebhookResponse - Timeout reached after', maxPolls, 'attempts');
+          setError('Timeout: Não recebemos resposta do webhook após 2 minutos');
           setIsLoading(false);
           localStorage.removeItem('carouselSessionId');
           return;
         }
 
-        // Poll again in 2 seconds
+        // Polling a cada 2 segundos
         setTimeout(pollForResponse, 2000);
         
       } catch (err) {
-        console.error('Error polling for response:', err);
-        setError('Erro ao verificar resposta');
+        console.error('useWebhookResponse - Polling error:', err);
+        setError('Erro ao verificar resposta: ' + (err as Error).message);
         setIsLoading(false);
       }
     };
 
-    // Start polling immediately
+    // Começar polling imediatamente
     pollForResponse();
 
-    // Cleanup on unmount
+    // Cleanup
     return () => {
-      // Don't remove session on cleanup, only on success or timeout
+      console.log('useWebhookResponse - Cleanup for session:', sessionId);
     };
   }, []);
 

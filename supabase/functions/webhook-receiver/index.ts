@@ -18,82 +18,156 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Webhook received:', req.method)
+    console.log('=== WEBHOOK RECEIVER START ===')
+    console.log('Method:', req.method)
+    console.log('URL:', req.url)
     
     if (req.method === 'POST') {
       const body = await req.text()
-      console.log('Webhook body received:', body)
+      console.log('Raw webhook body:', body)
       
       let parsedData
       try {
         parsedData = JSON.parse(body)
-        console.log('Parsed JSON data:', parsedData)
+        console.log('Parsed JSON data:', JSON.stringify(parsedData, null, 2))
       } catch (parseError) {
         console.log('Failed to parse as JSON, treating as plain text:', parseError)
         parsedData = { content: body }
       }
       
-      // Extract the actual response content
+      // Extrair o conteúdo da resposta
       let responseContent = ''
       if (parsedData.resposta) {
         responseContent = parsedData.resposta
+        console.log('Found "resposta" field')
       } else if (parsedData.content) {
         responseContent = parsedData.content
+        console.log('Found "content" field')
       } else if (typeof parsedData === 'string') {
         responseContent = parsedData
+        console.log('Using raw string data')
       } else {
         responseContent = JSON.stringify(parsedData)
+        console.log('Converting entire object to string')
       }
       
-      console.log('Extracted response content:', responseContent)
+      console.log('Final response content (first 200 chars):', responseContent.substring(0, 200) + '...')
       
-      // Extract session ID - priorize sessionId over session_id
-      let sessionId = parsedData.sessionId || parsedData.session_id
+      // Extrair session ID - múltiplas tentativas
+      let sessionId = null
       
+      // 1. Tentar parsedData.sessionId
+      if (parsedData.sessionId) {
+        sessionId = parsedData.sessionId
+        console.log('Found sessionId in parsedData.sessionId:', sessionId)
+      }
+      
+      // 2. Tentar parsedData.session_id
+      if (!sessionId && parsedData.session_id) {
+        sessionId = parsedData.session_id
+        console.log('Found sessionId in parsedData.session_id:', sessionId)
+      }
+      
+      // 3. Tentar URL parameters
       if (!sessionId) {
-        // Try to extract from URL parameters if present
         const url = new URL(req.url)
         sessionId = url.searchParams.get('sessionId') || url.searchParams.get('session_id')
+        if (sessionId) {
+          console.log('Found sessionId in URL params:', sessionId)
+        }
       }
       
+      // 4. Gerar novo sessionId se nenhum foi encontrado
       if (!sessionId) {
-        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        console.log('Generated new session ID:', sessionId)
-      } else {
-        console.log('Using provided session ID:', sessionId)
+        sessionId = `webhook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        console.log('Generated new sessionId:', sessionId)
       }
       
-      // Store in webhook_responses table with session_id
-      const { error: insertError } = await supabase
+      console.log('Final sessionId to be used:', sessionId)
+      
+      // Verificar se já existe uma resposta para esta sessão
+      const { data: existingData } = await supabase
         .from('webhook_responses')
-        .insert({
-          session_id: sessionId,
-          content: responseContent,
-          created_at: new Date().toISOString()
-        })
+        .select('id')
+        .eq('session_id', sessionId)
+        .limit(1)
       
-      if (insertError) {
-        console.error('Error storing webhook response:', insertError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
-          { 
-            status: 500,
-            headers: { 
-              ...corsHeaders, 
-              'Content-Type': 'application/json' 
-            } 
-          }
-        )
+      if (existingData && existingData.length > 0) {
+        console.log('Session already exists, updating existing record')
+        
+        const { error: updateError } = await supabase
+          .from('webhook_responses')
+          .update({
+            content: responseContent,
+            created_at: new Date().toISOString()
+          })
+          .eq('session_id', sessionId)
+        
+        if (updateError) {
+          console.error('Error updating webhook response:', updateError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to update response', details: updateError.message }),
+            { 
+              status: 500,
+              headers: { 
+                ...corsHeaders, 
+                'Content-Type': 'application/json' 
+              } 
+            }
+          )
+        }
+        
+        console.log('Successfully updated webhook response for session:', sessionId)
       } else {
-        console.log('Webhook response stored with session:', sessionId)
+        console.log('Creating new webhook response record')
+        
+        // Inserir nova resposta
+        const { error: insertError } = await supabase
+          .from('webhook_responses')
+          .insert({
+            session_id: sessionId,
+            content: responseContent,
+            created_at: new Date().toISOString()
+          })
+        
+        if (insertError) {
+          console.error('Error inserting webhook response:', insertError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
+            { 
+              status: 500,
+              headers: { 
+                ...corsHeaders, 
+                'Content-Type': 'application/json' 
+              } 
+            }
+          )
+        }
+        
+        console.log('Successfully inserted webhook response for session:', sessionId)
       }
+      
+      // Verificar se foi salvo corretamente
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('webhook_responses')
+        .select('*')
+        .eq('session_id', sessionId)
+        .limit(1)
+      
+      if (verifyError) {
+        console.error('Error verifying saved data:', verifyError)
+      } else {
+        console.log('Verification - saved data:', verifyData)
+      }
+      
+      console.log('=== WEBHOOK RECEIVER SUCCESS ===')
       
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Webhook received successfully',
+          message: 'Webhook received and processed successfully',
           session_id: sessionId,
-          content: responseContent
+          content_length: responseContent.length
         }),
         { 
           headers: { 
@@ -116,7 +190,8 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Webhook error:', error)
+    console.error('=== WEBHOOK RECEIVER ERROR ===')
+    console.error('Error details:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
