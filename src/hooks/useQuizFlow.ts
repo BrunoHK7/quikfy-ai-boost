@@ -412,10 +412,10 @@ export const useQuizFlow = () => {
       
       const briefingText = formatBriefingText(data);
       
-      // Preparar dados estruturados para o Make - sessionId separado do briefing
+      // Enviar sessionId e briefing em campos separados para o Make
       const payloadData = {
         sessionId: sessionId,
-        briefing: briefingText,
+        briefingText: briefingText,
         timestamp: new Date().toISOString(),
         userId: user?.id || '',
         type: 'carousel_quiz_generation'
