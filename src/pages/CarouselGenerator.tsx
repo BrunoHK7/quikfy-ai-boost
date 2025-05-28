@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,12 +92,9 @@ const CarouselGenerator = () => {
       
       console.log('🚀 Generated sessionId:', sessionId);
       
-      // Armazenar no localStorage
+      // Armazenar no localStorage ANTES de navegar
       localStorage.setItem('carouselSessionId', sessionId);
       
-      // Navegar para resultado ANTES de fazer qualquer requisição
-      navigate('/carousel-result');
-
       // Preparar dados em bundles separados para o Make
       const sessionBundle = {
         sessionId: sessionId,
@@ -115,36 +113,32 @@ const CarouselGenerator = () => {
         userData: userDataBundle
       };
 
-      console.log('📤 Sending to Make webhook with separated bundles:', makeData);
+      console.log('📤 Sending to Make webhook with data:', makeData);
 
-      // Enviar para o Make de forma assíncrona
-      setTimeout(async () => {
-        try {
-          // URL do webhook do Make
-          const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
-          
-          const response = await fetch(makeWebhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(makeData)
-          });
+      // URL do webhook do Make
+      const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
+      
+      // Enviar para o Make
+      const response = await fetch(makeWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(makeData)
+      });
 
-          console.log('📨 Make webhook response status:', response.status);
-          
-          if (!response.ok) {
-            console.error('❌ Make webhook failed:', response.status);
-            await createFallbackResponse(sessionId, prompt, niche);
-          } else {
-            console.log('✅ Make webhook sent successfully');
-          }
-          
-        } catch (error) {
-          console.error('❌ Make webhook error:', error);
-          await createFallbackResponse(sessionId, prompt, niche);
-        }
-      }, 100);
+      console.log('📨 Make webhook response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('❌ Make webhook failed:', response.status);
+        // Criar resposta fallback em caso de erro
+        await createFallbackResponse(sessionId, prompt, niche);
+      } else {
+        console.log('✅ Make webhook sent successfully');
+      }
+
+      // Navegar para resultado APÓS enviar os dados
+      navigate('/carousel-result');
 
     } catch (error) {
       console.error('❌ Error in generation process:', error);
@@ -155,6 +149,7 @@ const CarouselGenerator = () => {
         description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
         variant: "destructive",
       });
+    } finally {
       setIsGenerating(false);
     }
   };
