@@ -18,7 +18,7 @@ export const useWebhookResponse = () => {
     }
 
     let pollCount = 0;
-    const maxPolls = 60; // 60 polls = 2 minutes
+    const maxPolls = 30; // Reduzindo para 1 minuto (30 polls)
     
     const pollForResponse = async () => {
       try {
@@ -51,7 +51,7 @@ export const useWebhookResponse = () => {
 
         pollCount++;
         if (pollCount >= maxPolls) {
-          setError('Timeout: Não recebemos resposta do webhook após 2 minutos');
+          setError('Timeout: Não recebemos resposta do webhook após 1 minuto');
           setIsLoading(false);
           localStorage.removeItem('carouselSessionId');
           return;

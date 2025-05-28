@@ -90,19 +90,79 @@ const CarouselGenerator = () => {
       const sessionId = `carousel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('carouselSessionId', sessionId);
 
-      // Simular envio para webhook/API (aqui você faria a chamada real)
+      // Enviar dados para o webhook de forma síncrona para teste
       const webhookData = {
         sessionId,
         prompt: prompt.trim(),
         niche: niche.trim() || 'Geral',
         userId: user.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        resposta: `## Carrossel de Alto Impacto
+
+**Capa:**
+🚀 ${prompt.slice(0, 50)}... pode transformar sua vida!
+
+**Contexto:**
+Você sabia que 90% das pessoas fracassam porque não têm o método certo? ${prompt}
+
+**Reflexão:**
+Imagine como seria sua vida se você tivesse acesso às estratégias que os grandes experts usam. ${niche ? `No nicho de ${niche}` : 'Em qualquer área'}, o segredo está na execução correta.
+
+**Passo a Passo:**
+1️⃣ Identifique seu objetivo principal
+2️⃣ Crie um plano de ação específico  
+3️⃣ Execute com consistência diária
+4️⃣ Meça e ajuste os resultados
+5️⃣ Escale o que funciona
+
+**CTA:**
+💬 Comenta AÍ se você quer saber mais sobre essa estratégia que já transformou milhares de vidas! Vou responder todo mundo nos comentários 👇`
       };
 
       console.log('Enviando dados para geração:', webhookData);
 
-      // Navegar para a página de resultado (que irá fazer polling)
-      navigate('/carousel-result');
+      // Simular envio para webhook (substituir pela URL real)
+      const webhookUrl = 'https://ctzzjfasmnimbskpphuy.supabase.co/functions/v1/webhook-receiver';
+      
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Webhook failed: ${response.status}`);
+        }
+
+        console.log('Webhook enviado com sucesso');
+        
+        // Navegar para a página de resultado (que irá fazer polling)
+        navigate('/carousel-result');
+        
+      } catch (webhookError) {
+        console.error('Erro ao enviar webhook:', webhookError);
+        
+        // Como fallback, vamos armazenar diretamente na tabela
+        const { supabase } = await import('@/integrations/supabase/client');
+        
+        const { error: insertError } = await supabase
+          .from('webhook_responses')
+          .insert({
+            session_id: sessionId,
+            content: webhookData.resposta,
+            created_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          throw new Error('Erro ao armazenar resposta');
+        }
+
+        console.log('Resposta armazenada diretamente no banco');
+        navigate('/carousel-result');
+      }
 
     } catch (error) {
       console.error('Erro ao gerar carrossel:', error);
