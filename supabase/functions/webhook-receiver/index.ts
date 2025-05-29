@@ -34,10 +34,16 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
+        // Priorizar session_id que vem diretamente no root do JSON
+        if (parsedData.session_id) {
+          sessionId = parsedData.session_id
+          console.log('Found sessionId in root:', sessionId)
+        }
+        
         // Verificar se vem com sessionId separado
         if (parsedData.sessionId) {
           sessionId = parsedData.sessionId
-          console.log('Found sessionId in root:', sessionId)
+          console.log('Found sessionId in sessionId field:', sessionId)
         }
         
         // Verificar se vem com session bundle
