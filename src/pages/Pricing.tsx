@@ -10,79 +10,105 @@ import {
   Zap, 
   Star,
   Rocket,
-  Diamond
+  Gift,
+  Briefcase
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Pricing = () => {
-  const [isAnnual, setIsAnnual] = useState(false);
-
   const plans = [
     {
-      name: "Inicial",
-      icon: <Zap className="w-6 h-6" />,
-      price: isAnnual ? 144 : 15,
-      originalPrice: isAnnual ? 180 : null,
-      description: "Para começar a transformar seu negócio",
+      name: "Free",
+      icon: <Gift className="w-6 h-6" />,
+      price: 0,
+      emoji: "🎁",
+      description: "Ideal para teste inicial da plataforma",
+      badge: null,
+      color: "green",
+      features: [
+        "3 créditos",
+        "Renovação: Não renova",
+        "Acesso ao QuikDesign",
+        "Suporte básico"
+      ],
+      credits: "3 créditos",
+      renewal: "Não renova",
+      accumulation: null,
+      obs: "Ideal para teste inicial da plataforma"
+    },
+    {
+      name: "Essential",
+      icon: <Briefcase className="w-6 h-6" />,
+      price: 15,
+      emoji: "💼",
+      description: "Para uso básico mensal",
       badge: null,
       color: "blue",
       features: [
-        "3 Ferramentas de IA básicas",
-        "2 Cursos de introdução",
-        "Acesso à comunidade",
-        "Chat comunitário",
-        "Suporte básico",
-        "Dashboard pessoal"
-      ]
+        "50 créditos mensais",
+        "Renovação: Mensal",
+        "Acúmulo: Não cumulativo",
+        "Todas as ferramentas básicas",
+        "Suporte prioritário"
+      ],
+      credits: "50 créditos",
+      renewal: "Mensal",
+      accumulation: "Não cumulativo",
+      obs: "Zera e renova a cada mês"
     },
     {
-      name: "Premium",
-      icon: <Star className="w-6 h-6" />,
-      price: isAnnual ? 288 : 30,
-      originalPrice: isAnnual ? 360 : null,
-      description: "Para escalar e multiplicar resultados",
+      name: "Pro",
+      icon: <Rocket className="w-6 h-6" />,
+      price: 99,
+      emoji: "🚀",
+      description: "Para uso intensivo com acúmulo",
       badge: "MAIS POPULAR",
       color: "purple",
       features: [
-        "Todas as ferramentas de IA",
-        "Todos os cursos e mentorias",
-        "Prioridade no suporte",
-        "Análise de concorrentes",
-        "Automações avançadas",
-        "Comunidade VIP",
-        "Relatórios detalhados",
-        "Templates exclusivos"
-      ]
+        "200 créditos mensais",
+        "Renovação: Mensal", 
+        "Acúmulo: Cumulativo",
+        "Todas as ferramentas premium",
+        "Suporte prioritário",
+        "Relatórios avançados"
+      ],
+      credits: "200 créditos",
+      renewal: "Mensal",
+      accumulation: "Cumulativo",
+      obs: "Se o usuário não usar, os créditos acumulam no mês seguinte"
     },
     {
       name: "VIP",
       icon: <Crown className="w-6 h-6" />,
-      price: isAnnual ? 576 : 60,
-      originalPrice: isAnnual ? 720 : null,
-      description: "Para dominar o mercado completamente",
+      price: 399,
+      emoji: "👑",
+      description: "Ideal para uso intensivo da plataforma",
       badge: "ELITE",
       color: "gold",
       features: [
-        "Tudo do Premium +",
-        "Consultoria 1:1 mensal",
-        "Acesso antecipado a novas IAs",
-        "Grupo exclusivo de milionários",
-        "Suporte prioritário 24/7",
-        "Custom GPTs personalizados",
-        "Análises personalizadas",
-        "Certificação oficial QUIKFY"
-      ]
+        "500 créditos mensais",
+        "Renovação: Mensal",
+        "Acúmulo: Cumulativo", 
+        "Todas as ferramentas",
+        "Suporte 24/7 prioritário",
+        "Acesso antecipado",
+        "Consultoria exclusiva"
+      ],
+      credits: "500 créditos",
+      renewal: "Mensal",
+      accumulation: "Cumulativo",
+      obs: "Ideal para uso intensivo da plataforma"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-2xl font-bold">QUIKFY</span>
           </Link>
           <Link to="/login">
             <Button variant="outline">Fazer Login</Button>
@@ -97,48 +123,21 @@ const Pricing = () => {
             <Rocket className="w-4 h-4 mr-2" />
             Transforme seu negócio hoje
           </Badge>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Escolha o plano que vai te fazer 
             <span className="text-purple-600"> milionário</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Cada plano foi desenhado para acelerar seus resultados. 
             Junte-se a mais de 50.000 empreendedores que já faturam milhões com nossas IAs.
           </p>
-
-          {/* Toggle Annual/Monthly */}
-          <div className="flex items-center justify-center space-x-4 mb-12">
-            <span className={`text-lg ${!isAnnual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              Mensal
-            </span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isAnnual ? 'bg-purple-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isAnnual ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span className={`text-lg ${isAnnual ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-              Anual
-            </span>
-            {isAnnual && (
-              <Badge className="bg-green-100 text-green-700 border-green-200">
-                Economize 20%
-              </Badge>
-            )}
-          </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <Card key={index} className={`relative ${
-              plan.name === "Premium" 
+              plan.name === "Pro" 
                 ? "ring-2 ring-purple-600 shadow-2xl scale-105" 
                 : "hover:shadow-xl"
             } transition-all duration-300`}>
@@ -151,63 +150,79 @@ const Pricing = () => {
               )}
               
               <CardHeader className="text-center pb-6">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  plan.color === "blue" ? "bg-blue-100 text-blue-600" :
-                  plan.color === "purple" ? "bg-purple-100 text-purple-600" :
-                  "bg-yellow-100 text-yellow-600"
-                }`}>
-                  {plan.icon}
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  {plan.name}
+                <div className="text-4xl mb-2">{plan.emoji}</div>
+                <CardTitle className="text-2xl font-bold">
+                  Plano {plan.name}
                 </CardTitle>
-                <p className="text-gray-600">{plan.description}</p>
                 
                 <div className="mt-6">
                   <div className="flex items-center justify-center space-x-2">
-                    {plan.originalPrice && (
-                      <span className="text-lg text-gray-400 line-through">
-                        R$ {plan.originalPrice}
-                      </span>
-                    )}
-                    <span className="text-4xl font-bold text-gray-900">
-                      R$ {plan.price}
+                    <span className="text-4xl font-bold">
+                      {plan.price === 0 ? "Grátis" : `R$ ${plan.price}`}
                     </span>
                   </div>
-                  <span className="text-gray-600">
-                    /{isAnnual ? "ano" : "mês"}
-                  </span>
+                  {plan.price > 0 && (
+                    <span className="text-muted-foreground">por mês</span>
+                  )}
                 </div>
               </CardHeader>
 
-              <CardContent>
-                <ul className="space-y-3 mb-8">
+              <CardContent className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Créditos:</span>
+                    <span>{plan.credits}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Renovação:</span>
+                    <span>{plan.renewal}</span>
+                  </div>
+                  {plan.accumulation && (
+                    <div className="flex justify-between">
+                      <span className="font-medium">Acúmulo:</span>
+                      <span>{plan.accumulation}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+                  <strong>Observações:</strong> {plan.obs}
+                </div>
+                
+                <ul className="space-y-2 text-sm">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center space-x-3">
-                      <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
+                    <li key={idx} className="flex items-center space-x-2">
+                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
                 <Button 
-                  className={`w-full py-3 ${
-                    plan.name === "Premium"
+                  className={`w-full py-3 mt-6 ${
+                    plan.name === "Pro"
                       ? "bg-purple-600 hover:bg-purple-700 text-white"
                       : plan.name === "VIP"
                       ? "bg-yellow-600 hover:bg-yellow-700 text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      : plan.name === "Essential"
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-green-600 hover:bg-green-700 text-white"
                   }`}
                 >
-                  {plan.name === "VIP" ? (
+                  {plan.name === "Free" ? (
                     <>
-                      <Diamond className="w-4 h-4 mr-2" />
+                      <Gift className="w-4 h-4 mr-2" />
+                      Começar Grátis
+                    </>
+                  ) : plan.name === "VIP" ? (
+                    <>
+                      <Crown className="w-4 h-4 mr-2" />
                       Tornar-se VIP
                     </>
                   ) : (
                     <>
                       <Rocket className="w-4 h-4 mr-2" />
-                      Começar Agora
+                      Assinar {plan.name}
                     </>
                   )}
                 </Button>
@@ -218,11 +233,11 @@ const Pricing = () => {
 
         {/* Guarantee Section */}
         <div className="text-center mt-16">
-          <div className="bg-gray-50 rounded-2xl p-8 max-w-3xl mx-auto">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-muted/50 rounded-2xl p-8 max-w-3xl mx-auto">
+            <h3 className="text-2xl font-bold mb-4">
               Garantia de 30 dias ou seu dinheiro de volta
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Testamos nossa metodologia com milhares de empreendedores. 
               Se em 30 dias você não ver resultados concretos, devolvemos 100% do seu investimento.
             </p>

@@ -18,11 +18,12 @@ interface CarouselProject {
 }
 
 interface ProfileProjectsProps {
-  projects: any[]; // Manter para compatibilidade, mas não usar
-  onDeleteProject: (projectId: string) => void; // Manter para compatibilidade, mas não usar
+  projects: any[];
+  onDeleteProject: (projectId: string) => void;
+  onProjectsCountChange?: (count: number) => void;
 }
 
-export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: legacyDelete }: ProfileProjectsProps) => {
+export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: legacyDelete, onProjectsCountChange }: ProfileProjectsProps) => {
   const { user } = useAuth();
   const [carouselProjects, setCarouselProjects] = useState<CarouselProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,13 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
       fetchCarouselProjects();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Notifica o componente pai sobre a mudança na contagem
+    if (onProjectsCountChange) {
+      onProjectsCountChange(carouselProjects.length);
+    }
+  }, [carouselProjects.length, onProjectsCountChange]);
 
   const fetchCarouselProjects = async () => {
     if (!user) return;
@@ -104,7 +112,7 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Meus Projetos</h2>
+          <h2 className="text-2xl font-bold">Meus Projetos</h2>
           <Link to="/carousel-generator">
             <Button className="bg-purple-600 hover:bg-purple-700">
               <ImageIcon className="w-4 h-4 mr-2" />
@@ -113,7 +121,7 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
           </Link>
         </div>
         <div className="text-center py-8">
-          <p className="text-gray-500">Carregando projetos...</p>
+          <p className="text-muted-foreground">Carregando projetos...</p>
         </div>
       </div>
     );
@@ -122,7 +130,7 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Meus Projetos</h2>
+        <h2 className="text-2xl font-bold">Meus Projetos ({carouselProjects.length})</h2>
         <Link to="/carousel-generator">
           <Button className="bg-purple-600 hover:bg-purple-700">
             <ImageIcon className="w-4 h-4 mr-2" />
@@ -134,9 +142,9 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
       {carouselProjects.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum projeto criado</h3>
-            <p className="text-gray-500 mb-6">Comece criando seu primeiro carrossel profissional!</p>
+            <ImageIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum projeto criado</h3>
+            <p className="text-muted-foreground mb-6">Comece criando seu primeiro carrossel profissional!</p>
             <Link to="/carousel-generator">
               <Button className="bg-purple-600 hover:bg-purple-700">
                 <ImageIcon className="w-4 h-4 mr-2" />
@@ -153,7 +161,7 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg truncate">{project.title}</CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Criado em {formatDate(project.created_at)}
                     </p>
                   </div>
@@ -164,8 +172,8 @@ export const ProfileProjects = ({ projects: legacyProjects, onDeleteProject: leg
               </CardHeader>
               <CardContent>
                 {/* Preview do conteúdo */}
-                <div className="w-full bg-gray-50 rounded-lg p-4 mb-4 max-h-32 overflow-hidden">
-                  <p className="text-sm text-gray-700 line-clamp-4">
+                <div className="w-full bg-muted rounded-lg p-4 mb-4 max-h-32 overflow-hidden">
+                  <p className="text-sm line-clamp-4">
                     {project.content.substring(0, 150)}...
                   </p>
                 </div>

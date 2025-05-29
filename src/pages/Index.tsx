@@ -28,52 +28,52 @@ const Index = () => {
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-2xl font-bold">QUIKFY</span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/carousel-creator" className="text-gray-600 hover:text-purple-600 transition-colors">
+            <Link to="/carousel-creator" className="text-muted-foreground hover:text-purple-600 transition-colors">
               QuikDesign
             </Link>
             <AdminAccessWrapper
               fallback={
-                <Link to="/carousel-generator" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center">
                   IA Carrossel <Lock className="w-3 h-3 ml-1" />
                 </Link>
               }
             >
-              <Link to="/carousel-generator" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors">
                 IA Carrossel
               </Link>
             </AdminAccessWrapper>
             <AdminAccessWrapper
               fallback={
-                <Link to="/podcasts" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center">
                   Podcasts <Lock className="w-3 h-3 ml-1" />
                 </Link>
               }
             >
-              <Link to="/podcasts" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors">
                 Podcasts
               </Link>
             </AdminAccessWrapper>
             <AdminAccessWrapper
               fallback={
-                <Link to="/content-feed" className="text-gray-600 hover:text-purple-600 transition-colors flex items-center">
+                <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center">
                   Conteúdo <Lock className="w-3 h-3 ml-1" />
                 </Link>
               }
             >
-              <Link to="/content-feed" className="text-gray-600 hover:text-purple-600 transition-colors">
+              <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors">
                 Conteúdo
               </Link>
             </AdminAccessWrapper>
-            <Link to="/pricing" className="text-gray-600 hover:text-purple-600 transition-colors">
+            <Link to="/pricing" className="text-muted-foreground hover:text-purple-600 transition-colors">
               Preços
             </Link>
           </nav>
@@ -100,11 +100,11 @@ const Index = () => {
             <Sparkles className="w-4 h-4 mr-2" />
             Powered by AI
           </Badge>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Ferramentas e cursos de IA para <br />
             <span className="text-purple-600">criadores digitais</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Domine as ferramentas de IA mais poderosas do mercado e transforme 
             seu negócio digital com nossa plataforma completa de ensino e produtividade.
           </p>
@@ -113,19 +113,19 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-600 mb-1">50k+</div>
-              <div className="text-sm text-gray-600">Usuários ativos</div>
+              <div className="text-sm text-muted-foreground">Usuários ativos</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-600 mb-1">24/7</div>
-              <div className="text-sm text-gray-600">Suporte disponível</div>
+              <div className="text-sm text-muted-foreground">Suporte disponível</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-600 mb-1">R$ 50M+</div>
-              <div className="text-sm text-gray-600">Faturamento dos usuários</div>
+              <div className="text-sm text-muted-foreground">Faturamento dos usuários</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-600 mb-1">95%</div>
-              <div className="text-sm text-gray-600">Satisfação</div>
+              <div className="text-sm text-muted-foreground">Satisfação</div>
             </div>
           </div>
 
@@ -149,9 +149,9 @@ const Index = () => {
       </section>
 
       {/* Features Grid */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center mb-12">
             Ferramentas e recursos exclusivos
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -179,7 +179,7 @@ const Index = () => {
               <AdminAccessWrapper
                 fallback={
                   <div className="absolute top-2 right-2">
-                    <Lock className="w-4 h-4 text-gray-400" />
+                    <Lock className="w-4 h-4 text-muted-foreground" />
                   </div>
                 }
               >
@@ -222,7 +222,7 @@ const Index = () => {
               <AdminAccessWrapper
                 fallback={
                   <div className="absolute top-2 right-2">
-                    <Lock className="w-4 h-4 text-gray-400" />
+                    <Lock className="w-4 h-4 text-muted-foreground" />
                   </div>
                 }
               >
@@ -265,7 +265,7 @@ const Index = () => {
               <AdminAccessWrapper
                 fallback={
                   <div className="absolute top-2 right-2">
-                    <Lock className="w-4 h-4 text-gray-400" />
+                    <Lock className="w-4 h-4 text-muted-foreground" />
                   </div>
                 }
               >
@@ -303,62 +303,6 @@ const Index = () => {
                 </AdminAccessWrapper>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Plans Preview */}
-      <section className="py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">
-            Escolha seu plano
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle className="text-lg text-gray-600">Free</CardTitle>
-                <div className="text-2xl font-bold">R$ 0</div>
-                <CardDescription>Apenas QuikDesign</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="text-center border-purple-200">
-              <CardHeader>
-                <CardTitle className="text-lg text-purple-600">Essential</CardTitle>
-                <div className="text-2xl font-bold">R$ 29</div>
-                <CardDescription>Ferramentas básicas</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="text-center border-purple-400 bg-purple-50">
-              <CardHeader>
-                <Badge className="bg-purple-100 text-purple-700 mx-auto mb-2">
-                  POPULAR
-                </Badge>
-                <CardTitle className="text-lg text-purple-600">Pro</CardTitle>
-                <div className="text-2xl font-bold">R$ 99</div>
-                <CardDescription>Todas as ferramentas</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="text-center border-yellow-400">
-              <CardHeader>
-                <CardTitle className="text-lg text-yellow-600">VIP</CardTitle>
-                <div className="text-2xl font-bold">R$ 299</div>
-                <CardDescription>Acesso total + mentoria</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="text-center border-gray-400">
-              <CardHeader>
-                <CardTitle className="text-lg text-gray-600">ADM</CardTitle>
-                <div className="text-2xl font-bold">---</div>
-                <CardDescription>Administradores</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-          <div className="mt-8">
-            <Link to="/pricing">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-                Ver Todos os Planos
-              </Button>
-            </Link>
           </div>
         </div>
       </section>

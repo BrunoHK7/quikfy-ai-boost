@@ -24,6 +24,7 @@ const Profile = () => {
   const { uploadPhoto } = useProfilePhotos();
   const { signOut, user } = useAuth();
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [projectsCount, setProjectsCount] = useState(0);
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Tem certeza que deseja excluir este projeto?")) {
@@ -43,11 +44,15 @@ const Profile = () => {
     }
   };
 
+  const handleProjectsCountChange = (count: number) => {
+    setProjectsCount(count);
+  };
+
   console.log('Profile component state:', { 
     user: user?.email, 
     profile: profile?.full_name, 
     profileLoading, 
-    projectsCount: projects.length 
+    projectsCount 
   });
 
   if (profileLoading) {
@@ -55,7 +60,7 @@ const Profile = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-600">Carregando perfil...</p>
+          <p className="text-muted-foreground">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -65,7 +70,7 @@ const Profile = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Erro ao carregar perfil</p>
+          <p className="text-muted-foreground mb-4">Erro ao carregar perfil</p>
           <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
         </div>
       </div>
@@ -73,13 +78,13 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-2xl font-bold">QUIKFY</span>
           </Link>
           <div className="flex items-center space-x-2">
             <Link to="/settings">
@@ -103,7 +108,7 @@ const Profile = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="projects">Meus Projetos ({projects.length})</TabsTrigger>
+            <TabsTrigger value="projects">Meus Projetos ({projectsCount})</TabsTrigger>
             <TabsTrigger value="photos">Fotos</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
             <TabsTrigger value="credits">Créditos</TabsTrigger>
@@ -112,12 +117,16 @@ const Profile = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <ProfileStats projectsCount={projects.length} />
+            <ProfileStats projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-6">
-            <ProfileProjects projects={projects} onDeleteProject={handleDeleteProject} />
+            <ProfileProjects 
+              projects={projects} 
+              onDeleteProject={handleDeleteProject} 
+              onProjectsCountChange={handleProjectsCountChange}
+            />
           </TabsContent>
 
           {/* Photos Tab */}
@@ -127,7 +136,7 @@ const Profile = () => {
 
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
-            <ProfileAchievements profile={profile} projectsCount={projects.length} />
+            <ProfileAchievements profile={profile} projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Credits Tab */}
