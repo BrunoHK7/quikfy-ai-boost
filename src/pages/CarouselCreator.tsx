@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Save, Plus, Trash2, Upload, Smile } from "lucide-react";
+import { ArrowLeft, Download, Save, Plus, Trash2, Upload, Smile, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +69,8 @@ const CarouselCreator = () => {
   const googleFonts = [
     'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
     'Raleway', 'PT Sans', 'Lora', 'Merriweather', 'Playfair Display',
-    'Oswald', 'Ubuntu', 'Nunito', 'Poppins', 'Arial'
+    'Oswald', 'Ubuntu', 'Nunito', 'Poppins', 'Arial', 'Georgia', 'Times New Roman',
+    'Helvetica', 'Verdana', 'Trebuchet MS', 'Impact', 'Comic Sans MS'
   ];
 
   const getDimensionsForCanvas = () => {
@@ -237,9 +238,22 @@ const CarouselCreator = () => {
   };
 
   const updateCurrentFrame = (updates: Partial<Frame>) => {
-    setFrames(prev => prev.map((frame, index) => 
-      index === currentFrameIndex ? { ...frame, ...updates } : frame
-    ));
+    setFrames(prev => prev.map((frame, index) => {
+      if (index === currentFrameIndex) {
+        const updatedFrame = { ...frame, ...updates };
+        // Load font if it's being changed
+        if (updates.fontFamily) {
+          loadGoogleFont(updates.fontFamily);
+        }
+        return updatedFrame;
+      }
+      return frame;
+    }));
+  };
+
+  const updateGlobalFont = (fontFamily: string) => {
+    loadGoogleFont(fontFamily);
+    setGlobalFontFamily(fontFamily);
   };
 
   const addFrame = () => {
@@ -612,11 +626,14 @@ const CarouselCreator = () => {
             <label className="text-sm font-medium text-foreground mb-2 block">Fonte (Global)</label>
             <select
               value={globalFontFamily}
-              onChange={(e) => setGlobalFontFamily(e.target.value)}
+              onChange={(e) => updateGlobalFont(e.target.value)}
               className="w-full p-2 border border-border rounded text-sm bg-background text-foreground"
+              style={{ fontFamily: globalFontFamily }}
             >
               {googleFonts.map(font => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font} style={{ fontFamily: font }}>
+                  {font}
+                </option>
               ))}
             </select>
           </div>
@@ -850,11 +867,16 @@ const CarouselCreator = () => {
             <label className="text-sm font-medium text-foreground mb-2 block">Fonte (Slide)</label>
             <select
               value={currentFrame?.fontFamily || globalFontFamily}
-              onChange={(e) => updateCurrentFrame({ fontFamily: e.target.value })}
+              onChange={(e) => {
+                updateCurrentFrame({ fontFamily: e.target.value });
+              }}
               className="w-full p-2 border border-border rounded text-sm bg-background text-foreground"
+              style={{ fontFamily: currentFrame?.fontFamily || globalFontFamily }}
             >
               {googleFonts.map(font => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font} style={{ fontFamily: font }}>
+                  {font}
+                </option>
               ))}
             </select>
           </div>
@@ -867,25 +889,25 @@ const CarouselCreator = () => {
                 variant={currentFrame?.textAlign === 'left' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => updateCurrentFrame({ textAlign: 'left' })}
-                className="text-xs"
+                className="flex items-center justify-center"
               >
-                Esquerda
+                <AlignLeft className="h-4 w-4" />
               </Button>
               <Button
                 variant={currentFrame?.textAlign === 'center' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => updateCurrentFrame({ textAlign: 'center' })}
-                className="text-xs"
+                className="flex items-center justify-center"
               >
-                Centro
+                <AlignCenter className="h-4 w-4" />
               </Button>
               <Button
                 variant={currentFrame?.textAlign === 'right' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => updateCurrentFrame({ textAlign: 'right' })}
-                className="text-xs"
+                className="flex items-center justify-center"
               >
-                Direita
+                <AlignRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
