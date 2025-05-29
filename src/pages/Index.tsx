@@ -27,7 +27,7 @@ const Index = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const isAdmin = profile?.role === 'admin';
-  const isPremium = isAdmin || profile?.role === 'pro' || profile?.role === 'vip' || profile?.role === 'essential';
+  const isPremium = isAdmin || ['essential', 'pro', 'vip'].includes(profile?.role || '');
 
   return (
     <div className="min-h-screen bg-background">
