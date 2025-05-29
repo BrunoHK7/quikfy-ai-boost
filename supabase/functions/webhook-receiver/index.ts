@@ -34,15 +34,52 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // BUSCAR sessionId - Make envia com sessionId no root
-        if (parsedData.sessionId) {
+        // Busca mais completa pelo sessionId
+        // 1. Primeiro nivel - sessionId
+        if (parsedData.sessionId && typeof parsedData.sessionId === 'string') {
           sessionId = parsedData.sessionId
-          console.log('✅ Found sessionId from Make:', sessionId)
+          console.log('✅ Found sessionId at root level:', sessionId)
         }
-        // Backup: session_id
-        else if (parsedData.session_id) {
+        // 2. Primeiro nivel - session_id  
+        else if (parsedData.session_id && typeof parsedData.session_id === 'string') {
           sessionId = parsedData.session_id
-          console.log('✅ Found session_id:', sessionId)
+          console.log('✅ Found session_id at root level:', sessionId)
+        }
+        // 3. Dentro de um objeto data ou payload
+        else if (parsedData.data) {
+          if (parsedData.data.sessionId) {
+            sessionId = parsedData.data.sessionId
+            console.log('✅ Found sessionId in data object:', sessionId)
+          } else if (parsedData.data.session_id) {
+            sessionId = parsedData.data.session_id
+            console.log('✅ Found session_id in data object:', sessionId)
+          }
+        }
+        // 4. Busca em todos os campos de primeiro nivel
+        else {
+          console.log('🔍 Searching all top-level fields for sessionId...')
+          for (const [key, value] of Object.entries(parsedData)) {
+            console.log(`Checking field "${key}":`, value)
+            if (typeof value === 'string' && (key.toLowerCase().includes('session') || value.includes('quiz_session_'))) {
+              sessionId = value
+              console.log(`✅ Found sessionId in field "${key}":`, sessionId)
+              break
+            }
+            // Se o valor é um objeto, verificar dentro dele
+            if (typeof value === 'object' && value !== null) {
+              const obj = value as Record<string, any>
+              if (obj.sessionId) {
+                sessionId = obj.sessionId
+                console.log(`✅ Found sessionId in nested object "${key}":`, sessionId)
+                break
+              }
+              if (obj.session_id) {
+                sessionId = obj.session_id
+                console.log(`✅ Found session_id in nested object "${key}":`, sessionId)
+                break
+              }
+            }
+          }
         }
         
         // Extrair o conteúdo da resposta
@@ -58,6 +95,9 @@ serve(async (req) => {
         } else if (parsedData.value) {
           responseContent = parsedData.value
           console.log('Using value field as content')
+        } else if (parsedData.data && parsedData.data.resposta) {
+          responseContent = parsedData.data.resposta
+          console.log('Using data.resposta field as content')
         } else {
           console.log('Using entire JSON as content')
           responseContent = body
@@ -68,18 +108,38 @@ serve(async (req) => {
         responseContent = body
       }
       
-      // Se AINDA não temos sessionId do Make, usar fallback mas com warning
+      // Se AINDA não temos sessionId, TENTAR extrair do texto bruto
       if (!sessionId) {
-        console.warn('⚠️ WARNING: No sessionId found from Make, generating fallback')
-        sessionId = `response_${Date.now()}`
-        console.log('Generated fallback sessionId:', sessionId)
+        console.log('🔍 Last attempt: searching for sessionId in raw text...')
+        const sessionMatch = body.match(/quiz_session_\d+_[a-z0-9]+/i)
+        if (sessionMatch) {
+          sessionId = sessionMatch[0]
+          console.log('✅ Found sessionId in raw text:', sessionId)
+        }
+      }
+      
+      // CRITICAL: Se não encontrou sessionId, RETORNAR ERRO
+      if (!sessionId) {
+        console.error('❌ CRITICAL: No sessionId found anywhere in payload!')
+        console.error('Full payload for debugging:', body)
+        return new Response(
+          JSON.stringify({ 
+            error: 'No sessionId found in payload', 
+            received_data: body.substring(0, 500) + '...',
+            help: 'Make sure the sessionId is being sent in the payload' 
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
       
       console.log('🎯 FINAL sessionId to save:', sessionId)
       console.log('📝 Final content:', responseContent.substring(0, 200) + '...')
       console.log('📏 Content length:', responseContent.length)
       
-      // Salvar com o sessionId (do Make ou fallback)
+      // Salvar APENAS com o sessionId encontrado
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
