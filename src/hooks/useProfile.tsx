@@ -13,7 +13,7 @@ interface UserProfile {
   occupation: string;
   bio: string;
   avatar_url: string;
-  role: 'free' | 'plus' | 'pro' | 'vip' | 'admin';
+  role: 'free' | 'plus' | 'pro' | 'vip' | 'admin' | 'teste';
   show_public_profile: boolean;
   created_at: string;
   updated_at: string;

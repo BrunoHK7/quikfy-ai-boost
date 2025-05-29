@@ -21,11 +21,12 @@ export const CarouselUsesDisplay = ({ showDetails = false }: { showDetails?: boo
 
   const currentPlan = getCurrentPlanType();
   const isAdmin = profile?.role === 'admin' || currentPlan === 'admin';
-  const isUnlimited = isAdmin || currentPlan === 'vip';
+  const isUnlimited = isAdmin || currentPlan === 'vip' || currentPlan === 'teste';
 
   const getPlanIcon = () => {
     switch (currentPlan) {
       case 'admin': return <Crown className="w-4 h-4" />;
+      case 'teste': return <Zap className="w-4 h-4 text-blue-600" />;
       case 'vip': return <Zap className="w-4 h-4 text-purple-600" />;
       case 'pro': return <Zap className="w-4 h-4 text-blue-600" />;
       default: return <Instagram className="w-4 h-4" />;
@@ -36,6 +37,7 @@ export const CarouselUsesDisplay = ({ showDetails = false }: { showDetails?: boo
     if (isAdmin) return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700';
     
     switch (currentPlan) {
+      case 'teste': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700';
       case 'vip': return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900 dark:text-purple-200 dark:border-purple-700';
       case 'pro': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700';
       case 'plus': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700';
@@ -59,7 +61,7 @@ export const CarouselUsesDisplay = ({ showDetails = false }: { showDetails?: boo
           
           <div className="text-center mb-4">
             <div className="text-3xl font-bold text-primary">
-              {isUnlimited ? '∞' : userUses.current_uses}
+              {isUnlimited ? '∞' : 'Ilimitado'}
             </div>
             <div className="text-sm text-muted-foreground">
               {isUnlimited ? 'Usos Ilimitados' : 'usos disponíveis'}
@@ -68,11 +70,6 @@ export const CarouselUsesDisplay = ({ showDetails = false }: { showDetails?: boo
 
           <div className="text-sm text-muted-foreground text-center">
             <div>Plano: {isAdmin ? 'Administrativo - Ilimitado' : getPlanUses(currentPlan)}</div>
-            {!isUnlimited && userUses.total_uses_ever > 0 && (
-              <div className="mt-2">
-                Total já utilizado: {userUses.total_uses_ever - userUses.current_uses} usos
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -83,7 +80,7 @@ export const CarouselUsesDisplay = ({ showDetails = false }: { showDetails?: boo
     <div className="flex items-center space-x-2">
       {getPlanIcon()}
       <Badge className={getPlanColor()}>
-        {isUnlimited ? '∞' : userUses.current_uses} usos
+        {isUnlimited ? '∞' : '∞'} usos
       </Badge>
     </div>
   );

@@ -1,11 +1,11 @@
+
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useProfile } from './useProfile';
 
 interface UserCredits {
   id: string;
-  plan_type: 'free' | 'plus' | 'pro' | 'vip' | 'admin';
+  plan_type: 'free' | 'plus' | 'pro' | 'vip' | 'admin' | 'teste';
   current_credits: number;
   total_credits_ever: number;
   last_reset_date: string;
@@ -36,30 +36,21 @@ export const useCredits = () => {
   const [creditHistory, setCreditHistory] = useState<CreditHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user credits
+  // Fetch user credits - simplified for plan-based system
   const fetchUserCredits = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_credits')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching user credits:', error);
-        return;
-      }
-
-      if (data) {
-        // Type cast the plan_type to ensure it matches our enum
-        const typedData: UserCredits = {
-          ...data,
-          plan_type: data.plan_type as 'free' | 'plus' | 'pro' | 'vip' | 'admin'
-        };
-        setUserCredits(typedData);
-      }
+      // Simulate credits based on plan
+      const simulatedCredits: UserCredits = {
+        id: user.id,
+        plan_type: profile.role,
+        current_credits: profile.role === 'admin' || profile.role === 'teste' ? -1 : 999999,
+        total_credits_ever: profile.role === 'admin' || profile.role === 'teste' ? -1 : 999999,
+        last_reset_date: new Date().toISOString()
+      };
+      
+      setUserCredits(simulatedCredits);
     } catch (error) {
       console.error('Error in fetchUserCredits:', error);
     } finally {
@@ -67,56 +58,18 @@ export const useCredits = () => {
     }
   };
 
-  // Fetch credit history
+  // Fetch credit history - empty for plan-based system
   const fetchCreditHistory = async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('credit_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching credit history:', error);
-        return;
-      }
-
-      // Type cast the status field and ensure proper typing
-      const typedData: CreditHistoryItem[] = (data || []).map(item => ({
-        ...item,
-        status: item.status as 'success' | 'refunded' | 'failed'
-      }));
-      setCreditHistory(typedData);
-    } catch (error) {
-      console.error('Error in fetchCreditHistory:', error);
-    }
+    setCreditHistory([]);
   };
 
-  // Consume credits - admin users bypass credit consumption
+  // Consume credits - simplified for plan-based system
   const consumeCredits = async (action: string, creditsToConsume: number, description?: string): Promise<ConsumeCreditsResponse> => {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
-    // Admin users don't consume credits
-    if (profile?.role === 'admin') {
-      // Still log the action for tracking purposes
-      try {
-        await supabase
-          .from('credit_history')
-          .insert({
-            user_id: user.id,
-            action: action,
-            credits_used: 0,
-            credits_before: userCredits?.current_credits || 0,
-            credits_after: userCredits?.current_credits || 0,
-            status: 'success',
-            description: `${description} (Admin - sem custo)`
-          });
-      } catch (error) {
-        console.error('Error logging admin action:', error);
-      }
-      
+    // Admin and teste users don't consume credits
+    if (profile?.role === 'admin' || profile?.role === 'teste') {
       return { 
         success: true, 
         credits_remaining: -1, 
@@ -124,67 +77,29 @@ export const useCredits = () => {
       };
     }
 
-    try {
-      const { data, error } = await supabase.rpc('consume_credits', {
-        _user_id: user.id,
-        _action: action,
-        _credits_to_consume: creditsToConsume,
-        _description: description
-      });
-
-      if (error) {
-        console.error('Error consuming credits:', error);
-        return { success: false, error: error.message };
-      }
-
-      // Safely convert Json response to ConsumeCreditsResponse
-      const typedResponse = data as unknown as ConsumeCreditsResponse;
-
-      // Refresh credits after consumption
-      await fetchUserCredits();
-      await fetchCreditHistory();
-
-      return typedResponse;
-    } catch (error) {
-      console.error('Error in consumeCredits:', error);
-      return { success: false, error: 'Erro interno' };
-    }
+    // For other users, always allow (plan-based access)
+    return { 
+      success: true, 
+      credits_remaining: 999999, 
+      message: `${description} - Plano ${profile?.role || 'free'}` 
+    };
   };
 
-  // Refund credits
+  // Refund credits - simplified for plan-based system
   const refundCredits = async (creditsToRefund: number, description: string) => {
     if (!user) return false;
 
-    // Admin users don't need refunds since they don't consume credits
-    if (profile?.role === 'admin') {
+    // Admin and teste users don't need refunds since they don't consume credits
+    if (profile?.role === 'admin' || profile?.role === 'teste') {
       return true;
     }
 
-    try {
-      const { data, error } = await supabase.rpc('refund_credits', {
-        _user_id: user.id,
-        _credits_to_refund: creditsToRefund,
-        _description: description
-      });
-
-      if (error) {
-        console.error('Error refunding credits:', error);
-        return false;
-      }
-
-      // Refresh credits after refund
-      await fetchUserCredits();
-      await fetchCreditHistory();
-
-      return data;
-    } catch (error) {
-      console.error('Error in refundCredits:', error);
-      return false;
-    }
+    // For other users, always success (plan-based access)
+    return true;
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchUserCredits();
       fetchCreditHistory();
     } else {
@@ -192,7 +107,7 @@ export const useCredits = () => {
       setCreditHistory([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, profile]);
 
   const getPlanName = (planType: string) => {
     switch (planType) {
@@ -201,18 +116,20 @@ export const useCredits = () => {
       case 'pro': return 'Pro';
       case 'vip': return 'VIP';
       case 'admin': return 'Admin';
+      case 'teste': return 'Teste';
       default: return 'Free';
     }
   };
 
   const getPlanCredits = (planType: string) => {
     switch (planType) {
-      case 'free': return '3 créditos (não renováveis)';
-      case 'plus': return '50 créditos/mês (não cumulativos)';
-      case 'pro': return '200 créditos/mês (cumulativos)';
-      case 'vip': return '500 créditos/mês (cumulativos)';
-      case 'admin': return 'Ilimitado';
-      default: return '3 créditos';
+      case 'free': return 'Acesso básico às ferramentas';
+      case 'plus': return 'Acesso às ferramentas';
+      case 'pro': return 'Acesso completo às ferramentas';
+      case 'vip': return 'Acesso ilimitado às ferramentas';
+      case 'admin': return 'Acesso administrativo';
+      case 'teste': return 'Conta de teste';
+      default: return 'Acesso básico';
     }
   };
 
