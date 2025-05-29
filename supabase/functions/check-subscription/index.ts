@@ -49,6 +49,8 @@ serve(async (req) => {
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
+      
+      // Update subscribers table
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
         user_id: user.id,
@@ -58,6 +60,20 @@ serve(async (req) => {
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
+
+      // Reset user to free plan
+      await supabaseClient.from("user_credits").update({
+        plan_type: 'free',
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', user.id);
+
+      await supabaseClient.from("profiles").update({
+        role: 'free',
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
+
+      logStep("Updated user to free plan");
+      
       return new Response(JSON.stringify({ 
         subscribed: false, 
         subscription_tier: null, 
@@ -95,10 +111,52 @@ serve(async (req) => {
       
       subscriptionTier = priceToTierMap[priceId as keyof typeof priceToTierMap] || null;
       logStep("Determined subscription tier", { priceId, subscriptionTier });
+
+      if (subscriptionTier) {
+        // Update user_credits table with new plan and credits
+        const planCredits = {
+          "Essential": 50,
+          "Pro": 200,
+          "VIP": 500
+        };
+        
+        const newCredits = planCredits[subscriptionTier as keyof typeof planCredits] || 50;
+        const planTypeLower = subscriptionTier.toLowerCase();
+        
+        logStep("Updating user credits", { planType: planTypeLower, newCredits });
+        
+        await supabaseClient.from("user_credits").update({
+          plan_type: planTypeLower,
+          current_credits: newCredits,
+          total_credits_ever: newCredits,
+          last_reset_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', user.id);
+
+        // Update profiles table with new role
+        await supabaseClient.from("profiles").update({
+          role: planTypeLower,
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
+
+        // Add credit history entry
+        await supabaseClient.from("credit_history").insert({
+          user_id: user.id,
+          action: 'plan_upgrade',
+          credits_used: 0,
+          credits_before: 3, // assuming they had free credits before
+          credits_after: newCredits,
+          description: `Plano atualizado para ${subscriptionTier} - ${newCredits} créditos`,
+          status: 'success'
+        });
+
+        logStep("Updated user plan and credits", { planType: planTypeLower, newCredits });
+      }
     } else {
-      logStep("No active subscription found");
+      logStep("No active subscription found, keeping current plan");
     }
 
+    // Update subscribers table
     await supabaseClient.from("subscribers").upsert({
       email: user.email,
       user_id: user.id,
