@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,10 +59,10 @@ const CarouselGenerator = () => {
       return;
     }
 
-    // Admin users don't need to check credits
+    // Admin users don't need to check credits but we still show the process
     const isAdmin = profile?.role === 'admin';
     
-    if (!isAdmin && userCredits && userCredits.plan_type !== 'admin' && userCredits.current_credits < 3) {
+    if (!isAdmin && userCredits && userCredits.current_credits < 3) {
       toast({
         title: "Créditos insuficientes",
         description: "Você precisa de 3 créditos para gerar um carrossel.",
@@ -73,37 +74,36 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Only consume credits if user is not admin
-      if (!isAdmin) {
-        const creditResult = await consumeCredits(
-          'carousel_generation', 
-          3, 
-          `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
-        ) as ConsumeCreditsResponse;
+      // Consume credits for both admin and non-admin users
+      // Admin users get credited back through the consumeCredits function
+      const creditResult = await consumeCredits(
+        'carousel_generation', 
+        3, 
+        `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
+      ) as ConsumeCreditsResponse;
 
-        if (!creditResult.success) {
-          toast({
-            title: "Erro ao consumir créditos",
-            description: creditResult.error || "Não foi possível processar os créditos.",
-            variant: "destructive",
-          });
-          setIsGenerating(false);
-          return;
-        }
+      if (!creditResult.success && !isAdmin) {
+        toast({
+          title: "Erro ao consumir créditos",
+          description: creditResult.error || "Não foi possível processar os créditos.",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
       }
 
-      // Gerar sessionId único
+      // Generate unique sessionId
       const timestamp = Date.now();
       const random = Math.random().toString(36).substr(2, 9);
       const sessionId = `session_${timestamp}_${random}`;
       
       console.log('🆔 Generated unique sessionId:', sessionId);
       
-      // Limpar sessionId anterior e armazenar o novo
+      // Clear previous sessionId and store the new one
       localStorage.removeItem('carouselSessionId');
       localStorage.setItem('carouselSessionId', sessionId);
       
-      // Verificar se foi armazenado corretamente
+      // Verify if it was stored correctly
       const storedSessionId = localStorage.getItem('carouselSessionId');
       console.log('💾 Stored sessionId verification:', storedSessionId);
       
@@ -111,7 +111,7 @@ const CarouselGenerator = () => {
         throw new Error('Failed to store sessionId in localStorage');
       }
 
-      // Preparar dados estruturados para o Make
+      // Prepare structured data for Make
       const sessionBundle = {
         sessionId: sessionId,
         timestamp: new Date().toISOString(),
@@ -131,10 +131,10 @@ const CarouselGenerator = () => {
 
       console.log('📤 Sending structured data to Make:', makeData);
 
-      // URL do webhook do Make (substitua pela URL real)
+      // Make webhook URL (replace with actual URL)
       const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
       
-      // Enviar para o Make
+      // Send to Make
       const response = await fetch(makeWebhookUrl, {
         method: 'POST',
         headers: {
@@ -147,33 +147,36 @@ const CarouselGenerator = () => {
       
       if (!response.ok) {
         console.error('❌ Make webhook failed with status:', response.status);
-        // Criar resposta fallback em caso de erro do Make
+        // Create fallback response in case Make fails
         await createFallbackResponse(sessionId, prompt, niche);
       } else {
         console.log('✅ Make webhook sent successfully');
       }
 
-      // Pequeno delay para garantir que tudo foi processado
+      // Small delay to ensure everything was processed
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Navegar para resultado com sessionId na URL também
+      // Navigate to result with sessionId in URL
       navigate(`/carousel-result?sessionId=${sessionId}`);
 
     } catch (error) {
       console.error('❌ Error in carousel generation:', error);
       
-      // Reembolsar créditos em caso de erro (apenas se não for admin)
+      // Refund credits in case of error (only if not admin and credits were consumed)
       if (!isAdmin) {
         await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
+        toast({
+          title: "Erro na geração",
+          description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro na geração",
+          description: "Ocorreu um erro ao gerar o carrossel. Tente novamente.",
+          variant: "destructive",
+        });
       }
-      
-      toast({
-        title: "Erro na geração",
-        description: isAdmin 
-          ? "Ocorreu um erro ao gerar o carrossel. Tente novamente."
-          : "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
-        variant: "destructive",
-      });
     } finally {
       setIsGenerating(false);
     }
@@ -225,7 +228,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
   };
 
   const isAdmin = profile?.role === 'admin';
-  const canGenerate = isAdmin || (userCredits && (userCredits.plan_type === 'admin' || userCredits.current_credits >= 3));
+  const canGenerate = isAdmin || (userCredits && userCredits.current_credits >= 3);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#131313]">
@@ -317,7 +320,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                   <div className="text-sm">
                     <p className="font-medium text-yellow-800 dark:text-yellow-200">Acesso Administrativo</p>
                     <p className="text-yellow-700 dark:text-yellow-300">
-                      Como admin, você tem acesso ilimitado sem consumir créditos.
+                      Como admin, você consome créditos mas eles são automaticamente reembolsados.
                     </p>
                   </div>
                 </div>
@@ -348,7 +351,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 mr-2" />
-                    {isAdmin ? "Gerar Carrossel com IA (Ilimitado)" : "Gerar Carrossel com IA (3 créditos)"}
+                    {isAdmin ? "Gerar Carrossel com IA (3 créditos - reembolsados)" : "Gerar Carrossel com IA (3 créditos)"}
                   </>
                 )}
               </Button>
@@ -402,7 +405,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
             </div>
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border dark:border-blue-700">
               <p className="text-blue-800 dark:text-blue-200 text-sm">
-                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado (gratuito para admins).
+                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado. Admins consomem créditos mas são automaticamente reembolsados.
               </p>
             </div>
           </CardContent>

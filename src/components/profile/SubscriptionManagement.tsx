@@ -45,21 +45,21 @@ export const SubscriptionManagement = () => {
   const getPlanColor = (tier: string | null) => {
     switch (tier) {
       case 'Essential':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700';
       case 'Pro':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-700';
       case 'VIP':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-700';
       default:
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-700';
     }
   };
 
   if (loading) {
     return (
-      <Card>
+      <Card className="glass border-border bg-card/50">
         <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+          <Loader2 className="w-6 h-6 animate-spin mr-2 text-purple-600" />
           <span>Carregando informações da assinatura...</span>
         </CardContent>
       </Card>
@@ -67,7 +67,7 @@ export const SubscriptionManagement = () => {
   }
 
   return (
-    <Card>
+    <Card className="glass border-border bg-card/50">
       <CardHeader>
         <CardTitle className="flex items-center">
           <Crown className="w-5 h-5 mr-2 text-purple-600" />
@@ -76,7 +76,7 @@ export const SubscriptionManagement = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Plan */}
-        <div className="bg-muted/50 rounded-lg p-4">
+        <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-4 border border-border">
           <div className="flex items-center justify-between mb-3">
             <span className="font-medium">Plano Atual</span>
             <Badge className={getPlanColor(subscription.subscription_tier)}>
@@ -98,7 +98,7 @@ export const SubscriptionManagement = () => {
             <Button 
               onClick={handleOpenPortal}
               disabled={portalLoading}
-              className="w-full"
+              className="w-full bg-purple-600 hover:bg-purple-700"
             >
               {portalLoading ? (
                 <>
@@ -126,7 +126,7 @@ export const SubscriptionManagement = () => {
             variant="outline" 
             onClick={handleRefreshSubscription}
             disabled={refreshLoading}
-            className="w-full"
+            className="w-full border-border text-foreground hover:bg-purple-600 hover:text-white"
           >
             {refreshLoading ? (
               <>

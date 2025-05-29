@@ -16,6 +16,7 @@ import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
 import { CreditDisplay } from "@/components/credits/CreditDisplay";
 import { CreditHistory } from "@/components/credits/CreditHistory";
+import { SubscriptionManagement } from "@/components/profile/SubscriptionManagement";
 import { useState } from "react";
 
 const Profile = () => {
@@ -80,7 +81,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-border">
+      <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-border bg-background/80">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
@@ -108,13 +109,14 @@ const Profile = () => {
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1 border-border bg-card">
+          <TabsList className="grid w-full grid-cols-7 glass rounded-2xl p-1 border-border bg-card/50">
             <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Visão Geral</TabsTrigger>
-            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Meus Projetos ({projectsCount})</TabsTrigger>
+            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Projetos ({projectsCount})</TabsTrigger>
             <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Fotos</TabsTrigger>
             <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Conquistas</TabsTrigger>
             <TabsTrigger value="credits" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Créditos</TabsTrigger>
             <TabsTrigger value="credit-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Histórico</TabsTrigger>
+            <TabsTrigger value="subscription" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Assinatura</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -149,6 +151,11 @@ const Profile = () => {
           {/* Credit History Tab */}
           <TabsContent value="credit-history" className="space-y-6 mt-8">
             <CreditHistory />
+          </TabsContent>
+
+          {/* Subscription Tab */}
+          <TabsContent value="subscription" className="space-y-6 mt-8">
+            <SubscriptionManagement />
           </TabsContent>
         </Tabs>
 

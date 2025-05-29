@@ -1,387 +1,358 @@
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Brain, 
-  Zap, 
-  Target, 
-  TrendingUp, 
-  Users, 
-  Star, 
-  Play, 
+  Instagram, 
+  Video, 
+  Zap,
   Sparkles,
-  ImageIcon,
-  Mic,
-  Video,
-  User,
-  Lock,
   Crown,
+  Mic,
+  Users,
+  ArrowRight,
+  Star,
+  Target,
+  TrendingUp,
   Palette,
-  ArrowRight
+  FileText,
+  BarChart3,
+  Camera,
+  Mail,
+  MessageCircle,
+  Globe,
+  Play
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { CreditDisplay } from "@/components/credits/CreditDisplay";
+import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
 
 const Index = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const navigate = useNavigate();
+
+  // Admin users have access to everything
   const isAdmin = profile?.role === 'admin';
   const isPremium = isAdmin || ['essential', 'pro', 'vip'].includes(profile?.role || '');
+
+  const tools = [
+    {
+      title: "Carrossel IA",
+      description: "Crie carrosséis virais que convertem com nossa IA especializada",
+      icon: Instagram,
+      gradient: "from-pink-500 to-rose-500",
+      href: "/carousel-generator",
+      credits: 3,
+      hot: true,
+      category: "creation"
+    },
+    {
+      title: "QuikDesign IA",
+      description: "Design profissional em segundos com IA avançada",
+      icon: Palette,
+      gradient: "from-purple-500 to-indigo-500",
+      href: "/design-generator",
+      credits: 2,
+      category: "creation"
+    },
+    {
+      title: "Scripts IA",
+      description: "Roteiros para vídeos que engajam e vendem",
+      icon: FileText,
+      gradient: "from-blue-500 to-cyan-500",
+      href: "/script-generator",
+      credits: 2,
+      category: "content"
+    },
+    {
+      title: "Copy IA",
+      description: "Textos persuasivos que convertem visitantes em clientes",
+      icon: MessageCircle,
+      gradient: "from-green-500 to-emerald-500",
+      href: "/copy-generator",
+      credits: 1,
+      category: "content"
+    },
+    {
+      title: "E-mail IA",
+      description: "Campanhas de e-mail que geram resultados",
+      icon: Mail,
+      gradient: "from-orange-500 to-red-500",
+      href: "/email-generator",
+      credits: 2,
+      category: "marketing"
+    },
+    {
+      title: "Análise IA",
+      description: "Insights profundos sobre seu mercado e concorrência",
+      icon: BarChart3,
+      gradient: "from-violet-500 to-purple-500",
+      href: "/analysis-generator",
+      credits: 4,
+      category: "analysis"
+    },
+    {
+      title: "Thumbnails IA",
+      description: "Miniaturas irresistíveis para seus vídeos",
+      icon: Camera,
+      gradient: "from-teal-500 to-green-500",
+      href: "/thumbnail-generator",
+      credits: 2,
+      category: "creation"
+    },
+    {
+      title: "SEO IA",
+      description: "Otimização automática para dominar o Google",
+      icon: Globe,
+      gradient: "from-indigo-500 to-blue-500",
+      href: "/seo-generator",
+      credits: 3,
+      category: "marketing"
+    }
+  ];
+
+  const premiumContent = [
+    {
+      title: "Podcasts",
+      description: "Cursos e podcasts exclusivos com especialistas em IA",
+      icon: Mic,
+      gradient: "from-pink-500 to-purple-500",
+      href: "/podcasts",
+      badge: "PREMIUM"
+    },
+    {
+      title: "Conteúdo Exclusivo",
+      description: "Cursos, templates e estratégias criadas pelos especialistas",
+      icon: Video,
+      gradient: "from-blue-500 to-indigo-500", 
+      href: "/content-feed",
+      badge: "PREMIUM"
+    }
+  ];
+
+  const stats = [
+    { icon: Users, value: "50K+", label: "Usuários Ativos" },
+    { icon: Zap, value: "1M+", label: "Conteúdos Gerados" },
+    { icon: TrendingUp, value: "300%", label: "Aumento em Vendas" },
+    { icon: Star, value: "4.9", label: "Avaliação Média" }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass border-b sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold gradient-text">QUIKFY</span>
+          <div className="flex items-center space-x-2">
+            <Brain className="w-8 h-8 text-purple-600" />
+            <span className="text-2xl font-bold">QUIKFY</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/carousel-creator" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
-              QuikDesign
-            </Link>
-            <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
-              IA Carrossel
-            </Link>
-            {!isPremium ? (
-              <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
-                Podcasts <Lock className="w-3 h-3 ml-1" />
-              </Link>
+          <div className="flex items-center space-x-4">
+            {user && <CreditDisplay />}
+            {user ? (
+              <div className="flex items-center space-x-3">
+                {isAdmin && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700">
+                    <Crown className="w-4 h-4 mr-1" />
+                    Admin
+                  </Badge>
+                )}
+                <Link to="/profile">
+                  <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
+                    Perfil
+                  </Button>
+                </Link>
+              </div>
             ) : (
-              <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
-                Podcasts
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link to="/login">
+                  <Button variant="outline">Entrar</Button>
+                </Link>
+                <Link to="/register">
+                  <Button className="bg-purple-600 hover:bg-purple-700">Cadastrar</Button>
+                </Link>
+              </div>
             )}
-            {!isPremium ? (
-              <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
-                Conteúdo <Lock className="w-3 h-3 ml-1" />
-              </Link>
-            ) : (
-              <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
-                Conteúdo
-              </Link>
-            )}
-          </nav>
-          <div className="flex items-center space-x-3">
-            <Link to="/profile">
-              <Button variant="outline" size="sm">
-                <User className="w-4 h-4 mr-2" />
-                Perfil
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="purple" size="sm">
-                Entrar
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20" />
-        <div className="container mx-auto px-4 relative">
-          <Badge className="mb-8 bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700 text-sm font-semibold px-4 py-2">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Powered by AI
-          </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-            Ferramentas e cursos de IA para <br />
-            <span className="gradient-text">criadores digitais</span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Domine as ferramentas de IA mais poderosas do mercado e transforme 
-            seu negócio digital com nossa plataforma completa de ensino e produtividade.
-          </p>
-          
-          {/* Prova Social */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
-            <div className="glass rounded-2xl p-6 hover:shadow-glow transition-all duration-300">
-              <div className="text-3xl font-bold gradient-text mb-2">50k+</div>
-              <div className="text-sm text-muted-foreground font-medium">Usuários ativos</div>
-            </div>
-            <div className="glass rounded-2xl p-6 hover:shadow-glow transition-all duration-300">
-              <div className="text-3xl font-bold gradient-text mb-2">24/7</div>
-              <div className="text-sm text-muted-foreground font-medium">Suporte disponível</div>
-            </div>
-            <div className="glass rounded-2xl p-6 hover:shadow-glow transition-all duration-300">
-              <div className="text-3xl font-bold gradient-text mb-2">R$ 50M+</div>
-              <div className="text-sm text-muted-foreground font-medium">Faturamento dos usuários</div>
-            </div>
-            <div className="glass rounded-2xl p-6 hover:shadow-glow transition-all duration-300">
-              <div className="text-3xl font-bold gradient-text mb-2">95%</div>
-              <div className="text-sm text-muted-foreground font-medium">Satisfação</div>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {!isAdmin && (
-              <Link to="/pricing">
-                <Button variant="purple" size="lg" className="group">
-                  <Crown className="w-5 h-5 mr-2" />
-                  Assinar Agora
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+      <section className="bg-background dark:bg-background py-20">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700">
+              🚀 A Revolução da IA chegou
+            </Badge>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+              Crie Conteúdo que <span className="text-purple-600">Converte</span> com IA
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+              Transforme ideias em milhões. Nossa plataforma com IA especializada cria carrosséis, designs, 
+              scripts e campanhas que realmente vendem. Usado por +50K empreendedores.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link to="/carousel-generator">
+                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-4">
+                  <Sparkles className="w-6 h-6 mr-2" />
+                  Começar Grátis
                 </Button>
               </Link>
-            )}
-            <Link to="/carousel-creator">
-              <Button variant="purple-outline" size="lg" className="group">
-                <Palette className="w-5 h-5 mr-2" />
-                Usar QuikDesign Grátis
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+              <Link to="/pricing">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
+                  Ver Planos
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <stat.icon className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-20 bg-muted/30">
+      {/* Tools Section */}
+      <section className="py-20 bg-muted/30 dark:bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              Ferramentas e recursos exclusivos
-            </h2>
+            <h2 className="text-4xl font-bold mb-4">Ferramentas Poderosas de <span className="text-purple-600">IA</span></h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Tudo que você precisa para dominar a criação de conteúdo com IA
+              Cada ferramenta foi projetada para maximizar suas conversões e acelerar seus resultados
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* QuikDesign - Sempre grátis */}
-            <Card className="text-center hover:shadow-lg transition-all duration-300 border-2 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20 group hover:-translate-y-2">
-              <CardHeader>
-                <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 mx-auto mb-4 w-fit text-xs font-bold px-3 py-1">
-                  GRÁTIS
-                </Badge>
-                <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
-                  <Palette className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl mb-2">QuikDesign</CardTitle>
-                <CardDescription>
-                  Criador profissional de carrosséis para redes sociais
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link to="/carousel-creator">
-                  <Button variant="outline" className="w-full group">
-                    Usar Grátis
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {tools.map((tool, index) => (
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-0 shadow-lg bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <div className="relative">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${tool.gradient} p-4 mb-4 group-hover:scale-110 transition-transform`}>
+                      <tool.icon className="w-8 h-8 text-white" />
+                    </div>
+                    {tool.hot && (
+                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white border-0 text-xs">
+                        🔥 HOT
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-lg">{tool.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{tool.description}</p>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <Badge variant="secondary" className="text-xs">
+                      {tool.credits} {isAdmin ? 'créditos (gratuito)' : 'créditos'}
+                    </Badge>
+                  </div>
+                  <Link to={tool.href}>
+                    <Button className="w-full group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                      Usar Agora
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* IA Carrossel - Todos usuários autenticados (usa créditos) */}
-            <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              {isAdmin && (
+      {/* Premium Content Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Conteúdo <span className="text-purple-600">Exclusivo</span></h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              {isAdmin 
+                ? "Como admin, você tem acesso total a todo conteúdo premium"
+                : isPremium 
+                  ? "Acesse cursos e conteúdos exclusivos dos nossos especialistas"
+                  : "Upgrade para Premium e acesse conteúdos exclusivos dos nossos especialistas"
+              }
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {premiumContent.map((content, index) => (
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/50 backdrop-blur-sm relative overflow-hidden">
                 <div className="absolute top-4 right-4">
-                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
+                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
+                    {content.badge}
+                  </Badge>
                 </div>
-              )}
-              <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'}`}>
-                  {isAdmin ? 'ILIMITADO' : 'USA CRÉDITOS'}
-                </Badge>
-                <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
-                  <Brain className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl mb-2">IA Carrossel</CardTitle>
-                <CardDescription>
-                  Gere carrosséis automaticamente com nossa IA especializada
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user ? (
-                  <Link to="/carousel-generator">
-                    <Button variant="outline" className="w-full group">
-                      Usar IA Carrossel
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/login">
-                    <Button variant="outline" className="w-full group">
-                      Fazer Login para Usar
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Podcasts - Premium content */}
-            <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              {!isPremium && (
-                <div className="absolute top-4 right-4">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-              {isAdmin && (
-                <div className="absolute top-4 right-4">
-                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
-                </div>
-              )}
-              <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin || isPremium ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
-                  {isAdmin || isPremium ? 'LIBERADO' : 'PREMIUM'}
-                </Badge>
-                <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
-                  <Mic className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl mb-2">Podcasts</CardTitle>
-                <CardDescription>
-                  Cursos e podcasts exclusivos com especialistas em IA
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isPremium ? (
-                  <Link to="/podcasts">
-                    <Button variant="outline" className="w-full group">
-                      Acessar Podcasts
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/pricing">
-                    <Button variant="outline" className="w-full group">
-                      Assinar para Acessar
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Conteúdo Exclusivo - Premium content */}
-            <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              {!isPremium && (
-                <div className="absolute top-4 right-4">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-              {isAdmin && (
-                <div className="absolute top-4 right-4">
-                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
-                </div>
-              )}
-              <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin || isPremium ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
-                  {isAdmin || isPremium ? 'LIBERADO' : 'PREMIUM'}
-                </Badge>
-                <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
-                  <Video className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-xl mb-2">Conteúdo Exclusivo</CardTitle>
-                <CardDescription>
-                  Cursos, templates e estratégias criadas pelos especialistas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isPremium ? (
-                  <Link to="/content-feed">
-                    <Button variant="outline" className="w-full group">
-                      Ver Conteúdo
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/pricing">
-                    <Button variant="outline" className="w-full group">
-                      Assinar para Ver
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
+                <CardHeader className="pb-4">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${content.gradient} p-4 mb-4 group-hover:scale-110 transition-transform`}>
+                    <content.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl">{content.title}</CardTitle>
+                  <p className="text-muted-foreground">{content.description}</p>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {/* Admin users always get access */}
+                  <AdminAccessWrapper
+                    fallback={
+                      isPremium ? (
+                        <Link to={content.href}>
+                          <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                            <Play className="w-4 h-4 mr-2" />
+                            Acessar Agora
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link to="/pricing">
+                          <Button className="w-full" variant="outline">
+                            <Crown className="w-4 h-4 mr-2" />
+                            Assinar para Acessar
+                          </Button>
+                        </Link>
+                      )
+                    }
+                  >
+                    <Link to={content.href}>
+                      <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                        <Play className="w-4 h-4 mr-2" />
+                        Acessar Agora (Admin)
+                      </Button>
+                    </Link>
+                  </AdminAccessWrapper>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 text-white text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="container mx-auto px-4 relative">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            Pronto para dominar as ferramentas de IA?
+      <section className="py-20 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Pronto para <span className="text-yellow-300">Revolucionar</span> seu Negócio?
           </h2>
-          <p className="text-xl mb-12 text-white/90 max-w-2xl mx-auto leading-relaxed">
-            Junte-se a milhares de criadores que já faturam milhões com nossa plataforma
+          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+            Junte-se a mais de 50.000 empreendedores que já estão faturando mais com nossa IA
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            {!isAdmin && (
-              <Link to="/pricing">
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                  <Crown className="w-5 h-5 mr-2" />
-                  Começar Agora
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            )}
-            <Link to="/carousel-creator">
-              <Button size="lg" className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 hover:bg-white hover:text-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                <Palette className="w-5 h-5 mr-2" />
-                Experimentar QuikDesign
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register">
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4">
+                <Sparkles className="w-6 h-6 mr-2" />
+                Começar Grátis Agora
+              </Button>
+            </Link>
+            <Link to="/pricing">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4">
+                Ver Todos os Planos
               </Button>
             </Link>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-card border-t py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-xl font-bold gradient-text">QUIKFY</span>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                A plataforma completa de ferramentas e cursos de IA para criadores digitais.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4 text-lg">Ferramentas</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><Link to="/carousel-creator" className="hover:text-purple-600 transition-colors">QuikDesign</Link></li>
-                <li><Link to="/carousel-generator" className="hover:text-purple-600 transition-colors">IA Carrossel</Link></li>
-                <li><Link to="/podcasts" className="hover:text-purple-600 transition-colors">Podcasts</Link></li>
-                <li><Link to="/content-feed" className="hover:text-purple-600 transition-colors">Conteúdo Exclusivo</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4 text-lg">Comunidade</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Discord</a></li>
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Telegram</a></li>
-                <li><a href="#" className="hover:text-purple-600 transition-colors">YouTube</a></li>
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Instagram</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4 text-lg">Suporte</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Central de Ajuda</a></li>
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Contato</a></li>
-                <li><a href="#" className="hover:text-purple-600 transition-colors">Status</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-border mt-12 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 QUIKFY. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
