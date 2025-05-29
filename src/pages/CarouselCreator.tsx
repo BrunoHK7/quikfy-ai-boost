@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Save, Palette, Type, Plus, Trash2, ChevronUp, ChevronDown, Upload, Smile } from "lucide-react";
+import { ArrowLeft, Download, Save, Plus, Trash2, Upload, Smile } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCarouselProjects } from "@/hooks/useCarouselProjects";
@@ -36,8 +36,8 @@ const CarouselCreator = () => {
   const [dimensions, setDimensions] = useState<'1080x1080' | '1080x1350' | '1080x1920'>('1080x1080');
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
   const [textColor, setTextColor] = useState("#131313");
-  const [fontFamily, setFontFamily] = useState("Arial");
-  const [marginEnabled, setMarginEnabled] = useState(false);
+  const [fontFamily, setFontFamily] = useState("Inter");
+  const [marginEnabled, setMarginEnabled] = useState(true);
   const [marginSize, setMarginSize] = useState(40);
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
   const [signaturePosition, setSignaturePosition] = useState<'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'>('bottom-right');
@@ -62,15 +62,9 @@ const CarouselCreator = () => {
   ]);
 
   const googleFonts = [
-    'Arial', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
+    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
     'Raleway', 'PT Sans', 'Lora', 'Merriweather', 'Playfair Display',
-    'Oswald', 'Ubuntu', 'Nunito', 'Poppins', 'Inter'
-  ];
-
-  const dimensionOptions = [
-    { value: '1080x1080', label: 'Feed Quadrado (1080x1080)' },
-    { value: '1080x1350', label: 'Feed Vertical (1080x1350)' },
-    { value: '1080x1920', label: 'Stories (1080x1920)' }
+    'Oswald', 'Ubuntu', 'Nunito', 'Poppins', 'Arial'
   ];
 
   const getDimensionsForCanvas = () => {
@@ -129,7 +123,6 @@ const CarouselCreator = () => {
     const marginX = marginEnabled ? marginSize * 0.35 : 20;
     const marginY = marginEnabled ? marginSize * 0.35 : 20;
     const contentWidth = canvas.width - (marginX * 2);
-    const contentHeight = canvas.height - (marginY * 2);
 
     // Text
     if (frame.text) {
@@ -162,7 +155,6 @@ const CarouselCreator = () => {
         let sigX = 0;
         let sigY = 0;
         
-        // Position signature
         switch (signaturePosition) {
           case 'top-left':
             sigX = marginX;
@@ -252,21 +244,6 @@ const CarouselCreator = () => {
     }
   };
 
-  const moveFrame = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= frames.length) return;
-
-    const newFrames = [...frames];
-    [newFrames[index], newFrames[newIndex]] = [newFrames[newIndex], newFrames[index]];
-    setFrames(newFrames);
-    
-    if (currentFrameIndex === index) {
-      setCurrentFrameIndex(newIndex);
-    } else if (currentFrameIndex === newIndex) {
-      setCurrentFrameIndex(index);
-    }
-  };
-
   const handleBackgroundImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -295,12 +272,10 @@ const CarouselCreator = () => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set actual dimensions
       const actualDims = dimensions.split('x').map(Number);
       canvas.width = actualDims[0];
       canvas.height = actualDims[1];
 
-      // Draw background
       if (frame.backgroundImage) {
         const img = new Image();
         img.onload = () => {
@@ -321,7 +296,6 @@ const CarouselCreator = () => {
   };
 
   const drawFullSizeContent = (ctx: CanvasRenderingContext2D, frame: Frame, canvas: HTMLCanvasElement) => {
-    // Calculate margins for full size
     const marginX = marginEnabled ? marginSize : 20;
     const marginY = marginEnabled ? marginSize : 20;
     const contentWidth = canvas.width - (marginX * 2);
@@ -455,11 +429,9 @@ const CarouselCreator = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
-              <div className="flex items-center gap-2">
-                <Type className="h-6 w-6 text-purple-600" />
-                <h1 className="text-2xl font-bold text-gray-900">
-                  QuikDesign
-                </h1>
+              <div className="flex items-center gap-3">
+                <div className="text-2xl font-bold text-purple-600">QUIKFY</div>
+                <div className="text-xl font-semibold text-gray-900">QuikDesign</div>
                 <Badge variant="secondary" className="bg-green-100 text-green-800">
                   Grátis
                 </Badge>
@@ -493,58 +465,216 @@ const CarouselCreator = () => {
       </header>
 
       <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - Frames */}
-        <div className="w-64 border-r bg-gray-50 p-4 overflow-y-auto">
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-900 mb-3">Quadros</h3>
-            <Button 
-              onClick={addFrame} 
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              disabled={frames.length >= 10}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Quadro
-            </Button>
-          </div>
-          
-          <div className="space-y-2">
-            {frames.map((frame, index) => (
-              <div
-                key={frame.id}
-                className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                  currentFrameIndex === index
-                    ? "border-purple-500 bg-purple-50 shadow-md"
-                    : "border-gray-200 hover:border-purple-300 hover:bg-white"
-                }`}
-                onClick={() => setCurrentFrameIndex(index)}
+        {/* Left Sidebar - Project Settings */}
+        <div className="w-80 border-r bg-gray-50 p-6 overflow-y-auto">
+          {/* Configurações do Projeto */}
+          <div className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4">Configurações do Projeto</h3>
+            
+            {/* Dimensões */}
+            <div className="mb-6">
+              <label className="text-sm font-medium text-gray-700 mb-3 block">Dimensões</label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant={dimensions === '1080x1080' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDimensions('1080x1080')}
+                  className="text-xs h-12 flex flex-col"
+                >
+                  <div className="font-semibold">1:1</div>
+                  <div className="text-xs opacity-75">Feed</div>
+                </Button>
+                <Button
+                  variant={dimensions === '1080x1350' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDimensions('1080x1350')}
+                  className="text-xs h-12 flex flex-col"
+                >
+                  <div className="font-semibold">4:5</div>
+                  <div className="text-xs opacity-75">Vertical</div>
+                </Button>
+                <Button
+                  variant={dimensions === '1080x1920' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDimensions('1080x1920')}
+                  className="text-xs h-12 flex flex-col"
+                >
+                  <div className="font-semibold">9:16</div>
+                  <div className="text-xs opacity-75">Stories</div>
+                </Button>
+              </div>
+            </div>
+
+            {/* Margem */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="margin"
+                  checked={marginEnabled}
+                  onChange={(e) => setMarginEnabled(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="margin" className="text-sm font-medium text-gray-700">
+                  Margem
+                </label>
+              </div>
+              {marginEnabled && (
+                <div>
+                  <label className="text-xs text-gray-600 mb-2 block">Tamanho: {marginSize}px</label>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={marginSize}
+                    onChange={(e) => setMarginSize(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Assinatura */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Assinatura</h4>
+              <Button
+                variant="outline"
+                onClick={() => signatureInputRef.current?.click()}
+                className="w-full mb-3"
+                size="sm"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm text-gray-900">Slide {index + 1}</span>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        moveFrame(index, 'up');
-                      }}
-                      disabled={index === 0}
+                <Upload className="h-4 w-4 mr-2" />
+                {signatureImage ? 'Alterar' : 'Adicionar'}
+              </Button>
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleSignatureUpload}
+                className="hidden"
+              />
+
+              {signatureImage && (
+                <>
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-600 mb-2 block">Posição</label>
+                    <select
+                      value={signaturePosition}
+                      onChange={(e) => setSignaturePosition(e.target.value as any)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
                     >
-                      <ChevronUp className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        moveFrame(index, 'down');
-                      }}
-                      disabled={index === frames.length - 1}
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
+                      <option value="top-left">Superior Esquerda</option>
+                      <option value="top-center">Superior Centro</option>
+                      <option value="top-right">Superior Direita</option>
+                      <option value="bottom-left">Inferior Esquerda</option>
+                      <option value="bottom-center">Inferior Centro</option>
+                      <option value="bottom-right">Inferior Direita</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-600 mb-2 block">Tamanho: {signatureSize}px</label>
+                    <input
+                      type="range"
+                      min="40"
+                      max="200"
+                      value={signatureSize}
+                      onChange={(e) => setSignatureSize(Number(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setSignatureImage(null)}
+                    className="w-full text-red-600 text-xs"
+                    size="sm"
+                  >
+                    Remover
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Cores */}
+            <div className="mb-6">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Cor do Fundo</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="w-10 h-8 rounded border border-gray-300"
+                  />
+                  <Input
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="flex-1 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Cor do Texto</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-10 h-8 rounded border border-gray-300"
+                  />
+                  <Input
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="flex-1 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Fonte */}
+            <div className="mb-6">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Fonte</label>
+              <select
+                value={fontFamily}
+                onChange={(e) => setFontFamily(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded text-sm"
+              >
+                {googleFonts.map(font => (
+                  <option key={font} value={font}>{font}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Lista de Quadros */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">Quadros</h3>
+              <Button 
+                onClick={addFrame} 
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={frames.length >= 10}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              {frames.map((frame, index) => (
+                <div
+                  key={frame.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                    currentFrameIndex === index
+                      ? "border-purple-500 bg-purple-50 shadow-md"
+                      : "border-gray-200 hover:border-purple-300 hover:bg-white"
+                  }`}
+                  onClick={() => setCurrentFrameIndex(index)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm text-gray-900">Slide {index + 1}</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -558,10 +688,10 @@ const CarouselCreator = () => {
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
+                  <p className="text-xs text-gray-600 truncate">{frame.text}</p>
                 </div>
-                <p className="text-xs text-gray-600 truncate">{frame.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -584,315 +714,175 @@ const CarouselCreator = () => {
           </div>
         </div>
 
-        {/* Right Sidebar - Controls */}
-        <div className="w-80 border-l bg-white p-4 overflow-y-auto">
-          {/* Project Settings */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-900">
-                <Palette className="h-5 w-5 text-purple-600" />
-                Configurações
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Dimensões</label>
-                <select
-                  value={dimensions}
-                  onChange={(e) => setDimensions(e.target.value as any)}
-                  className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm"
-                >
-                  {dimensionOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+        {/* Right Sidebar - Text Controls */}
+        <div className="w-80 border-l bg-white p-6 overflow-y-auto">
+          <h3 className="font-semibold text-gray-900 mb-4">Controles de Texto</h3>
+          
+          {/* Texto */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <label className="text-sm font-medium text-gray-700">Texto</label>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+            </div>
+            <Textarea
+              value={currentFrame?.text || ''}
+              onChange={(e) => updateCurrentFrame({ text: e.target.value })}
+              placeholder="Digite seu texto..."
+              className="min-h-[80px] mb-2"
+            />
+            {showEmojiPicker && (
+              <div className="mb-3">
+                <EmojiPicker onSelect={onEmojiSelect} />
               </div>
+            )}
+          </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">Fonte</label>
-                <select
-                  value={fontFamily}
-                  onChange={(e) => setFontFamily(e.target.value)}
-                  className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm"
-                >
-                  {googleFonts.map(font => (
-                    <option key={font} value={font}>{font}</option>
-                  ))}
-                </select>
-              </div>
+          {/* Alinhamento */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-3 block">Alinhamento</label>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={currentFrame?.textAlign === 'left' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ textAlign: 'left' })}
+                className="text-xs"
+              >
+                Esquerda
+              </Button>
+              <Button
+                variant={currentFrame?.textAlign === 'center' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ textAlign: 'center' })}
+                className="text-xs"
+              >
+                Centro
+              </Button>
+              <Button
+                variant={currentFrame?.textAlign === 'right' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ textAlign: 'right' })}
+                className="text-xs"
+              >
+                Direita
+              </Button>
+            </div>
+          </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">Cor do Fundo</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <input
-                    type="color"
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="w-12 h-10 rounded border border-gray-300"
-                  />
-                  <Input
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
+          {/* Formatação */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-3 block">Formatação</label>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={currentFrame?.isBold ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ isBold: !currentFrame?.isBold })}
+                className="text-xs font-bold"
+              >
+                B
+              </Button>
+              <Button
+                variant={currentFrame?.isItalic ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ isItalic: !currentFrame?.isItalic })}
+                className="text-xs italic"
+              >
+                I
+              </Button>
+              <Button
+                variant={currentFrame?.isUnderline ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ isUnderline: !currentFrame?.isUnderline })}
+                className="text-xs underline"
+              >
+                U
+              </Button>
+            </div>
+          </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">Cor do Texto</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <input
-                    type="color"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
-                    className="w-12 h-10 rounded border border-gray-300"
-                  />
-                  <Input
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
+          {/* Tamanho da Fonte */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Tamanho da Fonte: {currentFrame?.fontSize}px
+            </label>
+            <input
+              type="range"
+              min="12"
+              max="72"
+              value={currentFrame?.fontSize || 32}
+              onChange={(e) => updateCurrentFrame({ fontSize: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    id="margin"
-                    checked={marginEnabled}
-                    onChange={(e) => setMarginEnabled(e.target.checked)}
-                    className="rounded"
-                  />
-                  <label htmlFor="margin" className="text-sm font-medium text-gray-700">
-                    Margem Personalizada
-                  </label>
-                </div>
-                {marginEnabled && (
-                  <div>
-                    <label className="text-xs text-gray-600">Tamanho: {marginSize}px</label>
-                    <input
-                      type="range"
-                      min="20"
-                      max="100"
-                      value={marginSize}
-                      onChange={(e) => setMarginSize(Number(e.target.value))}
-                      className="w-full mt-1"
-                    />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Altura da Linha */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Altura da Linha: {currentFrame?.lineHeight?.toFixed(1)}
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="2"
+              step="0.1"
+              value={currentFrame?.lineHeight || 1.4}
+              onChange={(e) => updateCurrentFrame({ lineHeight: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
 
-          {/* Frame Settings */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-900">
-                <Type className="h-5 w-5 text-purple-600" />
-                Quadro Atual
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="text-sm font-medium text-gray-700">Texto</label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  >
-                    <Smile className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Textarea
-                  value={currentFrame?.text || ''}
-                  onChange={(e) => updateCurrentFrame({ text: e.target.value })}
-                  placeholder="Digite seu texto..."
-                  className="min-h-[80px]"
-                />
-                {showEmojiPicker && (
-                  <div className="mt-2">
-                    <EmojiPicker onSelect={onEmojiSelect} />
-                  </div>
-                )}
-              </div>
+          {/* Espaçamento de Letras */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Espaçamento de Letras: {currentFrame?.letterSpacing}px
+            </label>
+            <input
+              type="range"
+              min="-2"
+              max="10"
+              step="0.5"
+              value={currentFrame?.letterSpacing || 0}
+              onChange={(e) => updateCurrentFrame({ letterSpacing: Number(e.target.value) })}
+              className="w-full"
+            />
+          </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant={currentFrame?.textAlign === 'left' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ textAlign: 'left' })}
-                  className="text-xs"
-                >
-                  Esquerda
-                </Button>
-                <Button
-                  variant={currentFrame?.textAlign === 'center' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ textAlign: 'center' })}
-                  className="text-xs"
-                >
-                  Centro
-                </Button>
-                <Button
-                  variant={currentFrame?.textAlign === 'right' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ textAlign: 'right' })}
-                  className="text-xs"
-                >
-                  Direita
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant={currentFrame?.isBold ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ isBold: !currentFrame?.isBold })}
-                  className="text-xs font-bold"
-                >
-                  B
-                </Button>
-                <Button
-                  variant={currentFrame?.isItalic ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ isItalic: !currentFrame?.isItalic })}
-                  className="text-xs italic"
-                >
-                  I
-                </Button>
-                <Button
-                  variant={currentFrame?.isUnderline ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateCurrentFrame({ isUnderline: !currentFrame?.isUnderline })}
-                  className="text-xs underline"
-                >
-                  U
-                </Button>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Tamanho: {currentFrame?.fontSize}px</label>
-                <input
-                  type="range"
-                  min="12"
-                  max="72"
-                  value={currentFrame?.fontSize || 32}
-                  onChange={(e) => updateCurrentFrame({ fontSize: Number(e.target.value) })}
-                  className="w-full mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Altura da Linha</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="2"
-                  step="0.1"
-                  value={currentFrame?.lineHeight || 1.4}
-                  onChange={(e) => updateCurrentFrame({ lineHeight: Number(e.target.value) })}
-                  className="w-full mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Imagem de Fundo</label>
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full mt-1"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBackgroundImageUpload}
-                  className="hidden"
-                />
-                {currentFrame?.backgroundImage && (
-                  <Button
-                    variant="outline"
-                    onClick={() => updateCurrentFrame({ backgroundImage: undefined })}
-                    className="w-full mt-2 text-red-600"
-                  >
-                    Remover Imagem
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Signature Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-gray-900">Assinatura</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          {/* Imagem de Fundo do Quadro */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Imagem de Fundo</label>
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full mb-2"
+              size="sm"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleBackgroundImageUpload}
+              className="hidden"
+            />
+            {currentFrame?.backgroundImage && (
               <Button
                 variant="outline"
-                onClick={() => signatureInputRef.current?.click()}
-                className="w-full"
+                onClick={() => updateCurrentFrame({ backgroundImage: undefined })}
+                className="w-full text-red-600 text-xs"
+                size="sm"
               >
-                <Upload className="h-4 w-4 mr-2" />
-                {signatureImage ? 'Alterar Assinatura' : 'Adicionar Assinatura'}
+                Remover Imagem
               </Button>
-              <input
-                ref={signatureInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleSignatureUpload}
-                className="hidden"
-              />
-
-              {signatureImage && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Posição</label>
-                    <select
-                      value={signaturePosition}
-                      onChange={(e) => setSignaturePosition(e.target.value as any)}
-                      className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm"
-                    >
-                      <option value="top-left">Superior Esquerda</option>
-                      <option value="top-center">Superior Centro</option>
-                      <option value="top-right">Superior Direita</option>
-                      <option value="bottom-left">Inferior Esquerda</option>
-                      <option value="bottom-center">Inferior Centro</option>
-                      <option value="bottom-right">Inferior Direita</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Tamanho: {signatureSize}px</label>
-                    <input
-                      type="range"
-                      min="40"
-                      max="200"
-                      value={signatureSize}
-                      onChange={(e) => setSignatureSize(Number(e.target.value))}
-                      className="w-full mt-1"
-                    />
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => setSignatureImage(null)}
-                    className="w-full text-red-600"
-                  >
-                    Remover Assinatura
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
