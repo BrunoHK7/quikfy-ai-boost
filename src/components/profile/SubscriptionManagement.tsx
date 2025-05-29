@@ -9,22 +9,8 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 export const SubscriptionManagement = () => {
-  const { subscription, loading, openCustomerPortal, checkSubscription } = useSubscription();
-  const [portalLoading, setPortalLoading] = useState(false);
+  const { subscription, loading, checkSubscription } = useSubscription();
   const [refreshLoading, setRefreshLoading] = useState(false);
-
-  const handleOpenPortal = async () => {
-    setPortalLoading(true);
-    try {
-      await openCustomerPortal();
-      toast.success("Abrindo portal de gerenciamento...");
-    } catch (error) {
-      toast.error("Erro ao abrir portal de gerenciamento");
-      console.error("Portal error:", error);
-    } finally {
-      setPortalLoading(false);
-    }
-  };
 
   const handleRefreshSubscription = async () => {
     setRefreshLoading(true);
@@ -95,24 +81,18 @@ export const SubscriptionManagement = () => {
         {/* Actions */}
         <div className="space-y-3">
           {subscription.subscribed ? (
-            <Button 
-              onClick={handleOpenPortal}
-              disabled={portalLoading}
-              className="w-full bg-purple-600 hover:bg-purple-700"
+            <a 
+              href="https://billing.stripe.com/p/login/eVqeVe6un0HO1x78KS0ZW00"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
             >
-              {portalLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Abrindo Portal...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Gerenciar Assinatura
-                  <ExternalLink className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                <CreditCard className="w-4 h-4 mr-2" />
+                Gerenciar Assinatura
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
+            </a>
           ) : (
             <Link to="/pricing">
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
