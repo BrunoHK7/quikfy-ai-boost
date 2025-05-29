@@ -1,415 +1,220 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Brain, 
-  ImageIcon, 
-  Wand2, 
-  RefreshCw,
-  Sparkles,
-  Target,
-  TrendingUp,
-  AlertCircle,
-  Crown
-} from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Loader2, ArrowLeft, Sparkles, Bot } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useCredits } from "@/hooks/useCredits";
-import { CreditDisplay } from "@/components/credits/CreditDisplay";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
-
-interface ConsumeCreditsResponse {
-  success: boolean;
-  error?: string;
-  credits_remaining?: number;
-  message?: string;
-}
 
 const CarouselGenerator = () => {
-  const [prompt, setPrompt] = useState("");
-  const [niche, setNiche] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { userCredits, consumeCredits, refundCredits } = useCredits();
-  const { user } = useAuth();
-  const { profile } = useProfile();
   const navigate = useNavigate();
+  const { consumeCredits } = useCredits();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [formData, setFormData] = useState({
+    topic: "",
+    targetAudience: "",
+    style: "",
+    numberOfSlides: "5",
+    additionalInfo: ""
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, descreva seu produto/serviço antes de gerar o carrossel.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa estar logado para gerar carrosséis.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Admin users don't need to check credits but we still show the process
-    const isAdmin = profile?.role === 'admin';
-    
-    if (!isAdmin && userCredits && userCredits.current_credits < 3) {
-      toast({
-        title: "Créditos insuficientes",
-        description: "Você precisa de 3 créditos para gerar um carrossel.",
-        variant: "destructive",
-      });
+    if (!formData.topic.trim()) {
+      toast.error("Por favor, insira o tópico do carrossel");
       return;
     }
 
     setIsGenerating(true);
-    
-    try {
-      // Consume credits for both admin and non-admin users
-      // Admin users get credited back through the consumeCredits function
-      const creditResult = await consumeCredits(
-        'carousel_generation', 
-        3, 
-        `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
-      ) as ConsumeCreditsResponse;
 
-      if (!creditResult.success && !isAdmin) {
-        toast({
-          title: "Erro ao consumir créditos",
-          description: creditResult.error || "Não foi possível processar os créditos.",
-          variant: "destructive",
-        });
+    try {
+      // Consume credits before generating
+      const creditResult = await consumeCredits("carousel_generation", 3, "Geração de carrossel com IA");
+      
+      if (!creditResult.success) {
+        toast.error(creditResult.error || "Erro ao consumir créditos");
         setIsGenerating(false);
         return;
       }
 
-      // Generate unique sessionId
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substr(2, 9);
-      const sessionId = `session_${timestamp}_${random}`;
-      
-      console.log('🆔 Generated unique sessionId:', sessionId);
-      
-      // Clear previous sessionId and store the new one
-      localStorage.removeItem('carouselSessionId');
-      localStorage.setItem('carouselSessionId', sessionId);
-      
-      // Verify if it was stored correctly
-      const storedSessionId = localStorage.getItem('carouselSessionId');
-      console.log('💾 Stored sessionId verification:', storedSessionId);
-      
-      if (storedSessionId !== sessionId) {
-        throw new Error('Failed to store sessionId in localStorage');
-      }
-
-      // Prepare structured data for Make
-      const sessionBundle = {
-        sessionId: sessionId,
-        timestamp: new Date().toISOString(),
-        userId: user.id,
-        type: 'carousel_generation'
-      };
-
-      const userDataBundle = {
-        prompt: prompt.trim(),
-        niche: niche.trim() || 'Geral'
-      };
-
-      const makeData = {
-        session: sessionBundle,
-        userData: userDataBundle
-      };
-
-      console.log('📤 Sending structured data to Make:', makeData);
-
-      // Make webhook URL (replace with actual URL)
-      const makeWebhookUrl = 'https://hook.us2.make.com/your-make-webhook-url-here';
-      
-      // Send to Make
-      const response = await fetch(makeWebhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(makeData)
+      // Call the webhook function
+      const { data, error } = await supabase.functions.invoke('webhook-receiver', {
+        body: {
+          topic: formData.topic,
+          targetAudience: formData.targetAudience,
+          style: formData.style,
+          numberOfSlides: formData.numberOfSlides,
+          additionalInfo: formData.additionalInfo
+        }
       });
 
-      console.log('📨 Make webhook response status:', response.status);
-      
-      if (!response.ok) {
-        console.error('❌ Make webhook failed with status:', response.status);
-        // Create fallback response in case Make fails
-        await createFallbackResponse(sessionId, prompt, niche);
-      } else {
-        console.log('✅ Make webhook sent successfully');
+      if (error) {
+        console.error('Error calling webhook:', error);
+        toast.error("Erro ao gerar carrossel. Tente novamente.");
+        return;
       }
 
-      // Small delay to ensure everything was processed
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Navigate to result with sessionId in URL
-      navigate(`/carousel-result?sessionId=${sessionId}`);
-
+      if (data?.session_id) {
+        toast.success("Carrossel sendo gerado! Redirecionando...");
+        setTimeout(() => {
+          navigate(`/carousel-result?session=${data.session_id}`);
+        }, 1500);
+      } else {
+        toast.error("Erro na resposta do servidor");
+      }
     } catch (error) {
-      console.error('❌ Error in carousel generation:', error);
-      
-      // Refund credits in case of error (only if not admin and credits were consumed)
-      if (!isAdmin) {
-        await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
-        toast({
-          title: "Erro na geração",
-          description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Erro na geração",
-          description: "Ocorreu um erro ao gerar o carrossel. Tente novamente.",
-          variant: "destructive",
-        });
-      }
+      console.error('Error generating carousel:', error);
+      toast.error("Erro inesperado. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const createFallbackResponse = async (sessionId: string, prompt: string, niche: string) => {
-    console.log('🔄 Creating fallback response for sessionId:', sessionId);
-    
-    const fallbackContent = `### Carrossel de Alto Impacto
-
-**Capa:**
-🚀 ${prompt.slice(0, 50)}... pode transformar sua vida!
-
-**Contexto:**
-Você sabia que 90% das pessoas fracassam porque não têm o método certo? ${prompt}
-
-**Reflexão:**
-Imagine como seria sua vida se você tivesse acesso às estratégias que os grandes experts usam. ${niche ? `No nicho de ${niche}` : 'Em qualquer área'}, o segredo está na execução correta.
-
-**Passo a Passo:**
-1️⃣ Identifique seu objetivo principal
-2️⃣ Crie um plano de ação específico  
-3️⃣ Execute com consistência diária
-4️⃣ Meça e ajuste os resultados
-5️⃣ Escale o que funciona
-
-**CTA:**
-💬 Comenta AÍ se você quer saber mais sobre essa estratégia que já transformou milhares de vidas! Vou responder todo mundo nos comentários 👇`;
-
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      
-      const { error } = await supabase
-        .from('webhook_responses')
-        .insert({
-          session_id: sessionId,
-          content: fallbackContent,
-          created_at: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('❌ Failed to store fallback response:', error);
-      } else {
-        console.log('✅ Fallback response stored successfully for sessionId:', sessionId);
-      }
-    } catch (err) {
-      console.error('❌ Error creating fallback response:', err);
-    }
-  };
-
-  const isAdmin = profile?.role === 'admin';
-  const canGenerate = isAdmin || (userCredits && userCredits.current_credits >= 3);
-
   return (
-    <div className="min-h-screen bg-white dark:bg-[#131313]">
-      {/* Header */}
-      <header className="border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-[#131313]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">QUIKFY</span>
-          </Link>
-          <div className="flex items-center space-x-4">
-            <CreditDisplay />
-            <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700">
-              <Sparkles className="w-4 h-4 mr-2" />
-              IA Carrossel Pro
-            </Badge>
-            {isAdmin && (
-              <Badge className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700">
-                <Crown className="w-4 h-4 mr-2" />
-                Admin
-              </Badge>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              <div className="flex items-center gap-2">
+                <Bot className="h-6 w-6 text-blue-600" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Gerador de Carrossel IA
+                </h1>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Gerador de <span className="text-purple-600">Carrossel</span> com IA
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-3xl mx-auto">
-            Crie carrosséis irresistíveis que convertem visitantes em clientes. 
-            Nossa IA especializada gera conteúdo que vende usando as melhores técnicas de copywriting.
-          </p>
-          <div className="flex items-center justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400">
-            <div className="flex items-center">
-              <Target className="w-4 h-4 mr-1 text-purple-600" />
-              Alta conversão
-            </div>
-            <div className="flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1 text-purple-600" />
-              Testado e aprovado
-            </div>
-            <div className="flex items-center">
-              <Sparkles className="w-4 h-4 mr-1 text-purple-600" />
-              IA especializada
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Input Section */}
-          <Card className="h-fit bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-blue-100 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                <Wand2 className="w-5 h-5 mr-2 text-purple-600" />
-                Configure seu Carrossel
+              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                Criar Carrossel com IA
               </CardTitle>
+              <p className="text-gray-600 dark:text-gray-300">
+                Preencha os campos abaixo para gerar um carrossel personalizado com inteligência artificial.
+              </p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="niche" className="text-gray-700 dark:text-gray-200">Nicho/Área de Atuação</Label>
+                <Label htmlFor="topic" className="text-gray-700 dark:text-gray-300">
+                  Tópico do Carrossel *
+                </Label>
                 <Input
-                  id="niche"
-                  placeholder="Ex: Marketing Digital, Fitness, Culinária..."
-                  value={niche}
-                  onChange={(e) => setNiche(e.target.value)}
-                  className="border-gray-200 dark:border-gray-600 bg-white dark:bg-[#131313] text-gray-900 dark:text-white"
+                  id="topic"
+                  name="topic"
+                  value={formData.topic}
+                  onChange={handleInputChange}
+                  placeholder="Ex: Dicas de marketing digital"
+                  className="border-blue-200 focus:border-blue-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prompt" className="text-gray-700 dark:text-gray-200">Descreva seu produto/serviço *</Label>
-                <Textarea
-                  id="prompt"
-                  placeholder="Ex: Curso completo de marketing digital com IA, ensina desde o básico até estratégias avançadas para faturar 6 dígitos..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="border-gray-200 dark:border-gray-600 bg-white dark:bg-[#131313] text-gray-900 dark:text-white min-h-[120px]"
-                  rows={6}
+                <Label htmlFor="targetAudience" className="text-gray-700 dark:text-gray-300">
+                  Público-alvo
+                </Label>
+                <Input
+                  id="targetAudience"
+                  name="targetAudience"
+                  value={formData.targetAudience}
+                  onChange={handleInputChange}
+                  placeholder="Ex: Empreendedores iniciantes"
+                  className="border-blue-200 focus:border-blue-500"
                 />
               </div>
 
-              {isAdmin && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-start space-x-3">
-                  <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Acesso Administrativo</p>
-                    <p className="text-yellow-700 dark:text-yellow-300">
-                      Como admin, você consome créditos mas eles são automaticamente reembolsados.
-                    </p>
-                  </div>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="style" className="text-gray-700 dark:text-gray-300">
+                  Estilo/Tom
+                </Label>
+                <Input
+                  id="style"
+                  name="style"
+                  value={formData.style}
+                  onChange={handleInputChange}
+                  placeholder="Ex: Casual e amigável"
+                  className="border-blue-200 focus:border-blue-500"
+                />
+              </div>
 
-              {!canGenerate && !isAdmin && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Créditos insuficientes</p>
-                    <p className="text-yellow-700 dark:text-yellow-300">
-                      Você precisa de 3 créditos para gerar um carrossel.
-                    </p>
-                  </div>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="numberOfSlides" className="text-gray-700 dark:text-gray-300">
+                  Número de Slides
+                </Label>
+                <Input
+                  id="numberOfSlides"
+                  name="numberOfSlides"
+                  type="number"
+                  min="3"
+                  max="10"
+                  value={formData.numberOfSlides}
+                  onChange={handleInputChange}
+                  className="border-blue-200 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additionalInfo" className="text-gray-700 dark:text-gray-300">
+                  Informações Adicionais
+                </Label>
+                <Textarea
+                  id="additionalInfo"
+                  name="additionalInfo"
+                  value={formData.additionalInfo}
+                  onChange={handleInputChange}
+                  placeholder="Adicione qualquer informação extra que possa ajudar na geração do carrossel..."
+                  rows={3}
+                  className="border-blue-200 focus:border-blue-500"
+                />
+              </div>
 
               <Button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || isGenerating || (!canGenerate && !isAdmin)}
-                className="w-full bg-purple-600 hover:bg-purple-700 py-3"
+                disabled={isGenerating || !formData.topic.trim()}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
               >
                 {isGenerating ? (
                   <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Gerando carrossel...
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Gerando Carrossel...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {isAdmin ? "Gerar Carrossel com IA (3 créditos - reembolsados)" : "Gerar Carrossel com IA (3 créditos)"}
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Gerar Carrossel (3 créditos)
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
 
-          {/* Preview Section */}
-          <Card className="bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
-                Preview do Carrossel
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p>Seu carrossel aparecerá aqui após a geração</p>
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                <p>* Campos obrigatórios</p>
+                <p>O carrossel será gerado em poucos minutos</p>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Informações sobre créditos */}
-        <Card className="mt-8 bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">💳 Sistema de Créditos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div className="bg-gray-50 dark:bg-[#131313] p-4 rounded-lg border dark:border-gray-700">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">🆓 Plano Free</h4>
-                <p className="text-gray-700 dark:text-gray-300">3 créditos (não renováveis)</p>
-              </div>
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-700">
-                <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">⚡ Plano Essential</h4>
-                <p className="text-green-700 dark:text-green-300">50 créditos/mês (não cumulativos)</p>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-700">
-                <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">🚀 Plano Pro</h4>
-                <p className="text-blue-700 dark:text-blue-300">200 créditos/mês (cumulativos)</p>
-              </div>
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border dark:border-purple-700">
-                <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-2">💎 Plano VIP</h4>
-                <p className="text-purple-700 dark:text-purple-300">500 créditos/mês (cumulativos)</p>
-              </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border dark:border-yellow-700">
-                <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-2">👑 Plano Admin</h4>
-                <p className="text-yellow-700 dark:text-yellow-300">Acesso ilimitado</p>
-              </div>
-            </div>
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border dark:border-blue-700">
-              <p className="text-blue-800 dark:text-blue-200 text-sm">
-                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado. Admins consomem créditos mas são automaticamente reembolsados.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

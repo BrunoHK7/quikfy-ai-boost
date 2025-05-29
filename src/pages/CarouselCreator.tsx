@@ -5,16 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage, Upload, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCredits } from "@/hooks/useCredits";
 
 const CarouselCreator = () => {
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { consumeCredits } = useCredits();
   
   const [selectedTemplate, setSelectedTemplate] = useState("minimal");
   const [title, setTitle] = useState("Seu Título Aqui");
@@ -205,17 +203,9 @@ const CarouselCreator = () => {
     }
   };
 
-  const downloadImage = async () => {
+  const downloadImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    // Consume credits before downloading
-    const creditResult = await consumeCredits("quikdesign_download", 3, "Download de design QuikDesign");
-    
-    if (!creditResult.success) {
-      toast.error(creditResult.error || "Erro ao consumir créditos");
-      return;
-    }
 
     const link = document.createElement('a');
     link.download = `quikdesign-${Date.now()}.png`;
@@ -261,6 +251,9 @@ const CarouselCreator = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                   QuikDesign
                 </h1>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Grátis
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -277,7 +270,7 @@ const CarouselCreator = () => {
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download (3 créditos)
+                Download Grátis
               </Button>
             </div>
           </div>
