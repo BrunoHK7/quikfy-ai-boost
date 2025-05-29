@@ -241,10 +241,6 @@ const CarouselCreator = () => {
     setFrames(prev => prev.map((frame, index) => {
       if (index === currentFrameIndex) {
         const updatedFrame = { ...frame, ...updates };
-        // Load font if it's being changed
-        if (updates.fontFamily) {
-          loadGoogleFont(updates.fontFamily);
-        }
         return updatedFrame;
       }
       return frame;
@@ -252,7 +248,6 @@ const CarouselCreator = () => {
   };
 
   const updateGlobalFont = (fontFamily: string) => {
-    loadGoogleFont(fontFamily);
     setGlobalFontFamily(fontFamily);
   };
 
