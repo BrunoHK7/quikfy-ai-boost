@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -415,24 +415,24 @@ const CarouselCreator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background dark:bg-background">
       {/* Header */}
-      <header className="border-b bg-white shadow-sm">
+      <header className="border-b bg-background border-border shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
               <div className="flex items-center gap-3">
                 <div className="text-2xl font-bold text-purple-600">QUIKFY</div>
-                <div className="text-xl font-semibold text-gray-900">QuikDesign</div>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <div className="text-xl font-semibold text-foreground">QuikDesign</div>
+                <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                   Grátis
                 </Badge>
               </div>
@@ -441,13 +441,13 @@ const CarouselCreator = () => {
               <Input
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                className="w-48"
+                className="w-48 bg-background border-border"
                 placeholder="Nome do projeto"
               />
               <Button
                 onClick={saveCarouselProject}
                 variant="outline"
-                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Salvar
@@ -466,14 +466,14 @@ const CarouselCreator = () => {
 
       <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar - Project Settings */}
-        <div className="w-80 border-r bg-gray-50 p-6 overflow-y-auto">
+        <div className="w-80 border-r border-border bg-muted/30 p-6 overflow-y-auto">
           {/* Configurações do Projeto */}
           <div className="mb-8">
-            <h3 className="font-semibold text-gray-900 mb-4">Configurações do Projeto</h3>
+            <h3 className="font-semibold text-foreground mb-4">Configurações do Projeto</h3>
             
             {/* Dimensões */}
             <div className="mb-6">
-              <label className="text-sm font-medium text-gray-700 mb-3 block">Dimensões</label>
+              <label className="text-sm font-medium text-foreground mb-3 block">Dimensões</label>
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant={dimensions === '1080x1080' ? 'default' : 'outline'}
@@ -513,22 +513,22 @@ const CarouselCreator = () => {
                   id="margin"
                   checked={marginEnabled}
                   onChange={(e) => setMarginEnabled(e.target.checked)}
-                  className="rounded"
+                  className="rounded accent-purple-600"
                 />
-                <label htmlFor="margin" className="text-sm font-medium text-gray-700">
+                <label htmlFor="margin" className="text-sm font-medium text-foreground">
                   Margem
                 </label>
               </div>
               {marginEnabled && (
                 <div>
-                  <label className="text-xs text-gray-600 mb-2 block">Tamanho: {marginSize}px</label>
+                  <label className="text-xs text-muted-foreground mb-2 block">Tamanho: {marginSize}px</label>
                   <input
                     type="range"
                     min="20"
                     max="100"
                     value={marginSize}
                     onChange={(e) => setMarginSize(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-purple-600"
                   />
                 </div>
               )}
@@ -536,7 +536,7 @@ const CarouselCreator = () => {
 
             {/* Assinatura */}
             <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Assinatura</h4>
+              <h4 className="text-sm font-medium text-foreground mb-3">Assinatura</h4>
               <Button
                 variant="outline"
                 onClick={() => signatureInputRef.current?.click()}
@@ -557,11 +557,11 @@ const CarouselCreator = () => {
               {signatureImage && (
                 <>
                   <div className="mb-3">
-                    <label className="text-xs text-gray-600 mb-2 block">Posição</label>
+                    <label className="text-xs text-muted-foreground mb-2 block">Posição</label>
                     <select
                       value={signaturePosition}
                       onChange={(e) => setSignaturePosition(e.target.value as any)}
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
+                      className="w-full p-2 border border-border rounded text-sm bg-background text-foreground"
                     >
                       <option value="top-left">Superior Esquerda</option>
                       <option value="top-center">Superior Centro</option>
@@ -573,14 +573,14 @@ const CarouselCreator = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="text-xs text-gray-600 mb-2 block">Tamanho: {signatureSize}px</label>
+                    <label className="text-xs text-muted-foreground mb-2 block">Tamanho: {signatureSize}px</label>
                     <input
                       type="range"
                       min="40"
                       max="200"
                       value={signatureSize}
                       onChange={(e) => setSignatureSize(Number(e.target.value))}
-                      className="w-full"
+                      className="w-full accent-purple-600"
                     />
                   </div>
 
@@ -599,35 +599,35 @@ const CarouselCreator = () => {
             {/* Cores */}
             <div className="mb-6">
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Cor do Fundo</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Cor do Fundo</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={backgroundColor}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="w-10 h-8 rounded border border-gray-300"
+                    className="w-10 h-8 rounded border border-border"
                   />
                   <Input
                     value={backgroundColor}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs bg-background border-border"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Cor do Texto</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Cor do Texto</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="w-10 h-8 rounded border border-gray-300"
+                    className="w-10 h-8 rounded border border-border"
                   />
                   <Input
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs bg-background border-border"
                   />
                 </div>
               </div>
@@ -635,11 +635,11 @@ const CarouselCreator = () => {
 
             {/* Fonte */}
             <div className="mb-6">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Fonte</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">Fonte</label>
               <select
                 value={fontFamily}
                 onChange={(e) => setFontFamily(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
+                className="w-full p-2 border border-border rounded text-sm bg-background text-foreground"
               >
                 {googleFonts.map(font => (
                   <option key={font} value={font}>{font}</option>
@@ -651,7 +651,7 @@ const CarouselCreator = () => {
           {/* Lista de Quadros */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Quadros</h3>
+              <h3 className="font-semibold text-foreground">Quadros</h3>
               <Button 
                 onClick={addFrame} 
                 size="sm"
@@ -668,17 +668,17 @@ const CarouselCreator = () => {
                   key={frame.id}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     currentFrameIndex === index
-                      ? "border-purple-500 bg-purple-50 shadow-md"
-                      : "border-gray-200 hover:border-purple-300 hover:bg-white"
+                      ? "border-purple-500 bg-purple-50 shadow-md dark:bg-purple-900/20 dark:border-purple-400"
+                      : "border-border hover:border-purple-300 hover:bg-accent"
                   }`}
                   onClick={() => setCurrentFrameIndex(index)}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm text-gray-900">Slide {index + 1}</span>
+                    <span className="font-medium text-sm text-foreground">Slide {index + 1}</span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeFrame(index);
@@ -688,7 +688,7 @@ const CarouselCreator = () => {
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-600 truncate">{frame.text}</p>
+                  <p className="text-xs text-muted-foreground truncate">{frame.text}</p>
                 </div>
               ))}
             </div>
@@ -696,32 +696,32 @@ const CarouselCreator = () => {
         </div>
 
         {/* Center - Canvas */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-gray-100">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex-1 flex items-center justify-center p-8 bg-muted/20">
+          <div className="bg-background rounded-lg shadow-lg p-6 border border-border">
             <div className="mb-4 text-center">
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100">
                 {dimensions.replace('x', ' × ')}px
               </Badge>
             </div>
-            <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
+            <div className="border-2 border-border rounded-lg overflow-hidden bg-background">
               <canvas
                 ref={canvasRef}
                 width={canvasDimensions.width}
                 height={canvasDimensions.height}
-                className="block bg-white"
+                className="block bg-background"
               />
             </div>
           </div>
         </div>
 
         {/* Right Sidebar - Text Controls */}
-        <div className="w-80 border-l bg-white p-6 overflow-y-auto">
-          <h3 className="font-semibold text-gray-900 mb-4">Controles de Texto</h3>
+        <div className="w-80 border-l border-border bg-muted/30 p-6 overflow-y-auto">
+          <h3 className="font-semibold text-foreground mb-4">Controles de Texto</h3>
           
           {/* Texto */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <label className="text-sm font-medium text-gray-700">Texto</label>
+              <label className="text-sm font-medium text-foreground">Texto</label>
               <Button
                 variant="ghost"
                 size="icon"
@@ -735,7 +735,7 @@ const CarouselCreator = () => {
               value={currentFrame?.text || ''}
               onChange={(e) => updateCurrentFrame({ text: e.target.value })}
               placeholder="Digite seu texto..."
-              className="min-h-[80px] mb-2"
+              className="min-h-[80px] mb-2 bg-background border-border text-foreground"
             />
             {showEmojiPicker && (
               <div className="mb-3">
@@ -746,7 +746,7 @@ const CarouselCreator = () => {
 
           {/* Alinhamento */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-3 block">Alinhamento</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento</label>
             <div className="grid grid-cols-3 gap-2">
               <Button
                 variant={currentFrame?.textAlign === 'left' ? 'default' : 'outline'}
@@ -777,7 +777,7 @@ const CarouselCreator = () => {
 
           {/* Formatação */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-3 block">Formatação</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">Formatação</label>
             <div className="grid grid-cols-3 gap-2">
               <Button
                 variant={currentFrame?.isBold ? 'default' : 'outline'}
@@ -808,7 +808,7 @@ const CarouselCreator = () => {
 
           {/* Tamanho da Fonte */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-foreground mb-2 block">
               Tamanho da Fonte: {currentFrame?.fontSize}px
             </label>
             <input
@@ -817,13 +817,13 @@ const CarouselCreator = () => {
               max="72"
               value={currentFrame?.fontSize || 32}
               onChange={(e) => updateCurrentFrame({ fontSize: Number(e.target.value) })}
-              className="w-full"
+              className="w-full accent-purple-600"
             />
           </div>
 
           {/* Altura da Linha */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-foreground mb-2 block">
               Altura da Linha: {currentFrame?.lineHeight?.toFixed(1)}
             </label>
             <input
@@ -833,13 +833,13 @@ const CarouselCreator = () => {
               step="0.1"
               value={currentFrame?.lineHeight || 1.4}
               onChange={(e) => updateCurrentFrame({ lineHeight: Number(e.target.value) })}
-              className="w-full"
+              className="w-full accent-purple-600"
             />
           </div>
 
           {/* Espaçamento de Letras */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-foreground mb-2 block">
               Espaçamento de Letras: {currentFrame?.letterSpacing}px
             </label>
             <input
@@ -849,13 +849,13 @@ const CarouselCreator = () => {
               step="0.5"
               value={currentFrame?.letterSpacing || 0}
               onChange={(e) => updateCurrentFrame({ letterSpacing: Number(e.target.value) })}
-              className="w-full"
+              className="w-full accent-purple-600"
             />
           </div>
 
           {/* Imagem de Fundo do Quadro */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Imagem de Fundo</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">Imagem de Fundo</label>
             <Button
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
