@@ -104,7 +104,32 @@
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 
-  /* Dark mode specific overrides - FORÇAR PRETO */
+  /* Light mode - force white background */
+  html:not(.dark) {
+    background-color: #ffffff !important;
+  }
+
+  html:not(.dark) body {
+    background-color: #ffffff !important;
+  }
+
+  html:not(.dark) .min-h-screen {
+    background-color: #ffffff !important;
+  }
+
+  /* Dark mode specific overrides - force black background */
+  .dark html {
+    background-color: #131313 !important;
+  }
+
+  .dark body {
+    background-color: #131313 !important;
+  }
+
+  .dark .min-h-screen {
+    background-color: #131313 !important;
+  }
+
   .dark {
     background-color: #131313 !important;
   }
@@ -135,19 +160,6 @@
 
   .dark .shadow-xl {
     @apply shadow-2xl shadow-black/50 !important;
-  }
-
-  /* Forçar background preto em elementos específicos */
-  .dark .min-h-screen {
-    background-color: #131313 !important;
-  }
-
-  .dark body {
-    background-color: #131313 !important;
-  }
-
-  .dark html {
-    background-color: #131313 !important;
   }
 }
 
@@ -182,12 +194,21 @@
     @apply dark:text-white;
   }
 
-  /* Força preto em todos os backgrounds escuros */
+  /* Force specific backgrounds */
   .dark .bg-[#131313] {
     background-color: #131313 !important;
   }
 
   .dark .bg-[#1a1a1a] {
     background-color: #1a1a1a !important;
+  }
+
+  /* Light mode specific utilities */
+  .light-bg {
+    background-color: #ffffff !important;
+  }
+
+  html:not(.dark) .bg-[#131313] {
+    background-color: #ffffff !important;
   }
 }

@@ -57,10 +57,10 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#131313' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-300">Carregando perfil...</p>
+          <p className="text-muted-foreground">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -68,9 +68,9 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#131313' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-gray-300 mb-4">Erro ao carregar perfil</p>
+          <p className="text-muted-foreground mb-4">Erro ao carregar perfil</p>
           <Button onClick={() => window.location.reload()} variant="secondary">Tentar novamente</Button>
         </div>
       </div>
@@ -78,9 +78,9 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#131313' }}>
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-gray-700" style={{ backgroundColor: '#131313cc' }}>
+      <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
@@ -90,12 +90,12 @@ const Profile = () => {
           </Link>
           <div className="flex items-center space-x-3">
             <Link to="/settings">
-              <Button variant="outline" className="border-gray-600 text-white hover:bg-purple-600">
+              <Button variant="outline" className="border-border text-foreground hover:bg-purple-600 hover:text-white">
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
               </Button>
             </Link>
-            <Button variant="outline" onClick={signOut} className="border-gray-600 text-white hover:bg-red-600">
+            <Button variant="outline" onClick={signOut} className="border-border text-foreground hover:bg-red-600 hover:text-white">
               Sair
             </Button>
           </div>
@@ -108,13 +108,13 @@ const Profile = () => {
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1 border-gray-700" style={{ backgroundColor: '#1a1a1a' }}>
-            <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Visão Geral</TabsTrigger>
-            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Meus Projetos ({projectsCount})</TabsTrigger>
-            <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Fotos</TabsTrigger>
-            <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Conquistas</TabsTrigger>
-            <TabsTrigger value="credits" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Créditos</TabsTrigger>
-            <TabsTrigger value="credit-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Histórico</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1 border-border bg-card">
+            <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Visão Geral</TabsTrigger>
+            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Meus Projetos ({projectsCount})</TabsTrigger>
+            <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Fotos</TabsTrigger>
+            <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Conquistas</TabsTrigger>
+            <TabsTrigger value="credits" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Créditos</TabsTrigger>
+            <TabsTrigger value="credit-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Histórico</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
