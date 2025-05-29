@@ -32,21 +32,21 @@ const CarouselBriefing: React.FC = () => {
   const question = questions[currentQuestionIndex];
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
         {/* Standard Header */}
         <StandardHeader 
           title="Carrossel 10X" 
           backTo="/"
           rightContent={
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground">
               {currentQuestionIndex + 1} de {totalQuestions}
             </span>
           }
         />
         
         {/* Progress bar */}
-        <div className="w-full bg-muted rounded-full h-2 mb-8">
+        <div className="w-full bg-muted rounded-full h-2 mb-6 sm:mb-8">
           <div 
             className="bg-primary h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
@@ -55,12 +55,12 @@ const CarouselBriefing: React.FC = () => {
 
         {/* Question content */}
         <Card className="border-none shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl text-left text-foreground">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-2xl text-left text-foreground leading-tight">
               {question.question}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             {question.type === 'multiple' ? (
               <MultipleChoiceQuestion
                 options={question.options || []}
@@ -74,6 +74,21 @@ const CarouselBriefing: React.FC = () => {
                 value={answers[question.id] || ''}
                 disabled={isSubmitting}
               />
+            )}
+            
+            {/* Botão de voltar */}
+            {currentQuestionIndex > 0 && (
+              <div className="flex justify-start mt-6 pt-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  onClick={goToPreviousQuestion}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

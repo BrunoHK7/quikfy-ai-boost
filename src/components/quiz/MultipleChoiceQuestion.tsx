@@ -21,7 +21,7 @@ export const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   selectedValue
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
       {options.map((option) => {
         const isSelected = selectedValue === option.id;
         
@@ -35,22 +35,22 @@ export const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
             }`}
             onClick={() => onSelect(option.id)}
           >
-            <CardContent className="p-6 relative">
+            <CardContent className="p-4 sm:p-6 relative">
               {isSelected && (
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
                   <div className="bg-primary rounded-full p-1">
                     <Check className="h-3 w-3 text-primary-foreground" />
                   </div>
                 </div>
               )}
               
-              <h3 className={`font-semibold text-lg mb-2 ${
+              <h3 className={`font-semibold text-base sm:text-lg mb-2 pr-8 ${
                 isSelected ? 'text-primary' : 'text-foreground'
               }`}>
                 {option.title}
               </h3>
               
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {option.description}
               </p>
             </CardContent>

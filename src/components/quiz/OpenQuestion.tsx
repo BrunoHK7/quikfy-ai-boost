@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -17,7 +17,12 @@ export const OpenQuestion: React.FC<OpenQuestionProps> = ({
   value: initialValue,
   disabled = false
 }) => {
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState('');
+
+  // Atualiza o valor apenas quando initialValue muda e não está vazio
+  useEffect(() => {
+    setValue(initialValue || '');
+  }, [initialValue]);
 
   const handleSubmit = () => {
     if (value.trim() && !disabled) {
