@@ -101,12 +101,12 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Map price IDs to subscription tiers
+      // Map price IDs to subscription tiers (UPDATED FOR PRODUCTION)
       const priceId = subscription.items.data[0].price.id;
       const priceToTierMap = {
-        "price_1RU59bIWr4FsaNafakyLfQOr": "Essential",
-        "price_1RU5B7IWr4FsaNafPn34jkfv": "Pro", 
-        "price_1RU5BJIWr4FsaNafh3e0fhcr": "VIP"
+        "price_1RU8ytIWr4FsaNafQcAWSSx9": "Plus",
+        "price_1RU8ytIWr4FsaNafDrOUsZ7R": "Pro", 
+        "price_1RU8ytIWr4FsaNafRHNNnlyu": "VIP"
       };
       
       subscriptionTier = priceToTierMap[priceId as keyof typeof priceToTierMap] || null;
@@ -115,7 +115,7 @@ serve(async (req) => {
       if (subscriptionTier) {
         // Update user_credits table with new plan and credits
         const planCredits = {
-          "Essential": 50,
+          "Plus": 50,
           "Pro": 200,
           "VIP": 500
         };

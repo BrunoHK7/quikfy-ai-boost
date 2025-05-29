@@ -46,11 +46,11 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Map plan types to Stripe price IDs
+    // Map plan types to Stripe price IDs (UPDATED FOR PRODUCTION)
     const planPriceIds = {
-      Essential: "price_1RU59bIWr4FsaNafakyLfQOr",
-      Pro: "price_1RU5B7IWr4FsaNafPn34jkfv",
-      VIP: "price_1RU5BJIWr4FsaNafh3e0fhcr"
+      Plus: "price_1RU8ytIWr4FsaNafQcAWSSx9",
+      Pro: "price_1RU8ytIWr4FsaNafDrOUsZ7R",
+      VIP: "price_1RU8ytIWr4FsaNafRHNNnlyu"
     };
 
     const priceId = planPriceIds[planType as keyof typeof planPriceIds];
