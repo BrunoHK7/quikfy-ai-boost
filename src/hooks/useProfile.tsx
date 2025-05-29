@@ -55,9 +55,19 @@ export const useProfile = () => {
       if (data) {
         console.log('Profile found:', data);
         
-        // Força role admin para o usuário específico se não estiver definido
-        if (user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' && data.role !== 'admin') {
-          console.log('Forcing admin role for specific user');
+        // Check if user has active subscription before forcing admin role
+        const { data: subscription } = await supabase
+          .from('subscribers')
+          .select('subscribed, manual_subscription, subscription_tier')
+          .eq('email', user.email)
+          .maybeSingle();
+
+        // Only force admin role if user doesn't have an active subscription
+        // and is the specific admin user
+        if (user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' && 
+            data.role !== 'admin' && 
+            (!subscription?.subscribed || !subscription?.manual_subscription)) {
+          console.log('Forcing admin role for specific user (no active subscription)');
           const { data: updatedProfile, error: updateError } = await supabase
             .from('profiles')
             .update({ role: 'admin' })
@@ -73,6 +83,7 @@ export const useProfile = () => {
             setProfile(updatedProfile);
           }
         } else {
+          console.log('Profile loaded without role change:', data);
           setProfile(data);
         }
       } else {

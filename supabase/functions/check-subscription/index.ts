@@ -94,21 +94,31 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'email' });
 
-        // Reset user to free plan
-        await supabaseClient.from("user_credits").update({
-          plan_type: 'free',
-          current_credits: 3,
-          total_credits_ever: 3,
-          last_reset_date: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }).eq('user_id', user.id);
+        // Only reset user to free plan if they don't have admin role
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
 
-        await supabaseClient.from("profiles").update({
-          role: 'free',
-          updated_at: new Date().toISOString(),
-        }).eq('id', user.id);
+        if (profile?.role !== 'admin') {
+          await supabaseClient.from("user_credits").update({
+            plan_type: 'free',
+            current_credits: 3,
+            total_credits_ever: 3,
+            last_reset_date: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }).eq('user_id', user.id);
 
-        logStep("Updated user to free plan");
+          await supabaseClient.from("profiles").update({
+            role: 'free',
+            updated_at: new Date().toISOString(),
+          }).eq('id', user.id);
+
+          logStep("Updated user to free plan");
+        } else {
+          logStep("User is admin, keeping admin role");
+        }
       } else {
         logStep("User has manual subscription, keeping current plan");
       }
