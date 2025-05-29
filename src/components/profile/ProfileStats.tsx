@@ -8,6 +8,7 @@ import { useState } from "react";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
 import { useProfilePhotos } from "@/hooks/useProfilePhotos";
 import { toast } from "sonner";
+import { SubscriptionManagement } from "@/components/profile/SubscriptionManagement";
 
 interface ProfileStatsProps {
   projectsCount: number;
@@ -73,8 +74,11 @@ export const ProfileStats = ({ projectsCount }: ProfileStatsProps) => {
         </Card>
       </div>
 
-      {/* Action Buttons & Achievements */}
+      {/* Right Sidebar */}
       <div className="space-y-6">
+        {/* Subscription Management */}
+        <SubscriptionManagement />
+
         {/* Quick Actions */}
         <Card>
           <CardHeader>

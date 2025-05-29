@@ -11,11 +11,42 @@ import {
   Star,
   Rocket,
   Gift,
-  Briefcase
+  Briefcase,
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 const Pricing = () => {
+  const { user } = useAuth();
+  const { createCheckout, subscription } = useSubscription();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleSubscribe = async (planName: string) => {
+    if (!user) {
+      toast.error("Você precisa fazer login para assinar um plano");
+      return;
+    }
+
+    if (planName === "Free") {
+      toast.info("Você já está no plano gratuito!");
+      return;
+    }
+
+    setLoadingPlan(planName);
+    try {
+      await createCheckout(planName);
+      toast.success("Redirecionando para o checkout...");
+    } catch (error) {
+      toast.error("Erro ao criar checkout. Tente novamente.");
+      console.error("Checkout error:", error);
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   const plans = [
     {
       name: "Free",
@@ -101,6 +132,13 @@ const Pricing = () => {
     }
   ];
 
+  const isCurrentPlan = (planName: string) => {
+    if (planName === "Free") {
+      return !subscription.subscribed;
+    }
+    return subscription.subscription_tier === planName;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -110,9 +148,15 @@ const Pricing = () => {
             <Brain className="w-8 h-8 text-purple-600" />
             <span className="text-2xl font-bold">QUIKFY</span>
           </Link>
-          <Link to="/login">
-            <Button variant="outline">Fazer Login</Button>
-          </Link>
+          {user ? (
+            <Link to="/profile">
+              <Button variant="outline">Ir para Perfil</Button>
+            </Link>
+          ) : (
+            <Link to="/login">
+              <Button variant="outline">Fazer Login</Button>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -140,12 +184,20 @@ const Pricing = () => {
               plan.name === "Pro" 
                 ? "ring-2 ring-purple-600 shadow-2xl scale-105" 
                 : "hover:shadow-xl"
-            } transition-all duration-300`}>
+            } transition-all duration-300 ${
+              isCurrentPlan(plan.name) ? "ring-2 ring-green-500" : ""
+            }`}>
               {plan.badge && (
                 <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold text-white ${
                   plan.badge === "MAIS POPULAR" ? "bg-purple-600" : "bg-yellow-600"
                 }`}>
                   {plan.badge}
+                </div>
+              )}
+
+              {isCurrentPlan(plan.name) && (
+                <div className="absolute -top-4 right-4 px-3 py-1 bg-green-500 text-white text-sm rounded-full font-medium">
+                  Plano Atual
                 </div>
               )}
               
@@ -208,8 +260,20 @@ const Pricing = () => {
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-green-600 hover:bg-green-700 text-white"
                   }`}
+                  onClick={() => handleSubscribe(plan.name)}
+                  disabled={loadingPlan === plan.name || isCurrentPlan(plan.name)}
                 >
-                  {plan.name === "Free" ? (
+                  {loadingPlan === plan.name ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : isCurrentPlan(plan.name) ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Plano Atual
+                    </>
+                  ) : plan.name === "Free" ? (
                     <>
                       <Gift className="w-4 h-4 mr-2" />
                       Começar Grátis

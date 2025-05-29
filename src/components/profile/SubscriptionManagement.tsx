@@ -1,0 +1,154 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Crown, CreditCard, Calendar, Loader2, ExternalLink } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
+
+export const SubscriptionManagement = () => {
+  const { subscription, loading, openCustomerPortal, checkSubscription } = useSubscription();
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
+
+  const handleOpenPortal = async () => {
+    setPortalLoading(true);
+    try {
+      await openCustomerPortal();
+      toast.success("Abrindo portal de gerenciamento...");
+    } catch (error) {
+      toast.error("Erro ao abrir portal de gerenciamento");
+      console.error("Portal error:", error);
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const handleRefreshSubscription = async () => {
+    setRefreshLoading(true);
+    try {
+      await checkSubscription();
+      toast.success("Status da assinatura atualizado!");
+    } catch (error) {
+      toast.error("Erro ao atualizar status da assinatura");
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getPlanColor = (tier: string | null) => {
+    switch (tier) {
+      case 'Essential':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Pro':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'VIP':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-green-100 text-green-800 border-green-200';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+          <span>Carregando informações da assinatura...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Crown className="w-5 h-5 mr-2 text-purple-600" />
+          Gerenciar Assinatura
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Current Plan */}
+        <div className="bg-muted/50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-medium">Plano Atual</span>
+            <Badge className={getPlanColor(subscription.subscription_tier)}>
+              {subscription.subscribed ? `Plano ${subscription.subscription_tier}` : 'Plano Free'}
+            </Badge>
+          </div>
+          
+          {subscription.subscribed && subscription.subscription_end && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4 mr-1" />
+              Renova em: {formatDate(subscription.subscription_end)}
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-3">
+          {subscription.subscribed ? (
+            <Button 
+              onClick={handleOpenPortal}
+              disabled={portalLoading}
+              className="w-full"
+            >
+              {portalLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Abrindo Portal...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Gerenciar Assinatura
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Link to="/pricing">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                <Crown className="w-4 h-4 mr-2" />
+                Assinar um Plano
+              </Button>
+            </Link>
+          )}
+
+          <Button 
+            variant="outline" 
+            onClick={handleRefreshSubscription}
+            disabled={refreshLoading}
+            className="w-full"
+          >
+            {refreshLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Atualizando...
+              </>
+            ) : (
+              "Atualizar Status da Assinatura"
+            )}
+          </Button>
+        </div>
+
+        {/* Info */}
+        <div className="text-sm text-muted-foreground">
+          <p>
+            {subscription.subscribed 
+              ? "Use o portal de gerenciamento para alterar seu plano, método de pagamento ou cancelar sua assinatura."
+              : "Assine um plano premium para ter acesso a mais créditos e funcionalidades exclusivas."
+            }
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
