@@ -100,8 +100,11 @@ export const useCarouselUses = () => {
 
       if (data) {
         const typedData: UserUses = {
-          ...data,
-          plan_type: data.plan_type as 'free' | 'plus' | 'pro' | 'vip' | 'admin'
+          id: data.id,
+          plan_type: data.plan_type as 'free' | 'plus' | 'pro' | 'vip' | 'admin',
+          current_uses: data.current_uses,
+          total_uses_ever: data.total_uses_ever,
+          last_reset_date: data.last_reset_date || data.created_at
         };
         setUserUses(typedData);
       }
@@ -128,7 +131,15 @@ export const useCarouselUses = () => {
         return;
       }
 
-      setUseHistory(data || []);
+      if (data) {
+        const typedData: UseHistoryItem[] = data.map(item => ({
+          id: item.id,
+          action: item.action,
+          description: item.description,
+          created_at: item.created_at
+        }));
+        setUseHistory(typedData);
+      }
     } catch (error) {
       console.error('Error in fetchUseHistory:', error);
     }

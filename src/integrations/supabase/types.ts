@@ -36,6 +36,63 @@ export type Database = {
         }
         Relationships: []
       }
+      carousel_use_history: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      carousel_uses: {
+        Row: {
+          created_at: string
+          current_uses: number
+          id: string
+          last_reset_date: string | null
+          plan_type: string
+          total_uses_ever: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_uses?: number
+          id?: string
+          last_reset_date?: string | null
+          plan_type?: string
+          total_uses_ever?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_uses?: number
+          id?: string
+          last_reset_date?: string | null
+          plan_type?: string
+          total_uses_ever?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_history: {
         Row: {
           action: string
