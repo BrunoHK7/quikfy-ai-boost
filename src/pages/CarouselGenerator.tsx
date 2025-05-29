@@ -68,10 +68,11 @@ const CarouselGenerator = () => {
       }
 
       if (data?.session_id) {
-        if (useResult.uses_remaining !== -1) {
-          toast.success(`Carrossel sendo gerado! ${useResult.uses_remaining} usos restantes.`);
-        } else {
+        const isUnlimited = useResult.uses_remaining === -1;
+        if (isUnlimited) {
           toast.success("Carrossel sendo gerado!");
+        } else {
+          toast.success(`Carrossel sendo gerado! ${useResult.uses_remaining || 0} usos restantes.`);
         }
         setTimeout(() => {
           navigate(`/carousel-result?session=${data.session_id}`);
@@ -88,8 +89,8 @@ const CarouselGenerator = () => {
   };
 
   const currentPlan = getCurrentPlanType();
-  const isUnlimited = currentPlan === 'admin' || currentPlan === 'vip';
-  const hasUses = isUnlimited || (userUses && userUses.current_uses > 0);
+  const isUnlimited = currentPlan === 'admin' || currentPlan === 'vip' || currentPlan === 'teste';
+  const hasUses = isUnlimited || (userUses && userUses.current_uses !== 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -118,7 +119,7 @@ const CarouselGenerator = () => {
                   <span className="text-green-600 font-medium">Usos ilimitados</span>
                 ) : (
                   <span>
-                    {userUses?.current_uses || 0} usos restantes
+                    {userUses?.current_uses === -1 ? 'Ilimitado' : (userUses?.current_uses || 0)} usos restantes
                   </span>
                 )}
               </div>

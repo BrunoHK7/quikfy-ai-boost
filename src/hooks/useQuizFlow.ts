@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -517,8 +518,9 @@ export const useQuizFlow = () => {
         // Enviar para o webhook com sessionId separado
         await sendToWebhook(briefingData, sessionId);
         
-        // Mostrar mensagem de sucesso
-        if (useResult.uses_remaining === -1) {
+        // Mostrar mensagem de sucesso - updated to handle new response format
+        const isUnlimited = useResult.uses_remaining === -1;
+        if (isUnlimited) {
           toast({
             title: "Quiz concluído!",
             description: "Seu carrossel está sendo gerado com IA. Redirecionando...",
@@ -526,7 +528,7 @@ export const useQuizFlow = () => {
         } else {
           toast({
             title: "Quiz concluído!",
-            description: `Seu carrossel está sendo gerado. ${useResult.uses_remaining} usos restantes.`,
+            description: `Seu carrossel está sendo gerado. ${useResult.uses_remaining || 0} usos restantes.`,
           });
         }
         

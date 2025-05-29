@@ -8,12 +8,14 @@ interface PlanUsage {
   plan_type: 'free' | 'plus' | 'pro' | 'vip' | 'admin' | 'teste';
   hasAccess: boolean;
   description: string;
+  current_uses: number; // Added for compatibility
 }
 
 interface ConsumeUseResponse {
   success: boolean;
   error?: string;
   message?: string;
+  uses_remaining?: number; // Added for compatibility
 }
 
 export const useCarouselUses = () => {
@@ -56,37 +58,43 @@ export const useCarouselUses = () => {
         return {
           plan_type: 'admin',
           hasAccess: true,
-          description: 'Acesso administrativo - sem limitações'
+          description: 'Acesso administrativo - sem limitações',
+          current_uses: -1 // Unlimited
         };
       case 'teste':
         return {
           plan_type: 'teste',
           hasAccess: true,
-          description: 'Conta de teste - acesso completo'
+          description: 'Conta de teste - acesso completo',
+          current_uses: -1 // Unlimited
         };
       case 'vip':
         return {
           plan_type: 'vip',
           hasAccess: true,
-          description: 'Plano VIP - acesso ilimitado'
+          description: 'Plano VIP - acesso ilimitado',
+          current_uses: -1 // Unlimited
         };
       case 'pro':
         return {
           plan_type: 'pro',
           hasAccess: true,
-          description: 'Plano Pro - acesso completo'
+          description: 'Plano Pro - acesso completo',
+          current_uses: -1 // Unlimited for now
         };
       case 'plus':
         return {
           plan_type: 'plus',
           hasAccess: true,
-          description: 'Plano Plus - acesso às ferramentas'
+          description: 'Plano Plus - acesso às ferramentas',
+          current_uses: -1 // Unlimited for now
         };
       default:
         return {
           plan_type: 'free',
           hasAccess: true,
-          description: 'Plano Free - acesso básico'
+          description: 'Plano Free - acesso básico',
+          current_uses: -1 // Unlimited for now
         };
     }
   };
@@ -103,7 +111,8 @@ export const useCarouselUses = () => {
 
     return { 
       success: true, 
-      message: `${description || 'Operação realizada'} - ${usage.description}`
+      message: `${description || 'Operação realizada'} - ${usage.description}`,
+      uses_remaining: -1 // Unlimited for compatibility
     };
   };
 
