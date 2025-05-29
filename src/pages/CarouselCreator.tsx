@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { StandardHeader } from "@/components/StandardHeader";
 
 const CarouselCreator = () => {
   const navigate = useNavigate();
@@ -220,30 +219,29 @@ const CarouselCreator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#131313]">
-      {/* Header com tema escuro apropriado */}
-      <header className="bg-background dark:bg-[#131313] border-b border-border dark:border-gray-700 sticky top-0 z-50 backdrop-blur-md">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800"
+                className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
               <div className="flex items-center gap-2">
                 <Palette className="h-6 w-6 text-purple-600" />
-                <h1 className="text-2xl font-bold text-foreground dark:text-white">QuikDesign</h1>
+                <h1 className="text-2xl font-bold">QuikDesign</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={saveProject}
                 variant="outline"
-                className="border-border dark:border-gray-600 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Salvar
@@ -265,9 +263,9 @@ const CarouselCreator = () => {
           {/* Controls Panel */}
           <div className="lg:col-span-1 space-y-6">
             {/* Template Selection */}
-            <Card className="dark-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 dark-text">
+                <CardTitle className="flex items-center gap-2">
                   <Wand2 className="h-5 w-5" />
                   Templates
                 </CardTitle>
@@ -279,11 +277,11 @@ const CarouselCreator = () => {
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       selectedTemplate === template.id
                         ? "border-purple-600 bg-purple-50 dark:bg-purple-900/20"
-                        : "border-border dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500"
+                        : "border-gray-200 hover:border-purple-300"
                     }`}
                     onClick={() => setSelectedTemplate(template.id)}
                   >
-                    <h3 className="font-medium dark-text">{template.name}</h3>
+                    <h3 className="font-medium">{template.name}</h3>
                     <p className="text-sm text-muted-foreground">{template.description}</p>
                   </div>
                 ))}
@@ -291,89 +289,84 @@ const CarouselCreator = () => {
             </Card>
 
             {/* Text Content */}
-            <Card className="dark-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 dark-text">
+                <CardTitle className="flex items-center gap-2">
                   <Type className="h-5 w-5" />
                   Conteúdo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium dark-text">Título</label>
+                  <label className="text-sm font-medium">Título</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Digite o título..."
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium dark-text">Subtítulo</label>
+                  <label className="text-sm font-medium">Subtítulo</label>
                   <Textarea
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     placeholder="Digite o subtítulo..."
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Colors */}
-            <Card className="dark-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 dark-text">
+                <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
                   Cores
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium dark-text">Fundo</label>
+                  <label className="text-sm font-medium">Fundo</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={backgroundColor}
                       onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                      className="w-12 h-10 rounded border"
                     />
                     <Input
                       value={backgroundColor}
                       onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium dark-text">Texto</label>
+                  <label className="text-sm font-medium">Texto</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={textColor}
                       onChange={(e) => setTextColor(e.target.value)}
-                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                      className="w-12 h-10 rounded border"
                     />
                     <Input
                       value={textColor}
                       onChange={(e) => setTextColor(e.target.value)}
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium dark-text">Destaque</label>
+                  <label className="text-sm font-medium">Destaque</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
-                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                      className="w-12 h-10 rounded border"
                     />
                     <Input
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
@@ -383,9 +376,9 @@ const CarouselCreator = () => {
 
           {/* Canvas Preview */}
           <div className="lg:col-span-2">
-            <Card className="dark-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 dark-text">
+                <CardTitle className="flex items-center gap-2">
                   <FileImage className="h-5 w-5" />
                   Preview
                   <Badge variant="secondary" className="ml-auto">
@@ -394,7 +387,7 @@ const CarouselCreator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex justify-center">
-                <div className="border border-border dark:border-gray-600 rounded-lg overflow-hidden">
+                <div className="border rounded-lg overflow-hidden">
                   <canvas
                     ref={canvasRef}
                     width={400}

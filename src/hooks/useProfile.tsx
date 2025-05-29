@@ -13,7 +13,7 @@ interface UserProfile {
   occupation: string;
   bio: string;
   avatar_url: string;
-  role: 'free' | 'pro' | 'vip' | 'admin';
+  role: 'free' | 'essential' | 'pro' | 'vip' | 'admin';
   show_public_profile: boolean;
   created_at: string;
   updated_at: string;
@@ -54,7 +54,27 @@ export const useProfile = () => {
 
       if (data) {
         console.log('Profile found:', data);
-        setProfile(data);
+        
+        // Força role admin para o usuário específico se não estiver definido
+        if (user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' && data.role !== 'admin') {
+          console.log('Forcing admin role for specific user');
+          const { data: updatedProfile, error: updateError } = await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('id', user.id)
+            .select()
+            .single();
+          
+          if (updateError) {
+            console.error('Error updating role to admin:', updateError);
+            setProfile(data);
+          } else {
+            console.log('Role updated to admin:', updatedProfile);
+            setProfile(updatedProfile);
+          }
+        } else {
+          setProfile(data);
+        }
       } else {
         console.log('No profile found, creating new profile');
         // Create a new profile if none exists
@@ -68,7 +88,7 @@ export const useProfile = () => {
           occupation: user.user_metadata?.occupation || '',
           bio: '',
           avatar_url: '',
-          role: 'free' as const,
+          role: user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' ? 'admin' as const : 'free' as const,
           show_public_profile: false
         };
 
