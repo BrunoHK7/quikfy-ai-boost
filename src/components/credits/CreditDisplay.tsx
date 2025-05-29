@@ -19,14 +19,16 @@ export const CreditDisplay = ({ showDetails = false }: { showDetails?: boolean }
 
   if (!userCredits) return null;
 
-  const isAdmin = profile?.role === 'admin' || userCredits.plan_type === 'admin';
-  const isUnlimited = isAdmin;
+  const isAdmin = profile?.role === 'admin';
+  const isUnlimited = isAdmin || userCredits.plan_type === 'admin';
 
   const getPlanIcon = () => {
+    if (isAdmin) return <Crown className="w-4 h-4 text-yellow-600" />;
+    
     switch (userCredits.plan_type) {
-      case 'admin': return <Crown className="w-4 h-4" />;
       case 'vip': return <Zap className="w-4 h-4 text-purple-600" />;
       case 'pro': return <Zap className="w-4 h-4 text-blue-600" />;
+      case 'plus': return <Zap className="w-4 h-4 text-green-600" />;
       default: return <Coins className="w-4 h-4" />;
     }
   };

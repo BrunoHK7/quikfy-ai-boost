@@ -55,6 +55,15 @@ serve(async (req) => {
       .eq('email', user.email)
       .single();
 
+    // Check current user profile to see if they are admin
+    const { data: currentProfile } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    const isAdminUser = currentProfile?.role === 'admin' || user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d';
+
     if (existingSubscriber?.manual_subscription && existingSubscriber?.subscribed) {
       logStep("User has active manual subscription", { 
         tier: existingSubscriber.subscription_tier, 
@@ -78,9 +87,9 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found");
       
-      // Only update to free if user doesn't have an active manual subscription
-      if (!existingSubscriber?.manual_subscription || !existingSubscriber?.subscribed) {
-        logStep("No manual subscription, updating to free plan");
+      // Only update to free if user doesn't have an active manual subscription AND is not admin
+      if ((!existingSubscriber?.manual_subscription || !existingSubscriber?.subscribed) && !isAdminUser) {
+        logStep("No manual subscription and not admin, updating to free plan");
         
         // Update subscribers table
         await supabaseClient.from("subscribers").upsert({
@@ -94,31 +103,32 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'email' });
 
-        // Only reset user to free plan if they don't have admin role
-        const { data: profile } = await supabaseClient
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
+        await supabaseClient.from("user_credits").update({
+          plan_type: 'free',
+          current_credits: 3,
+          total_credits_ever: 3,
+          last_reset_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', user.id);
 
-        if (profile?.role !== 'admin') {
-          await supabaseClient.from("user_credits").update({
-            plan_type: 'free',
-            current_credits: 3,
-            total_credits_ever: 3,
-            last_reset_date: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }).eq('user_id', user.id);
+        await supabaseClient.from("profiles").update({
+          role: 'free',
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
 
-          await supabaseClient.from("profiles").update({
-            role: 'free',
-            updated_at: new Date().toISOString(),
-          }).eq('id', user.id);
-
-          logStep("Updated user to free plan");
-        } else {
-          logStep("User is admin, keeping admin role");
-        }
+        logStep("Updated user to free plan");
+      } else if (isAdminUser) {
+        logStep("User is admin, keeping admin role and unlimited access");
+        
+        // Ensure admin has unlimited credits
+        await supabaseClient.from("user_credits").upsert({
+          user_id: user.id,
+          plan_type: 'admin',
+          current_credits: 999999,
+          total_credits_ever: 999999,
+          last_reset_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
       } else {
         logStep("User has manual subscription, keeping current plan");
       }
@@ -161,7 +171,7 @@ serve(async (req) => {
       subscriptionTier = priceToTierMap[priceId as keyof typeof priceToTierMap] || null;
       logStep("Determined subscription tier", { priceId, subscriptionTier });
 
-      if (subscriptionTier) {
+      if (subscriptionTier && !isAdminUser) {
         // Update user_credits table with new plan and credits
         const planCredits = {
           "Plus": 50,
@@ -200,9 +210,11 @@ serve(async (req) => {
         });
 
         logStep("Updated user plan and credits", { planType: planTypeLower, newCredits });
+      } else if (isAdminUser) {
+        logStep("User is admin, maintaining admin privileges regardless of Stripe subscription");
       }
     } else {
-      logStep("No active subscription found, keeping current plan");
+      logStep("No active subscription found, keeping current plan if admin or manual subscription");
     }
 
     // Update subscribers table (make sure manual_subscription is false for Stripe subscriptions)
