@@ -1,6 +1,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
@@ -13,8 +14,11 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = false }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
 
-  if (authLoading || profileLoading) {
+  const loading = authLoading || profileLoading || subscriptionLoading;
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -33,24 +37,30 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Admin users bypass all restrictions and have full access to everything
+  // Admin users bypass all restrictions
   if (profile?.role === 'admin') {
     return <>{children}</>;
   }
 
-  // Check admin requirement (apenas para funcionalidades específicas de admin)
+  // Check admin requirement
   if (requiresAdmin) {
     return <Navigate to="/pricing" replace />;
   }
 
-  // Check premium requirement (apenas para cursos e conteúdo premium)
-  // Admin já foi verificado acima, então aqui verificamos apenas usuários não-admin
-  if (requiresPremium && !['essential', 'pro', 'vip'].includes(profile?.role || '')) {
-    return <Navigate to="/pricing" replace />;
+  // Check premium requirement
+  if (requiresPremium) {
+    // Usuários teste têm acesso como se fossem Pro
+    if (profile?.role === 'teste') {
+      return <>{children}</>;
+    }
+    
+    // Verificar se tem assinatura ativa
+    if (!subscription.subscribed) {
+      return <Navigate to="/pricing" replace />;
+    }
   }
 
-  // Todos os usuários autenticados têm acesso às ferramentas
-  // As ferramentas controlam o acesso via sistema de créditos
+  // Todos os usuários autenticados têm acesso às ferramentas básicas
   return <>{children}</>;
 };
 

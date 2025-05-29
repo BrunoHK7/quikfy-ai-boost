@@ -36,99 +36,6 @@ export type Database = {
         }
         Relationships: []
       }
-      carousel_use_history: {
-        Row: {
-          action: string
-          created_at: string
-          description: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      carousel_uses: {
-        Row: {
-          created_at: string
-          current_uses: number
-          id: string
-          last_reset_date: string | null
-          plan_type: string
-          total_uses_ever: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_uses?: number
-          id?: string
-          last_reset_date?: string | null
-          plan_type?: string
-          total_uses_ever?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_uses?: number
-          id?: string
-          last_reset_date?: string | null
-          plan_type?: string
-          total_uses_ever?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      credit_history: {
-        Row: {
-          action: string
-          created_at: string
-          credits_after: number
-          credits_before: number
-          credits_used: number
-          description: string | null
-          id: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          credits_after: number
-          credits_before: number
-          credits_used: number
-          description?: string | null
-          id?: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          credits_after?: number
-          credits_before?: number
-          credits_used?: number
-          description?: string | null
-          id?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       expenses: {
         Row: {
           amount: number
@@ -320,9 +227,6 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          manual_subscription: boolean | null
-          manual_subscription_duration_days: number | null
-          manual_subscription_start: string | null
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
@@ -334,9 +238,6 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
-          manual_subscription?: boolean | null
-          manual_subscription_duration_days?: number | null
-          manual_subscription_start?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -348,48 +249,12 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
-          manual_subscription?: boolean | null
-          manual_subscription_duration_days?: number | null
-          manual_subscription_start?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_credits: {
-        Row: {
-          created_at: string
-          current_credits: number
-          id: string
-          last_reset_date: string | null
-          plan_type: string
-          total_credits_ever: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_credits?: number
-          id?: string
-          last_reset_date?: string | null
-          plan_type?: string
-          total_credits_ever?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_credits?: number
-          id?: string
-          last_reset_date?: string | null
-          plan_type?: string
-          total_credits_ever?: number
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -446,30 +311,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      activate_manual_subscription: {
-        Args: {
-          _email: string
-          _subscription_tier: string
-          _duration_days?: number
-        }
-        Returns: boolean
-      }
-      check_and_expire_manual_subscriptions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       cleanup_old_webhook_responses: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      consume_credits: {
-        Args: {
-          _user_id: string
-          _action: string
-          _credits_to_consume: number
-          _description?: string
-        }
-        Returns: Json
       }
       get_user_role: {
         Args: { _user_id: string }
@@ -482,17 +326,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      refund_credits: {
-        Args: {
-          _user_id: string
-          _credits_to_refund: number
-          _description: string
-        }
-        Returns: boolean
-      }
     }
     Enums: {
-      user_role: "free" | "pro" | "vip" | "admin" | "plus"
+      user_role: "free" | "pro" | "vip" | "admin" | "plus" | "teste"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -608,7 +444,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["free", "pro", "vip", "admin", "plus"],
+      user_role: ["free", "pro", "vip", "admin", "plus", "teste"],
     },
   },
 } as const

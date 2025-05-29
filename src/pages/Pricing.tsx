@@ -17,11 +17,13 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
 
 const Pricing = () => {
   const { user } = useAuth();
   const { createCheckout, subscription } = useSubscription();
+  const { profile } = useProfile();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (planName: string) => {
@@ -53,90 +55,96 @@ const Pricing = () => {
       icon: <Gift className="w-6 h-6" />,
       price: 0,
       emoji: "🎁",
-      description: "Ideal para teste inicial da plataforma",
+      description: "Ideal para testar a plataforma",
       badge: null,
       color: "green",
       features: [
-        "3 créditos",
-        "Renovação: Não renova",
-        "Acesso ao QuikDesign",
-        "Suporte básico"
+        "Acesso básico às ferramentas",
+        "Suporte por email",
+        "Projetos ilimitados",
+        "Todas as funcionalidades básicas"
       ],
-      credits: "3 créditos",
-      renewal: "Não renova",
-      accumulation: null,
-      obs: "Ideal para teste inicial da plataforma"
+      obs: "Perfeito para começar e explorar as ferramentas"
     },
     {
       name: "Plus",
       icon: <Briefcase className="w-6 h-6" />,
       price: 15,
       emoji: "💼",
-      description: "Para uso básico mensal",
+      description: "Para uso profissional básico",
       badge: null,
       color: "blue",
       features: [
-        "50 créditos mensais",
-        "Renovação: Mensal",
-        "Acúmulo: Não cumulativo",
-        "Todas as ferramentas básicas",
-        "Suporte prioritário"
+        "Todas as ferramentas disponíveis",
+        "Suporte prioritário",
+        "Projetos ilimitados",
+        "Recursos avançados",
+        "Sem limitações"
       ],
-      credits: "50 créditos",
-      renewal: "Mensal",
-      accumulation: "Não cumulativo",
-      obs: "Zera e renova a cada mês"
+      obs: "Ideal para profissionais que precisam de acesso completo"
     },
     {
       name: "Pro",
       icon: <Rocket className="w-6 h-6" />,
       price: 99,
       emoji: "🚀",
-      description: "Para uso intensivo com acúmulo",
+      description: "Para uso intensivo profissional",
       badge: "MAIS POPULAR",
       color: "purple",
       features: [
-        "200 créditos mensais",
-        "Renovação: Mensal", 
-        "Acúmulo: Cumulativo",
         "Todas as ferramentas premium",
-        "Suporte prioritário",
+        "Suporte prioritário 24/7",
+        "Projetos ilimitados",
+        "Recursos exclusivos",
+        "Acesso antecipado a novidades",
         "Relatórios avançados"
       ],
-      credits: "200 créditos",
-      renewal: "Mensal",
-      accumulation: "Cumulativo",
-      obs: "Se o usuário não usar, os créditos acumulam no mês seguinte"
+      obs: "Perfeito para equipes e uso intensivo da plataforma"
     },
     {
       name: "VIP",
       icon: <Crown className="w-6 h-6" />,
       price: 399,
       emoji: "👑",
-      description: "Ideal para uso intensivo da plataforma",
+      description: "Para empresas e uso empresarial",
       badge: "ELITE",
       color: "gold",
       features: [
-        "500 créditos mensais",
-        "Renovação: Mensal",
-        "Acúmulo: Cumulativo", 
-        "Todas as ferramentas",
-        "Suporte 24/7 prioritário",
-        "Acesso antecipado",
-        "Consultoria exclusiva"
+        "Acesso completo ilimitado",
+        "Suporte dedicado 24/7",
+        "Projetos ilimitados",
+        "Recursos exclusivos VIP",
+        "Consultoria personalizada",
+        "Acesso beta a novos recursos",
+        "Integração personalizada"
       ],
-      credits: "500 créditos",
-      renewal: "Mensal",
-      accumulation: "Cumulativo",
-      obs: "Ideal para uso intensivo da plataforma"
+      obs: "Solução completa para empresas e uso empresarial"
     }
   ];
 
-  const isCurrentPlan = (planName: string) => {
-    if (planName === "Free") {
-      return !subscription.subscribed;
+  const getCurrentPlan = () => {
+    if (!profile) return 'Free';
+    
+    if (profile.role === 'admin') return 'Admin';
+    if (profile.role === 'teste') return 'Pro (Teste)';
+    
+    if (subscription.subscribed && subscription.subscription_tier) {
+      return subscription.subscription_tier;
     }
-    return subscription.subscription_tier === planName;
+    
+    return 'Free';
+  };
+
+  const isCurrentPlan = (planName: string) => {
+    const currentPlan = getCurrentPlan();
+    
+    if (planName === "Free") {
+      return currentPlan === 'Free';
+    }
+    
+    return currentPlan === planName || 
+           (currentPlan === 'Pro (Teste)' && planName === 'Pro') ||
+           (currentPlan === 'Admin');
   };
 
   return (
@@ -168,12 +176,12 @@ const Pricing = () => {
             Transforme seu negócio hoje
           </Badge>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-            Escolha o plano que vai te fazer 
-            <span className="text-purple-600"> milionário</span>
+            Escolha o plano ideal para 
+            <span className="text-purple-600"> seu sucesso</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Cada plano foi desenhado para acelerar seus resultados. 
-            Junte-se a mais de 50.000 empreendedores que já faturam milhões com nossas IAs.
+            Todos os planos incluem acesso completo às ferramentas. 
+            Escolha o que melhor se adapta ao seu perfil de uso.
           </p>
         </div>
 
@@ -220,25 +228,8 @@ const Pricing = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <div className="bg-muted/50 dark:bg-[#131313] rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-foreground">Créditos:</span>
-                    <span className="text-foreground">{plan.credits}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-foreground">Renovação:</span>
-                    <span className="text-foreground">{plan.renewal}</span>
-                  </div>
-                  {plan.accumulation && (
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium text-foreground">Acúmulo:</span>
-                      <span className="text-foreground">{plan.accumulation}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground">Observações:</strong> {plan.obs}
+                <div className="text-sm text-muted-foreground leading-relaxed text-center">
+                  <strong className="text-foreground">Descrição:</strong> {plan.description}
                 </div>
                 
                 <ul className="space-y-3 text-sm">
@@ -249,6 +240,10 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+
+                <div className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Observações:</strong> {plan.obs}
+                </div>
                 
                 <Button 
                   className={`w-full py-3 mt-6 font-semibold ${
@@ -302,8 +297,8 @@ const Pricing = () => {
               Garantia de 30 dias ou seu dinheiro de volta
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Testamos nossa metodologia com milhares de empreendedores. 
-              Se em 30 dias você não ver resultados concretos, devolvemos 100% do seu investimento.
+              Todos os planos oferecem acesso completo às ferramentas. 
+              Se em 30 dias você não estiver satisfeito, devolvemos 100% do seu investimento.
             </p>
           </div>
         </div>

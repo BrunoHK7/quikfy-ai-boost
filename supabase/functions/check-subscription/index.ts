@@ -27,10 +27,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // First, check and expire manual subscriptions
-    await supabaseClient.rpc('check_and_expire_manual_subscriptions');
-    logStep("Checked and expired manual subscriptions");
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
@@ -48,14 +44,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has a manual subscription first
-    const { data: existingSubscriber } = await supabaseClient
-      .from('subscribers')
-      .select('*')
-      .eq('email', user.email)
-      .single();
-
-    // Check current user profile to see if they are admin
+    // Check current user profile to see if they are admin or teste
     const { data: currentProfile } = await supabaseClient
       .from('profiles')
       .select('role')
@@ -63,80 +52,86 @@ serve(async (req) => {
       .single();
 
     const isAdminUser = currentProfile?.role === 'admin' || user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d';
+    const isTesteUser = currentProfile?.role === 'teste';
 
-    if (existingSubscriber?.manual_subscription && existingSubscriber?.subscribed) {
-      logStep("User has active manual subscription", { 
-        tier: existingSubscriber.subscription_tier, 
-        endDate: existingSubscriber.subscription_end 
-      });
+    if (isAdminUser) {
+      logStep("User is admin, maintaining admin privileges");
       
+      // Ensure admin has proper subscriber record
+      await supabaseClient.from("subscribers").upsert({
+        email: user.email,
+        user_id: user.id,
+        stripe_customer_id: null,
+        subscribed: true,
+        subscription_tier: 'Admin',
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
+
       return new Response(JSON.stringify({
         subscribed: true,
-        subscription_tier: existingSubscriber.subscription_tier,
-        subscription_end: existingSubscriber.subscription_end
+        subscription_tier: 'Admin',
+        subscription_end: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    // Continue with Stripe check for regular subscriptions
+    if (isTesteUser) {
+      logStep("User is teste, maintaining teste privileges");
+      
+      // Ensure teste user has proper subscriber record
+      await supabaseClient.from("subscribers").upsert({
+        email: user.email,
+        user_id: user.id,
+        stripe_customer_id: null,
+        subscribed: true,
+        subscription_tier: 'Pro',
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
+
+      return new Response(JSON.stringify({
+        subscribed: true,
+        subscription_tier: 'Pro',
+        subscription_end: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Continue with regular Stripe check for normal users
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found");
+      logStep("No customer found, updating to free plan");
       
-      // Only update to free if user doesn't have an active manual subscription AND is not admin
-      if ((!existingSubscriber?.manual_subscription || !existingSubscriber?.subscribed) && !isAdminUser) {
-        logStep("No manual subscription and not admin, updating to free plan");
-        
-        // Update subscribers table
-        await supabaseClient.from("subscribers").upsert({
-          email: user.email,
-          user_id: user.id,
-          stripe_customer_id: null,
-          subscribed: false,
-          subscription_tier: null,
-          subscription_end: null,
-          manual_subscription: false,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'email' });
+      // Update subscribers table
+      await supabaseClient.from("subscribers").upsert({
+        email: user.email,
+        user_id: user.id,
+        stripe_customer_id: null,
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
 
-        await supabaseClient.from("user_credits").update({
-          plan_type: 'free',
-          current_credits: 3,
-          total_credits_ever: 3,
-          last_reset_date: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }).eq('user_id', user.id);
+      // Update profile to free role
+      await supabaseClient.from("profiles").update({
+        role: 'free',
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
 
-        await supabaseClient.from("profiles").update({
-          role: 'free',
-          updated_at: new Date().toISOString(),
-        }).eq('id', user.id);
-
-        logStep("Updated user to free plan");
-      } else if (isAdminUser) {
-        logStep("User is admin, keeping admin role and unlimited access");
-        
-        // Ensure admin has unlimited credits
-        await supabaseClient.from("user_credits").upsert({
-          user_id: user.id,
-          plan_type: 'admin',
-          current_credits: 999999,
-          total_credits_ever: 999999,
-          last_reset_date: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-      } else {
-        logStep("User has manual subscription, keeping current plan");
-      }
+      logStep("Updated user to free plan");
       
       return new Response(JSON.stringify({ 
-        subscribed: existingSubscriber?.subscribed || false, 
-        subscription_tier: existingSubscriber?.subscription_tier || null, 
-        subscription_end: existingSubscriber?.subscription_end || null 
+        subscribed: false, 
+        subscription_tier: null, 
+        subscription_end: null 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -171,53 +166,30 @@ serve(async (req) => {
       subscriptionTier = priceToTierMap[priceId as keyof typeof priceToTierMap] || null;
       logStep("Determined subscription tier", { priceId, subscriptionTier });
 
-      if (subscriptionTier && !isAdminUser) {
-        // Update user_credits table with new plan and credits
-        const planCredits = {
-          "Plus": 50,
-          "Pro": 200,
-          "VIP": 500
-        };
-        
-        const newCredits = planCredits[subscriptionTier as keyof typeof planCredits] || 50;
+      if (subscriptionTier) {
         const planTypeLower = subscriptionTier.toLowerCase();
         
-        logStep("Updating user credits", { planType: planTypeLower, newCredits });
+        logStep("Updating user profile role", { planType: planTypeLower });
         
-        await supabaseClient.from("user_credits").update({
-          plan_type: planTypeLower,
-          current_credits: newCredits,
-          total_credits_ever: newCredits,
-          last_reset_date: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }).eq('user_id', user.id);
-
         // Update profiles table with new role
         await supabaseClient.from("profiles").update({
           role: planTypeLower,
           updated_at: new Date().toISOString(),
         }).eq('id', user.id);
 
-        // Add credit history entry
-        await supabaseClient.from("credit_history").insert({
-          user_id: user.id,
-          action: 'plan_upgrade',
-          credits_used: 0,
-          credits_before: 3, // assuming they had free credits before
-          credits_after: newCredits,
-          description: `Plano atualizado para ${subscriptionTier} - ${newCredits} créditos`,
-          status: 'success'
-        });
-
-        logStep("Updated user plan and credits", { planType: planTypeLower, newCredits });
-      } else if (isAdminUser) {
-        logStep("User is admin, maintaining admin privileges regardless of Stripe subscription");
+        logStep("Updated user plan", { planType: planTypeLower });
       }
     } else {
-      logStep("No active subscription found, keeping current plan if admin or manual subscription");
+      logStep("No active subscription found, updating to free");
+      
+      // Update profile to free role
+      await supabaseClient.from("profiles").update({
+        role: 'free',
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
     }
 
-    // Update subscribers table (make sure manual_subscription is false for Stripe subscriptions)
+    // Update subscribers table
     await supabaseClient.from("subscribers").upsert({
       email: user.email,
       user_id: user.id,
@@ -225,11 +197,11 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
-      manual_subscription: false,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'email' });
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
+    
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
