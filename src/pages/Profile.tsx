@@ -57,10 +57,10 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#131313] dark:bg-[#131313]">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#131313' }}>
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-300 dark:text-gray-300">Carregando perfil...</p>
+          <p className="text-gray-300">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -68,9 +68,9 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#131313] dark:bg-[#131313]">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#131313' }}>
         <div className="text-center">
-          <p className="text-gray-300 dark:text-gray-300 mb-4">Erro ao carregar perfil</p>
+          <p className="text-gray-300 mb-4">Erro ao carregar perfil</p>
           <Button onClick={() => window.location.reload()} variant="secondary">Tentar novamente</Button>
         </div>
       </div>
@@ -78,9 +78,9 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#131313] dark:bg-[#131313]">
+    <div className="min-h-screen" style={{ backgroundColor: '#131313' }}>
       {/* Header */}
-      <header className="glass border-b sticky top-0 z-50 bg-[#131313]/80 dark:bg-[#131313]/80 backdrop-blur-md border-gray-700">
+      <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-gray-700" style={{ backgroundColor: '#131313cc' }}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
@@ -108,7 +108,7 @@ const Profile = () => {
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1 bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700">
+          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1 border-gray-700" style={{ backgroundColor: '#1a1a1a' }}>
             <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Visão Geral</TabsTrigger>
             <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Meus Projetos ({projectsCount})</TabsTrigger>
             <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300">Fotos</TabsTrigger>

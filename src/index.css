@@ -46,13 +46,13 @@
   }
 
   .dark {
-    --background: 19 19 19; /* #131313 */
+    --background: 0 0% 7.5%; /* #131313 */
     --foreground: 0 0% 98%;
 
-    --card: 21 21 21; /* Slightly lighter than background */
+    --card: 0 0% 10%; /* Ligeiramente mais claro que background */
     --card-foreground: 0 0% 98%;
 
-    --popover: 21 21 21;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 267.4 93.1% 70%; /* Purple */
@@ -74,7 +74,7 @@
     --input: 0 0% 20%;
     --ring: 267.4 93.1% 70%;
     
-    --sidebar-background: 19 19 19;
+    --sidebar-background: 0 0% 7.5%;
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 267.4 93.1% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -104,33 +104,50 @@
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 
-  /* Dark mode specific overrides */
+  /* Dark mode specific overrides - FORÇAR PRETO */
+  .dark {
+    background-color: #131313 !important;
+  }
+
   .dark .bg-gradient-to-br {
-    @apply bg-[#131313];
+    @apply bg-[#131313] !important;
   }
 
   .dark .text-gray-900 {
-    @apply text-white;
+    @apply text-white !important;
   }
 
   .dark .text-gray-600 {
-    @apply text-gray-300;
+    @apply text-gray-300 !important;
   }
 
   .dark .text-gray-700 {
-    @apply text-gray-200;
+    @apply text-gray-200 !important;
   }
 
   .dark .border-gray-200 {
-    @apply border-gray-700;
+    @apply border-gray-700 !important;
   }
 
   .dark .bg-white {
-    @apply bg-[#1a1a1a];
+    @apply bg-[#1a1a1a] !important;
   }
 
   .dark .shadow-xl {
-    @apply shadow-2xl shadow-black/50;
+    @apply shadow-2xl shadow-black/50 !important;
+  }
+
+  /* Forçar background preto em elementos específicos */
+  .dark .min-h-screen {
+    background-color: #131313 !important;
+  }
+
+  .dark body {
+    background-color: #131313 !important;
+  }
+
+  .dark html {
+    background-color: #131313 !important;
   }
 }
 
@@ -163,5 +180,14 @@
 
   .dark-text {
     @apply dark:text-white;
+  }
+
+  /* Força preto em todos os backgrounds escuros */
+  .dark .bg-[#131313] {
+    background-color: #131313 !important;
+  }
+
+  .dark .bg-[#1a1a1a] {
+    background-color: #1a1a1a !important;
   }
 }
