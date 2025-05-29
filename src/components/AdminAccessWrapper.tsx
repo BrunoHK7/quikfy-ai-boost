@@ -10,7 +10,7 @@ interface AdminAccessWrapperProps {
 export const AdminAccessWrapper = ({ children, fallback }: AdminAccessWrapperProps) => {
   const { profile } = useProfile();
   
-  // Admin users get full access to everything
+  // Admin users get full access to everything without restrictions
   if (profile?.role === 'admin') {
     return <>{children}</>;
   }

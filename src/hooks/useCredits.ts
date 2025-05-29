@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useProfile } from './useProfile';
 
 interface UserCredits {
   id: string;
@@ -31,6 +32,7 @@ interface ConsumeCreditsResponse {
 
 export const useCredits = () => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const [userCredits, setUserCredits] = useState<UserCredits | null>(null);
   const [creditHistory, setCreditHistory] = useState<CreditHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,9 +95,35 @@ export const useCredits = () => {
     }
   };
 
-  // Consume credits
+  // Consume credits - admin users bypass credit consumption
   const consumeCredits = async (action: string, creditsToConsume: number, description?: string): Promise<ConsumeCreditsResponse> => {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
+
+    // Admin users don't consume credits
+    if (profile?.role === 'admin') {
+      // Still log the action for tracking purposes
+      try {
+        await supabase
+          .from('credit_history')
+          .insert({
+            user_id: user.id,
+            action: action,
+            credits_used: 0,
+            credits_before: userCredits?.current_credits || 0,
+            credits_after: userCredits?.current_credits || 0,
+            status: 'success',
+            description: `${description} (Admin - sem custo)`
+          });
+      } catch (error) {
+        console.error('Error logging admin action:', error);
+      }
+      
+      return { 
+        success: true, 
+        credits_remaining: -1, 
+        message: 'Acesso administrativo - sem custo' 
+      };
+    }
 
     try {
       const { data, error } = await supabase.rpc('consume_credits', {
@@ -127,6 +155,11 @@ export const useCredits = () => {
   // Refund credits
   const refundCredits = async (creditsToRefund: number, description: string) => {
     if (!user) return false;
+
+    // Admin users don't need refunds since they don't consume credits
+    if (profile?.role === 'admin') {
+      return true;
+    }
 
     try {
       const { data, error } = await supabase.rpc('refund_credits', {

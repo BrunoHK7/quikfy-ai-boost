@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Admin users bypass all restrictions
+  // Admin users bypass all restrictions and have full access
   if (profile?.role === 'admin') {
     return <>{children}</>;
   }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +13,15 @@ import {
   Sparkles,
   Target,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Crown
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/useCredits";
 import { CreditDisplay } from "@/components/credits/CreditDisplay";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 interface ConsumeCreditsResponse {
   success: boolean;
@@ -35,6 +36,7 @@ const CarouselGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { userCredits, consumeCredits, refundCredits } = useCredits();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   const handleGenerate = async () => {
@@ -56,7 +58,10 @@ const CarouselGenerator = () => {
       return;
     }
 
-    if (userCredits && userCredits.plan_type !== 'admin' && userCredits.current_credits < 3) {
+    // Admin users don't need to check credits
+    const isAdmin = profile?.role === 'admin';
+    
+    if (!isAdmin && userCredits && userCredits.plan_type !== 'admin' && userCredits.current_credits < 3) {
       toast({
         title: "Créditos insuficientes",
         description: "Você precisa de 3 créditos para gerar um carrossel.",
@@ -68,21 +73,23 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Consumir créditos primeiro
-      const creditResult = await consumeCredits(
-        'carousel_generation', 
-        3, 
-        `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
-      ) as ConsumeCreditsResponse;
+      // Only consume credits if user is not admin
+      if (!isAdmin) {
+        const creditResult = await consumeCredits(
+          'carousel_generation', 
+          3, 
+          `Geração de carrossel - Nicho: ${niche || 'Não especificado'}`
+        ) as ConsumeCreditsResponse;
 
-      if (!creditResult.success) {
-        toast({
-          title: "Erro ao consumir créditos",
-          description: creditResult.error || "Não foi possível processar os créditos.",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
+        if (!creditResult.success) {
+          toast({
+            title: "Erro ao consumir créditos",
+            description: creditResult.error || "Não foi possível processar os créditos.",
+            variant: "destructive",
+          });
+          setIsGenerating(false);
+          return;
+        }
       }
 
       // Gerar sessionId único
@@ -155,12 +162,16 @@ const CarouselGenerator = () => {
     } catch (error) {
       console.error('❌ Error in carousel generation:', error);
       
-      // Reembolsar créditos em caso de erro
-      await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
+      // Reembolsar créditos em caso de erro (apenas se não for admin)
+      if (!isAdmin) {
+        await refundCredits(3, 'Erro na geração do carrossel - créditos reembolsados');
+      }
       
       toast({
         title: "Erro na geração",
-        description: "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
+        description: isAdmin 
+          ? "Ocorreu um erro ao gerar o carrossel. Tente novamente."
+          : "Ocorreu um erro ao gerar o carrossel. Seus créditos foram reembolsados.",
         variant: "destructive",
       });
     } finally {
@@ -213,23 +224,30 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
     }
   };
 
-  const canGenerate = userCredits && (userCredits.plan_type === 'admin' || userCredits.current_credits >= 3);
+  const isAdmin = profile?.role === 'admin';
+  const canGenerate = isAdmin || (userCredits && (userCredits.plan_type === 'admin' || userCredits.current_credits >= 3));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-[#131313]">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-[#131313]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">QUIKFY</span>
           </Link>
           <div className="flex items-center space-x-4">
             <CreditDisplay />
-            <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+            <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700">
               <Sparkles className="w-4 h-4 mr-2" />
               IA Carrossel Pro
             </Badge>
+            {isAdmin && (
+              <Badge className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700">
+                <Crown className="w-4 h-4 mr-2" />
+                Admin
+              </Badge>
+            )}
           </div>
         </div>
       </header>
@@ -237,14 +255,14 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Gerador de <span className="text-purple-600">Carrossel</span> com IA
           </h1>
-          <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-3xl mx-auto">
             Crie carrosséis irresistíveis que convertem visitantes em clientes. 
             Nossa IA especializada gera conteúdo que vende usando as melhores técnicas de copywriting.
           </p>
-          <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
+          <div className="flex items-center justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400">
             <div className="flex items-center">
               <Target className="w-4 h-4 mr-1 text-purple-600" />
               Alta conversão
@@ -262,43 +280,55 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
-          <Card className="h-fit">
+          <Card className="h-fit bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-gray-900 dark:text-white">
                 <Wand2 className="w-5 h-5 mr-2 text-purple-600" />
                 Configure seu Carrossel
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="niche">Nicho/Área de Atuação</Label>
+                <Label htmlFor="niche" className="text-gray-700 dark:text-gray-200">Nicho/Área de Atuação</Label>
                 <Input
                   id="niche"
                   placeholder="Ex: Marketing Digital, Fitness, Culinária..."
                   value={niche}
                   onChange={(e) => setNiche(e.target.value)}
-                  className="border-gray-200"
+                  className="border-gray-200 dark:border-gray-600 bg-white dark:bg-[#131313] text-gray-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prompt">Descreva seu produto/serviço *</Label>
+                <Label htmlFor="prompt" className="text-gray-700 dark:text-gray-200">Descreva seu produto/serviço *</Label>
                 <Textarea
                   id="prompt"
                   placeholder="Ex: Curso completo de marketing digital com IA, ensina desde o básico até estratégias avançadas para faturar 6 dígitos..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="border-gray-200 min-h-[120px]"
+                  className="border-gray-200 dark:border-gray-600 bg-white dark:bg-[#131313] text-gray-900 dark:text-white min-h-[120px]"
                   rows={6}
                 />
               </div>
 
-              {!canGenerate && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+              {isAdmin && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-start space-x-3">
+                  <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-medium text-yellow-800">Créditos insuficientes</p>
-                    <p className="text-yellow-700">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Acesso Administrativo</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">
+                      Como admin, você tem acesso ilimitado sem consumir créditos.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {!canGenerate && !isAdmin && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Créditos insuficientes</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">
                       Você precisa de 3 créditos para gerar um carrossel.
                     </p>
                   </div>
@@ -307,7 +337,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
 
               <Button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || isGenerating || !canGenerate}
+                disabled={!prompt.trim() || isGenerating || (!canGenerate && !isAdmin)}
                 className="w-full bg-purple-600 hover:bg-purple-700 py-3"
               >
                 {isGenerating ? (
@@ -318,7 +348,7 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Gerar Carrossel com IA (3 créditos)
+                    {isAdmin ? "Gerar Carrossel com IA (Ilimitado)" : "Gerar Carrossel com IA (3 créditos)"}
                   </>
                 )}
               </Button>
@@ -326,16 +356,16 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
           </Card>
 
           {/* Preview Section */}
-          <Card>
+          <Card className="bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-gray-900 dark:text-white">
                 <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
                 Preview do Carrossel
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>Seu carrossel aparecerá aqui após a geração</p>
               </div>
             </CardContent>
@@ -343,36 +373,36 @@ Imagine como seria sua vida se você tivesse acesso às estratégias que os gran
         </div>
 
         {/* Informações sobre créditos */}
-        <Card className="mt-8">
+        <Card className="mt-8 bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700">
           <CardHeader>
-            <CardTitle>💳 Sistema de Créditos</CardTitle>
+            <CardTitle className="text-gray-900 dark:text-white">💳 Sistema de Créditos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">🆓 Plano Free</h4>
-                <p className="text-gray-700">3 créditos (não renováveis)</p>
+              <div className="bg-gray-50 dark:bg-[#131313] p-4 rounded-lg border dark:border-gray-700">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">🆓 Plano Free</h4>
+                <p className="text-gray-700 dark:text-gray-300">3 créditos (não renováveis)</p>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">⚡ Plano Essential</h4>
-                <p className="text-green-700">50 créditos/mês (não cumulativos)</p>
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-700">
+                <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">⚡ Plano Essential</h4>
+                <p className="text-green-700 dark:text-green-300">50 créditos/mês (não cumulativos)</p>
               </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">🚀 Plano Pro</h4>
-                <p className="text-blue-700">200 créditos/mês (cumulativos)</p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-700">
+                <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">🚀 Plano Pro</h4>
+                <p className="text-blue-700 dark:text-blue-300">200 créditos/mês (cumulativos)</p>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h4 className="font-medium text-purple-900 mb-2">💎 Plano VIP</h4>
-                <p className="text-purple-700">500 créditos/mês (cumulativos)</p>
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border dark:border-purple-700">
+                <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-2">💎 Plano VIP</h4>
+                <p className="text-purple-700 dark:text-purple-300">500 créditos/mês (cumulativos)</p>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h4 className="font-medium text-yellow-900 mb-2">👑 Plano Admin</h4>
-                <p className="text-yellow-700">Acesso ilimitado</p>
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border dark:border-yellow-700">
+                <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-2">👑 Plano Admin</h4>
+                <p className="text-yellow-700 dark:text-yellow-300">Acesso ilimitado</p>
               </div>
             </div>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-blue-800 text-sm">
-                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado.
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border dark:border-blue-700">
+              <p className="text-blue-800 dark:text-blue-200 text-sm">
+                <strong>Carrossel 10x:</strong> 3 créditos por carrossel gerado (gratuito para admins).
               </p>
             </div>
           </CardContent>
