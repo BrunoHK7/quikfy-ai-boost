@@ -34,21 +34,46 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // ORDEM DE PRIORIDADE para encontrar sessionId:
-        // 1. sessionId no root do JSON (vem do Make)
+        // BUSCAR sessionId em TODAS as possibilidades
+        // 1. Primeiro no root como sessionId
         if (parsedData.sessionId) {
           sessionId = parsedData.sessionId
-          console.log('Found sessionId in Make payload:', sessionId)
+          console.log('✅ Found sessionId in root:', sessionId)
         }
-        // 2. session_id no root do JSON  
+        // 2. Como session_id no root
         else if (parsedData.session_id) {
           sessionId = parsedData.session_id
-          console.log('Found session_id in root:', sessionId)
+          console.log('✅ Found session_id in root:', sessionId)
         }
-        // 3. sessionId dentro de session bundle
+        // 3. Dentro de objeto session
         else if (parsedData.session && parsedData.session.sessionId) {
           sessionId = parsedData.session.sessionId
-          console.log('Found sessionId in session bundle:', sessionId)
+          console.log('✅ Found sessionId in session object:', sessionId)
+        }
+        // 4. Buscar recursivamente em todos os campos
+        else {
+          console.log('🔍 Searching for sessionId recursively...')
+          const findSessionId = (obj, path = '') => {
+            if (!obj || typeof obj !== 'object') return null
+            
+            for (const [key, value] of Object.entries(obj)) {
+              const currentPath = path ? `${path}.${key}` : key
+              console.log(`Checking ${currentPath}:`, value)
+              
+              if ((key === 'sessionId' || key === 'session_id') && typeof value === 'string') {
+                console.log(`✅ Found sessionId at ${currentPath}:`, value)
+                return value
+              }
+              
+              if (typeof value === 'object' && value !== null) {
+                const found = findSessionId(value, currentPath)
+                if (found) return found
+              }
+            }
+            return null
+          }
+          
+          sessionId = findSessionId(parsedData)
         }
         
         // Extrair o conteúdo da resposta
@@ -70,21 +95,31 @@ serve(async (req) => {
         }
         
       } catch (parseError) {
-        console.log('Not JSON, using raw text as content')
+        console.log('❌ Not JSON, using raw text as content')
         responseContent = body
       }
       
-      // Se AINDA não temos sessionId, ONLY THEN gerar um baseado no timestamp
+      // CRITICAL: Se não encontrou sessionId, NÃO SALVAR com fallback
       if (!sessionId) {
-        sessionId = `response_${Date.now()}`
-        console.log('Generated fallback sessionId:', sessionId)
+        console.error('❌ CRITICAL: No sessionId found in payload!')
+        console.error('Full payload for debugging:', body)
+        return new Response(
+          JSON.stringify({ 
+            error: 'No sessionId found in payload', 
+            received_data: body.substring(0, 500) + '...' 
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
       
-      console.log('Final sessionId to save:', sessionId)
-      console.log('Final content:', responseContent)
-      console.log('Content length:', responseContent.length)
+      console.log('🎯 FINAL sessionId to save:', sessionId)
+      console.log('📝 Final content:', responseContent.substring(0, 200) + '...')
+      console.log('📏 Content length:', responseContent.length)
       
-      // Salvar com o sessionId correto
+      // Salvar APENAS com o sessionId encontrado
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
@@ -95,7 +130,7 @@ serve(async (req) => {
         .select()
       
       if (insertError) {
-        console.error('Insert error:', insertError)
+        console.error('❌ Insert error:', insertError)
         return new Response(
           JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
           { 
@@ -105,7 +140,7 @@ serve(async (req) => {
         )
       }
       
-      console.log('Successfully inserted:', insertData)
+      console.log('✅ Successfully inserted:', insertData)
       console.log('=== WEBHOOK RECEIVER SUCCESS ===')
       
       return new Response(
