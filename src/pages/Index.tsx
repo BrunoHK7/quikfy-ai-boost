@@ -21,12 +21,14 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
+import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 
 const Index = () => {
+  const { user } = useAuth();
   const { profile } = useProfile();
   const isAdmin = profile?.role === 'admin';
+  const isPremium = profile?.role === 'admin' || profile?.role === 'pro' || profile?.role === 'vip' || profile?.role === 'essential';
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,39 +45,27 @@ const Index = () => {
             <Link to="/carousel-creator" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
               QuikDesign
             </Link>
-            <AdminAccessWrapper
-              fallback={
-                <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
-                  IA Carrossel <Lock className="w-3 h-3 ml-1" />
-                </Link>
-              }
-            >
-              <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
-                IA Carrossel
+            <Link to="/carousel-generator" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
+              IA Carrossel
+            </Link>
+            {!isPremium ? (
+              <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
+                Podcasts <Lock className="w-3 h-3 ml-1" />
               </Link>
-            </AdminAccessWrapper>
-            <AdminAccessWrapper
-              fallback={
-                <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
-                  Podcasts <Lock className="w-3 h-3 ml-1" />
-                </Link>
-              }
-            >
+            ) : (
               <Link to="/podcasts" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
                 Podcasts
               </Link>
-            </AdminAccessWrapper>
-            <AdminAccessWrapper
-              fallback={
-                <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
-                  Conteúdo <Lock className="w-3 h-3 ml-1" />
-                </Link>
-              }
-            >
+            )}
+            {!isPremium ? (
+              <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors flex items-center font-medium">
+                Conteúdo <Lock className="w-3 h-3 ml-1" />
+              </Link>
+            ) : (
               <Link to="/content-feed" className="text-muted-foreground hover:text-purple-600 transition-colors font-medium">
                 Conteúdo
               </Link>
-            </AdminAccessWrapper>
+            )}
           </nav>
           <div className="flex items-center space-x-3">
             <Link to="/profile">
@@ -164,6 +154,7 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* QuikDesign - Sempre grátis */}
             <Card className="text-center hover:shadow-lg transition-all duration-300 border-2 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20 group hover:-translate-y-2">
               <CardHeader>
                 <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 mx-auto mb-4 w-fit text-xs font-bold px-3 py-1">
@@ -187,23 +178,16 @@ const Index = () => {
               </CardContent>
             </Card>
 
+            {/* IA Carrossel - Todos usuários autenticados (usa créditos) */}
             <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              <AdminAccessWrapper
-                fallback={
-                  <div className="absolute top-4 right-4">
-                    <Lock className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                }
-              >
-                {isAdmin && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
-                  </div>
-                )}
-              </AdminAccessWrapper>
+              {isAdmin && (
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
+                </div>
+              )}
               <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
-                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
+                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'}`}>
+                  {isAdmin ? 'ILIMITADO' : 'USA CRÉDITOS'}
                 </Badge>
                 <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
                   <Brain className="w-8 h-8 text-white" />
@@ -214,43 +198,39 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AdminAccessWrapper
-                  fallback={
-                    <Link to="/pricing">
-                      <Button variant="outline" className="w-full group">
-                        Assinar para Usar
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                  }
-                >
+                {user ? (
                   <Link to="/carousel-generator">
                     <Button variant="outline" className="w-full group">
                       Usar IA Carrossel
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                </AdminAccessWrapper>
+                ) : (
+                  <Link to="/login">
+                    <Button variant="outline" className="w-full group">
+                      Fazer Login para Usar
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
 
+            {/* Podcasts - Premium content */}
             <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              <AdminAccessWrapper
-                fallback={
-                  <div className="absolute top-4 right-4">
-                    <Lock className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                }
-              >
-                {isAdmin && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
-                  </div>
-                )}
-              </AdminAccessWrapper>
+              {!isPremium && (
+                <div className="absolute top-4 right-4">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              {isAdmin && (
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
+                </div>
+              )}
               <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
-                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
+                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin || isPremium ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
+                  {isAdmin || isPremium ? 'LIBERADO' : 'PREMIUM'}
                 </Badge>
                 <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
                   <Mic className="w-8 h-8 text-white" />
@@ -261,43 +241,39 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AdminAccessWrapper
-                  fallback={
-                    <Link to="/pricing">
-                      <Button variant="outline" className="w-full group">
-                        Assinar para Acessar
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                  }
-                >
+                {isPremium ? (
                   <Link to="/podcasts">
                     <Button variant="outline" className="w-full group">
                       Acessar Podcasts
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                </AdminAccessWrapper>
+                ) : (
+                  <Link to="/pricing">
+                    <Button variant="outline" className="w-full group">
+                      Assinar para Acessar
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
 
+            {/* Conteúdo Exclusivo - Premium content */}
             <Card className="text-center hover:shadow-lg transition-all duration-300 relative group hover:-translate-y-2">
-              <AdminAccessWrapper
-                fallback={
-                  <div className="absolute top-4 right-4">
-                    <Lock className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                }
-              >
-                {isAdmin && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
-                  </div>
-                )}
-              </AdminAccessWrapper>
+              {!isPremium && (
+                <div className="absolute top-4 right-4">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              {isAdmin && (
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-xs">ADMIN</Badge>
+                </div>
+              )}
               <CardHeader>
-                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
-                  {isAdmin ? 'LIBERADO' : 'PREMIUM'}
+                <Badge className={`mx-auto mb-4 w-fit text-xs font-bold px-3 py-1 ${isAdmin || isPremium ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300'}`}>
+                  {isAdmin || isPremium ? 'LIBERADO' : 'PREMIUM'}
                 </Badge>
                 <div className="mx-auto mb-4 p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 w-fit shadow-lg group-hover:shadow-glow transition-all duration-300">
                   <Video className="w-8 h-8 text-white" />
@@ -308,23 +284,21 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AdminAccessWrapper
-                  fallback={
-                    <Link to="/pricing">
-                      <Button variant="outline" className="w-full group">
-                        Assinar para Ver
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                  }
-                >
+                {isPremium ? (
                   <Link to="/content-feed">
                     <Button variant="outline" className="w-full group">
                       Ver Conteúdo
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                </AdminAccessWrapper>
+                ) : (
+                  <Link to="/pricing">
+                    <Button variant="outline" className="w-full group">
+                      Assinar para Ver
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
           </div>
