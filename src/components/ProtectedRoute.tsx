@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Admin users bypass all restrictions and have full access
+  // Admin users bypass all restrictions and have full access to everything
   if (profile?.role === 'admin') {
     return <>{children}</>;
   }
@@ -43,9 +43,9 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/pricing" replace />;
   }
 
-  // Check premium requirement (apenas para cursos e conteúdo)
-  // Ferramentas não precisam de premium, apenas consomem créditos
-  if (requiresPremium && profile?.role === 'free') {
+  // Check premium requirement (apenas para cursos e conteúdo premium)
+  // Admin já foi verificado acima, então aqui verificamos apenas usuários não-admin
+  if (requiresPremium && !['essential', 'pro', 'vip'].includes(profile?.role || '')) {
     return <Navigate to="/pricing" replace />;
   }
 

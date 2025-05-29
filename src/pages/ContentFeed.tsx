@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,9 +112,9 @@ const ContentFeed = () => {
     : adminContent.filter(content => content.category === filter);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link to="/">
@@ -125,12 +124,12 @@ const ContentFeed = () => {
             </Link>
             <div className="flex items-center space-x-2">
               <Brain className="w-8 h-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
+              <span className="text-2xl font-bold">QUIKFY</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <Link to="/profile">
-              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50">
+              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
                 Perfil
               </Button>
             </Link>
@@ -142,16 +141,16 @@ const ContentFeed = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-white via-purple-50/30 to-white py-16">
+      <section className="bg-background py-16">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
-            <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200">
+            <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700">
               👑 Conteúdo Exclusivo
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Feed dos <span className="text-purple-600">Especialistas</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-muted-foreground mb-8">
               Conteúdo premium criado pelos nossos administradores e especialistas
             </p>
           </div>
@@ -170,11 +169,11 @@ const ContentFeed = () => {
                 onClick={() => setFilter(category.id)}
                 className={filter === category.id 
                   ? "bg-purple-600 hover:bg-purple-700" 
-                  : "border-purple-200 text-purple-600 hover:bg-purple-50"
+                  : "border-purple-200 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950"
                 }
               >
                 {category.label}
-                <Badge variant="secondary" className="ml-2 bg-purple-100 text-purple-700">
+                <Badge variant="secondary" className="ml-2 bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
                   {category.count}
                 </Badge>
               </Button>
@@ -189,17 +188,17 @@ const ContentFeed = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-purple-100 text-purple-600 font-bold">
+                        <AvatarFallback className="bg-purple-100 text-purple-600 font-bold dark:bg-purple-900/50 dark:text-purple-300">
                           {content.avatar}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-bold text-gray-900">{content.author}</span>
+                          <span className="font-bold">{content.author}</span>
                           {content.verified && <Crown className="w-4 h-4 text-yellow-500" />}
                         </div>
                         <p className="text-sm text-purple-600">{content.role}</p>
-                        <p className="text-xs text-gray-500">{content.time}</p>
+                        <p className="text-xs text-muted-foreground">{content.time}</p>
                       </div>
                     </div>
                     <Button variant="ghost" size="sm">
@@ -209,13 +208,13 @@ const ContentFeed = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-900 whitespace-pre-line">{content.content}</p>
+                    <p className="whitespace-pre-line">{content.content}</p>
                     
                     {content.type === "video" && (
-                      <div className="relative bg-gray-100 rounded-lg p-6 text-center">
+                      <div className="relative bg-muted rounded-lg p-6 text-center">
                         <Play className="w-16 h-16 mx-auto text-purple-600 mb-4" />
-                        <h4 className="font-bold text-gray-900 mb-2">{content.videoTitle}</h4>
-                        <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                        <h4 className="font-bold mb-2">{content.videoTitle}</h4>
+                        <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
                           <Clock className="w-4 h-4" />
                           <span>{content.videoDuration}</span>
                         </div>
@@ -223,27 +222,27 @@ const ContentFeed = () => {
                     )}
 
                     {content.image && content.type === "post" && (
-                      <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                        <span className="text-gray-500">Imagem de resultado</span>
+                      <div className="bg-muted rounded-lg h-64 flex items-center justify-center">
+                        <span className="text-muted-foreground">Imagem de resultado</span>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between pt-4 border-t">
                       <div className="flex items-center space-x-6">
-                        <button className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors">
+                        <button className="flex items-center space-x-2 text-muted-foreground hover:text-red-500 transition-colors">
                           <Heart className="w-5 h-5" />
                           <span className="text-sm font-medium">{content.likes}</span>
                         </button>
-                        <button className="flex items-center space-x-2 text-gray-500 hover:text-purple-600 transition-colors">
+                        <button className="flex items-center space-x-2 text-muted-foreground hover:text-purple-600 transition-colors">
                           <MessageCircle className="w-5 h-5" />
                           <span className="text-sm font-medium">{content.comments}</span>
                         </button>
-                        <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-600 transition-colors">
+                        <button className="flex items-center space-x-2 text-muted-foreground hover:text-blue-600 transition-colors">
                           <Share2 className="w-5 h-5" />
                           <span className="text-sm font-medium">{content.shares}</span>
                         </button>
                       </div>
-                      <Button variant="ghost" size="sm" className="text-gray-500 hover:text-purple-600">
+                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-purple-600">
                         <Bookmark className="w-4 h-4" />
                       </Button>
                     </div>
@@ -255,7 +254,7 @@ const ContentFeed = () => {
 
           {/* Load More */}
           <div className="text-center mt-12">
-            <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50">
+            <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
               <TrendingUp className="w-4 h-4 mr-2" />
               Carregar Mais Conteúdo
             </Button>
