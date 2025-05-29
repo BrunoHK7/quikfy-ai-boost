@@ -46,42 +46,27 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Define price based on plan
-    const planPrices = {
-      Essential: 1500, // R$ 15,00
-      Pro: 9900,       // R$ 99,00
-      VIP: 39900       // R$ 399,00
+    // Map plan types to Stripe price IDs
+    const planPriceIds = {
+      Essential: "price_1RU59bIWr4FsaNafakyLfQOr",
+      Pro: "price_1RU5B7IWr4FsaNafPn34jkfv",
+      VIP: "price_1RU5BJIWr4FsaNafh3e0fhcr"
     };
 
-    const planCredits = {
-      Essential: 50,
-      Pro: 200,
-      VIP: 500
-    };
+    const priceId = planPriceIds[planType as keyof typeof planPriceIds];
 
-    const unitAmount = planPrices[planType as keyof typeof planPrices];
-    const credits = planCredits[planType as keyof typeof planCredits];
-
-    if (!unitAmount) {
+    if (!priceId) {
       throw new Error("Invalid plan type");
     }
 
-    logStep("Creating checkout session", { planType, unitAmount, credits });
+    logStep("Creating checkout session", { planType, priceId });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price_data: {
-            currency: "brl",
-            product_data: { 
-              name: `Plano ${planType}`,
-              description: `${credits} créditos mensais`
-            },
-            unit_amount: unitAmount,
-            recurring: { interval: "month" },
-          },
+          price: priceId,
           quantity: 1,
         },
       ],

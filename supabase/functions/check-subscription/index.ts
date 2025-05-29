@@ -58,7 +58,11 @@ serve(async (req) => {
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
-      return new Response(JSON.stringify({ subscribed: false }), {
+      return new Response(JSON.stringify({ 
+        subscribed: false, 
+        subscription_tier: null, 
+        subscription_end: null 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -81,22 +85,16 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determine subscription tier from metadata or price
-      if (subscription.metadata?.plan_type) {
-        subscriptionTier = subscription.metadata.plan_type;
-      } else {
-        const priceId = subscription.items.data[0].price.id;
-        const price = await stripe.prices.retrieve(priceId);
-        const amount = price.unit_amount || 0;
-        if (amount <= 1999) {
-          subscriptionTier = "Essential";
-        } else if (amount <= 9999) {
-          subscriptionTier = "Pro";
-        } else {
-          subscriptionTier = "VIP";
-        }
-      }
-      logStep("Determined subscription tier", { subscriptionTier });
+      // Map price IDs to subscription tiers
+      const priceId = subscription.items.data[0].price.id;
+      const priceToTierMap = {
+        "price_1RU59bIWr4FsaNafakyLfQOr": "Essential",
+        "price_1RU5B7IWr4FsaNafPn34jkfv": "Pro", 
+        "price_1RU5BJIWr4FsaNafh3e0fhcr": "VIP"
+      };
+      
+      subscriptionTier = priceToTierMap[priceId as keyof typeof priceToTierMap] || null;
+      logStep("Determined subscription tier", { priceId, subscriptionTier });
     } else {
       logStep("No active subscription found");
     }
