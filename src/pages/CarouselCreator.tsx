@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -97,9 +96,9 @@ const CarouselCreator = () => {
   useEffect(() => {
     setFrames(prev => prev.map(frame => ({
       ...frame,
-      backgroundColor: globalBackgroundColor,
-      textColor: globalTextColor,
-      fontFamily: globalFontFamily
+      backgroundColor: frame.backgroundColor === globalBackgroundColor ? globalBackgroundColor : frame.backgroundColor,
+      textColor: frame.textColor === globalTextColor ? globalTextColor : frame.textColor,
+      fontFamily: frame.fontFamily === globalFontFamily ? globalFontFamily : frame.fontFamily
     })));
   }, [globalBackgroundColor, globalTextColor, globalFontFamily]);
 
@@ -400,7 +399,7 @@ const CarouselCreator = () => {
       const projectData = {
         user_id: user.id,
         title: projectName,
-        content: {
+        content: JSON.stringify({
           dimensions,
           globalBackgroundColor,
           globalTextColor,
@@ -411,7 +410,7 @@ const CarouselCreator = () => {
           signaturePosition,
           signatureSize,
           frames
-        }
+        })
       };
 
       const { error } = await supabase
