@@ -5,30 +5,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage } from "lucide-react";
+import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage, Upload, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useCredits } from "@/hooks/useCredits";
 
 const CarouselCreator = () => {
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState("modern");
-  const [title, setTitle] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [backgroundColor, setBackgroundColor] = useState("#6366f1");
-  const [textColor, setTextColor] = useState("#ffffff");
-  const [accentColor, setAccentColor] = useState("#f59e0b");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { consumeCredits } = useCredits();
+  
+  const [selectedTemplate, setSelectedTemplate] = useState("minimal");
+  const [title, setTitle] = useState("Seu Título Aqui");
+  const [subtitle, setSubtitle] = useState("Seu subtítulo personalizado");
+  const [backgroundColor, setBackgroundColor] = useState("#4F46E5");
+  const [textColor, setTextColor] = useState("#FFFFFF");
+  const [accentColor, setAccentColor] = useState("#F59E0B");
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
   const templates = [
-    { id: "modern", name: "Moderno", description: "Design limpo e minimalista" },
-    { id: "vibrant", name: "Vibrante", description: "Cores vivas e chamativas" },
-    { id: "elegant", name: "Elegante", description: "Sofisticado e profissional" },
-    { id: "playful", name: "Divertido", description: "Colorido e descontraído" }
+    { id: "minimal", name: "Minimalista", description: "Design limpo e elegante" },
+    { id: "modern", name: "Moderno", description: "Estilo contemporâneo" },
+    { id: "creative", name: "Criativo", description: "Visual impactante" },
+    { id: "business", name: "Empresarial", description: "Profissional e sério" }
   ];
 
   useEffect(() => {
     drawCanvas();
-  }, [selectedTemplate, title, subtitle, backgroundColor, textColor, accentColor]);
+  }, [selectedTemplate, title, subtitle, backgroundColor, textColor, accentColor, backgroundImage]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -41,85 +46,109 @@ const CarouselCreator = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Background
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, backgroundColor);
-    gradient.addColorStop(1, adjustBrightness(backgroundColor, -20));
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (backgroundImage) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        drawContent(ctx);
+      };
+      img.src = backgroundImage;
+    } else {
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, backgroundColor);
+      gradient.addColorStop(1, adjustBrightness(backgroundColor, -20));
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawContent(ctx);
+    }
+  };
 
-    // Decorative elements based on template
-    drawTemplateElements(ctx, selectedTemplate);
+  const drawContent = (ctx: CanvasRenderingContext2D) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Template-specific styling
+    switch (selectedTemplate) {
+      case "minimal":
+        drawMinimalTemplate(ctx);
+        break;
+      case "modern":
+        drawModernTemplate(ctx);
+        break;
+      case "creative":
+        drawCreativeTemplate(ctx);
+        break;
+      case "business":
+        drawBusinessTemplate(ctx);
+        break;
+    }
 
     // Title
     if (title) {
       ctx.fillStyle = textColor;
-      ctx.font = "bold 48px Arial";
+      ctx.font = "bold 32px Arial";
       ctx.textAlign = "center";
       const titleY = canvas.height / 2 - 30;
-      wrapText(ctx, title, canvas.width / 2, titleY, canvas.width - 100, 60);
+      wrapText(ctx, title, canvas.width / 2, titleY, canvas.width - 60, 40);
     }
 
     // Subtitle
     if (subtitle) {
       ctx.fillStyle = adjustOpacity(textColor, 0.8);
-      ctx.font = "24px Arial";
+      ctx.font = "18px Arial";
       ctx.textAlign = "center";
-      const subtitleY = canvas.height / 2 + 50;
-      wrapText(ctx, subtitle, canvas.width / 2, subtitleY, canvas.width - 100, 30);
+      const subtitleY = canvas.height / 2 + 30;
+      wrapText(ctx, subtitle, canvas.width / 2, subtitleY, canvas.width - 60, 25);
     }
-
-    // Brand accent
-    ctx.fillStyle = accentColor;
-    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
   };
 
-  const drawTemplateElements = (ctx: CanvasRenderingContext2D, template: string) => {
+  const drawMinimalTemplate = (ctx: CanvasRenderingContext2D) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    switch (template) {
-      case "modern":
-        // Geometric shapes
-        ctx.fillStyle = adjustOpacity(accentColor, 0.1);
-        ctx.fillRect(0, 0, 100, 100);
-        ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
-        break;
-      case "vibrant":
-        // Colorful circles
-        for (let i = 0; i < 5; i++) {
-          ctx.fillStyle = adjustOpacity(accentColor, 0.2);
-          ctx.beginPath();
-          ctx.arc(
-            Math.random() * canvas.width,
-            Math.random() * canvas.height,
-            20 + Math.random() * 30,
-            0,
-            2 * Math.PI
-          );
-          ctx.fill();
-        }
-        break;
-      case "elegant":
-        // Subtle lines
-        ctx.strokeStyle = adjustOpacity(textColor, 0.2);
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(50, 50);
-        ctx.lineTo(canvas.width - 50, 50);
-        ctx.moveTo(50, canvas.height - 50);
-        ctx.lineTo(canvas.width - 50, canvas.height - 50);
-        ctx.stroke();
-        break;
-      case "playful":
-        // Fun shapes
-        ctx.fillStyle = adjustOpacity(accentColor, 0.3);
-        for (let i = 0; i < 3; i++) {
-          const x = 100 + i * 150;
-          const y = 100;
-          drawStar(ctx, x, y, 5, 20, 40);
-        }
-        break;
+    // Simple border
+    ctx.strokeStyle = adjustOpacity(accentColor, 0.3);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+  };
+
+  const drawModernTemplate = (ctx: CanvasRenderingContext2D) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Geometric shapes
+    ctx.fillStyle = adjustOpacity(accentColor, 0.1);
+    ctx.fillRect(0, 0, 80, 80);
+    ctx.fillRect(canvas.width - 80, canvas.height - 80, 80, 80);
+    
+    // Accent line
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(0, canvas.height - 8, canvas.width, 8);
+  };
+
+  const drawCreativeTemplate = (ctx: CanvasRenderingContext2D) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Creative circles
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = adjustOpacity(accentColor, 0.2);
+      ctx.beginPath();
+      ctx.arc(50 + i * 100, 50, 25, 0, 2 * Math.PI);
+      ctx.fill();
     }
+  };
+
+  const drawBusinessTemplate = (ctx: CanvasRenderingContext2D) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Professional header
+    ctx.fillStyle = adjustOpacity(accentColor, 0.8);
+    ctx.fillRect(0, 0, canvas.width, 60);
+    
+    // Professional footer
+    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
   };
 
   const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
@@ -141,32 +170,6 @@ const CarouselCreator = () => {
       }
     }
     ctx.fillText(line, x, currentY);
-  };
-
-  const drawStar = (ctx: CanvasRenderingContext2D, cx: number, cy: number, spikes: number, outerRadius: number, innerRadius: number) => {
-    let rot = Math.PI / 2 * 3;
-    let x = cx;
-    let y = cy;
-    const step = Math.PI / spikes;
-
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - outerRadius);
-
-    for (let i = 0; i < spikes; i++) {
-      x = cx + Math.cos(rot) * outerRadius;
-      y = cy + Math.sin(rot) * outerRadius;
-      ctx.lineTo(x, y);
-      rot += step;
-
-      x = cx + Math.cos(rot) * innerRadius;
-      y = cy + Math.sin(rot) * innerRadius;
-      ctx.lineTo(x, y);
-      rot += step;
-    }
-
-    ctx.lineTo(cx, cy - outerRadius);
-    ctx.closePath();
-    ctx.fill();
   };
 
   const adjustBrightness = (hex: string, percent: number) => {
@@ -191,9 +194,28 @@ const CarouselCreator = () => {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const downloadImage = () => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBackgroundImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const downloadImage = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Consume credits before downloading
+    const creditResult = await consumeCredits("quikdesign_download", 3, "Download de design QuikDesign");
+    
+    if (!creditResult.success) {
+      toast.error(creditResult.error || "Erro ao consumir créditos");
+      return;
+    }
 
     const link = document.createElement('a');
     link.download = `quikdesign-${Date.now()}.png`;
@@ -211,6 +233,7 @@ const CarouselCreator = () => {
       textColor,
       accentColor,
       selectedTemplate,
+      backgroundImage,
       timestamp: new Date().toISOString()
     };
     
@@ -219,9 +242,9 @@ const CarouselCreator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -234,24 +257,27 @@ const CarouselCreator = () => {
                 Voltar
               </Button>
               <div className="flex items-center gap-2">
-                <Palette className="h-6 w-6 text-purple-600" />
-                <h1 className="text-2xl font-bold">QuikDesign</h1>
+                <Sparkles className="h-6 w-6 text-purple-600" />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  QuikDesign
+                </h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={saveProject}
                 variant="outline"
+                className="border-purple-200 text-purple-700 hover:bg-purple-50"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Salvar
               </Button>
               <Button
                 onClick={downloadImage}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download
+                Download (3 créditos)
               </Button>
             </div>
           </div>
@@ -263,10 +289,10 @@ const CarouselCreator = () => {
           {/* Controls Panel */}
           <div className="lg:col-span-1 space-y-6">
             {/* Template Selection */}
-            <Card>
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-purple-100 dark:border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wand2 className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Wand2 className="h-5 w-5 text-purple-600" />
                   Templates
                 </CardTitle>
               </CardHeader>
@@ -276,97 +302,136 @@ const CarouselCreator = () => {
                     key={template.id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       selectedTemplate === template.id
-                        ? "border-purple-600 bg-purple-50 dark:bg-purple-900/20"
-                        : "border-gray-200 hover:border-purple-300"
+                        ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-md"
+                        : "border-gray-200 dark:border-gray-600 hover:border-purple-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                     onClick={() => setSelectedTemplate(template.id)}
                   >
-                    <h3 className="font-medium">{template.name}</h3>
-                    <p className="text-sm text-muted-foreground">{template.description}</p>
+                    <h3 className="font-medium text-gray-800 dark:text-white">{template.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{template.description}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
             {/* Text Content */}
-            <Card>
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-purple-100 dark:border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Type className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Type className="h-5 w-5 text-purple-600" />
                   Conteúdo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Título</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Digite o título..."
+                    className="mt-1 border-purple-200 focus:border-purple-500"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Subtítulo</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Subtítulo</label>
                   <Textarea
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     placeholder="Digite o subtítulo..."
+                    className="mt-1 border-purple-200 focus:border-purple-500"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Colors */}
-            <Card>
+            {/* Colors & Background */}
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-purple-100 dark:border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Cores
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Palette className="h-5 w-5 text-purple-600" />
+                  Design
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Fundo</label>
-                  <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Imagem de Fundo</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 border-purple-200 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Escolher Imagem
+                    </Button>
+                    {backgroundImage && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setBackgroundImage(null)}
+                        className="px-3"
+                      >
+                        ✕
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cor de Fundo</label>
+                  <div className="flex items-center gap-2 mt-1">
                     <input
                       type="color"
                       value={backgroundColor}
                       onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-12 h-10 rounded border"
+                      className="w-12 h-10 rounded border border-purple-200"
+                      disabled={!!backgroundImage}
                     />
                     <Input
                       value={backgroundColor}
                       onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="border-purple-200 focus:border-purple-500"
+                      disabled={!!backgroundImage}
                     />
                   </div>
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium">Texto</label>
-                  <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cor do Texto</label>
+                  <div className="flex items-center gap-2 mt-1">
                     <input
                       type="color"
                       value={textColor}
                       onChange={(e) => setTextColor(e.target.value)}
-                      className="w-12 h-10 rounded border"
+                      className="w-12 h-10 rounded border border-purple-200"
                     />
                     <Input
                       value={textColor}
                       onChange={(e) => setTextColor(e.target.value)}
+                      className="border-purple-200 focus:border-purple-500"
                     />
                   </div>
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium">Destaque</label>
-                  <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cor de Destaque</label>
+                  <div className="flex items-center gap-2 mt-1">
                     <input
                       type="color"
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
-                      className="w-12 h-10 rounded border"
+                      className="w-12 h-10 rounded border border-purple-200"
                     />
                     <Input
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
+                      className="border-purple-200 focus:border-purple-500"
                     />
                   </div>
                 </div>
@@ -376,23 +441,24 @@ const CarouselCreator = () => {
 
           {/* Canvas Preview */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-purple-100 dark:border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileImage className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <FileImage className="h-5 w-5 text-purple-600" />
                   Preview
-                  <Badge variant="secondary" className="ml-auto">
+                  <Badge variant="secondary" className="ml-auto bg-purple-100 text-purple-800">
+                    <Instagram className="h-3 w-3 mr-1" />
                     1080x1080px
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex justify-center">
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
                   <canvas
                     ref={canvasRef}
                     width={400}
                     height={400}
-                    className="max-w-full h-auto"
+                    className="max-w-full h-auto bg-white"
                   />
                 </div>
               </CardContent>

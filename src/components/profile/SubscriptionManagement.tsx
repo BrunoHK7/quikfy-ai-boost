@@ -44,7 +44,7 @@ export const SubscriptionManagement = () => {
 
   const getPlanColor = (tier: string | null) => {
     switch (tier) {
-      case 'Essential':
+      case 'Plus':
         return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700';
       case 'Pro':
         return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-700';

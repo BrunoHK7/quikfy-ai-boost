@@ -6,7 +6,7 @@ import { useProfile } from './useProfile';
 
 interface UserCredits {
   id: string;
-  plan_type: 'free' | 'essential' | 'pro' | 'vip' | 'admin';
+  plan_type: 'free' | 'plus' | 'pro' | 'vip' | 'admin';
   current_credits: number;
   total_credits_ever: number;
   last_reset_date: string;
@@ -57,7 +57,7 @@ export const useCredits = () => {
         // Type cast the plan_type to ensure it matches our enum
         const typedData: UserCredits = {
           ...data,
-          plan_type: data.plan_type as 'free' | 'essential' | 'pro' | 'vip' | 'admin'
+          plan_type: data.plan_type as 'free' | 'plus' | 'pro' | 'vip' | 'admin'
         };
         setUserCredits(typedData);
       }
@@ -198,7 +198,7 @@ export const useCredits = () => {
   const getPlanName = (planType: string) => {
     switch (planType) {
       case 'free': return 'Free';
-      case 'essential': return 'Essential';
+      case 'plus': return 'Plus';
       case 'pro': return 'Pro';
       case 'vip': return 'VIP';
       case 'admin': return 'Admin';
@@ -209,7 +209,7 @@ export const useCredits = () => {
   const getPlanCredits = (planType: string) => {
     switch (planType) {
       case 'free': return '3 créditos (não renováveis)';
-      case 'essential': return '50 créditos/mês (não cumulativos)';
+      case 'plus': return '50 créditos/mês (não cumulativos)';
       case 'pro': return '200 créditos/mês (cumulativos)';
       case 'vip': return '500 créditos/mês (cumulativos)';
       case 'admin': return 'Ilimitado';

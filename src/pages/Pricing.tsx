@@ -68,7 +68,7 @@ const Pricing = () => {
       obs: "Ideal para teste inicial da plataforma"
     },
     {
-      name: "Essential",
+      name: "Plus",
       icon: <Briefcase className="w-6 h-6" />,
       price: 15,
       emoji: "💼",
@@ -256,7 +256,7 @@ const Pricing = () => {
                       ? "bg-purple-600 hover:bg-purple-700 text-white"
                       : plan.name === "VIP"
                       ? "bg-yellow-600 hover:bg-yellow-700 text-white"
-                      : plan.name === "Essential"
+                      : plan.name === "Plus"
                       ? "bg-blue-600 hover:bg-blue-700 text-white"
                       : "bg-green-600 hover:bg-green-700 text-white"
                   }`}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -12,7 +13,7 @@ interface UserProfile {
   occupation: string;
   bio: string;
   avatar_url: string;
-  role: 'free' | 'pro' | 'vip' | 'admin'; // Removed 'essential' to match Supabase types
+  role: 'free' | 'plus' | 'pro' | 'vip' | 'admin';
   show_public_profile: boolean;
   created_at: string;
   updated_at: string;
