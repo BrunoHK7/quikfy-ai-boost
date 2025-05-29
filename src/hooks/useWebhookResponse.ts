@@ -4,19 +4,22 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useWebhookResponse = (sessionId: string | null) => {
   const [response, setResponse] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingPhase, setLoadingPhase] = useState<'initial' | 'polling'>('initial');
 
   useEffect(() => {
+    // Só iniciar se temos um sessionId válido
     if (!sessionId) {
-      console.log('❌ useWebhookResponse - No sessionId provided');
+      console.log('❌ useWebhookResponse - No sessionId provided, waiting...');
       setIsLoading(false);
-      setError('Session ID não fornecido');
+      setError(null);
       return;
     }
 
     console.log('🔍 useWebhookResponse - Starting loading phases for sessionId:', sessionId);
+    setIsLoading(true);
+    setError(null);
     
     let pollCount = 0;
     const maxPolls = 13; // 40 segundos ÷ 3 segundos (aproximadamente)
