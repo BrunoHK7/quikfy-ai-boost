@@ -31,12 +31,20 @@ import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
 
 const Index = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, refetch: refetchProfile } = useProfile();
   const navigate = useNavigate();
 
   // Admin users have access to everything
   const isAdmin = profile?.role === 'admin';
   const isPremium = isAdmin || ['essential', 'pro', 'vip'].includes(profile?.role || '');
+
+  // Force profile refresh for admin users
+  const handleForceRefresh = async () => {
+    if (user) {
+      await refetchProfile();
+      window.location.reload();
+    }
+  };
 
   const tools = [
     {
@@ -50,11 +58,11 @@ const Index = () => {
       category: "creation"
     },
     {
-      title: "QuikDesign IA",
+      title: "QuikDesign",
       description: "Design profissional em segundos com IA avançada",
       icon: Palette,
       gradient: "from-purple-500 to-indigo-500",
-      href: "/design-generator",
+      href: "/carousel-creator",
       credits: 0,
       category: "creation"
     }
@@ -104,6 +112,17 @@ const Index = () => {
                     <Crown className="w-4 h-4 mr-1" />
                     Admin
                   </Badge>
+                )}
+                {/* Debug button for admin role update */}
+                {user?.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleForceRefresh}
+                    className="text-xs"
+                  >
+                    Atualizar Role
+                  </Button>
                 )}
                 <Link to="/profile">
                   <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
@@ -174,7 +193,7 @@ const Index = () => {
               Cada ferramenta foi projetada para maximizar suas conversões e acelerar seus resultados
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {tools.map((tool, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-0 shadow-lg bg-card/50 backdrop-blur-sm">
                 <CardHeader className="pb-4">
@@ -188,8 +207,8 @@ const Index = () => {
                       </Badge>
                     )}
                   </div>
-                  <CardTitle className="text-lg">{tool.title}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{tool.description}</p>
+                  <CardTitle className="text-xl">{tool.title}</CardTitle>
+                  <p className="text-muted-foreground">{tool.description}</p>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-4">
@@ -227,7 +246,7 @@ const Index = () => {
               }
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {premiumContent.map((content, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/50 backdrop-blur-sm relative overflow-hidden">
                 <div className="absolute top-4 right-4">

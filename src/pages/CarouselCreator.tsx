@@ -1,753 +1,406 @@
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Brain, 
-  Download, 
-  Save, 
-  Plus, 
-  Trash2, 
-  Type,
-  Settings,
-  Eye,
-  Upload,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Bold,
-  Italic,
-  Underline,
-  Menu,
-  X
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Download, Save, Palette, Type, Wand2, Sparkles, Instagram, FileImage } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCarouselProjects, CarouselProject, CarouselFrame } from "@/hooks/useCarouselProjects";
-import { downloadFramesAsZip } from "@/utils/carouselExport";
-import { EmojiPicker } from "@/components/carousel/EmojiPicker";
+import { StandardHeader } from "@/components/StandardHeader";
 
 const CarouselCreator = () => {
-  const { saveProject } = useCarouselProjects();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const [project, setProject] = useState<CarouselProject>({
-    id: Date.now().toString(),
-    name: 'Novo Carrossel',
-    dimensions: '1080x1080',
-    backgroundColor: '#ffffff',
-    textColor: '#131313',
-    fontFamily: 'Inter',
-    marginEnabled: true,
-    marginSize: 250,
-    signaturePosition: 'bottom-right',
-    signatureSize: 60,
-    frames: [
-      {
-        id: '1',
-        text: 'Seu texto aqui...',
-        backgroundColor: '#ffffff',
-        textColor: '#131313',
-        fontSize: 24,
-        textAlign: 'center',
-        isBold: false,
-        isItalic: false,
-        isUnderline: false,
-        lineHeight: 1.5,
-        letterSpacing: 0,
-        elements: []
-      }
-    ],
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
+  const navigate = useNavigate();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("#6366f1");
+  const [textColor, setTextColor] = useState("#ffffff");
+  const [accentColor, setAccentColor] = useState("#f59e0b");
 
-  const [activeFrameId, setActiveFrameId] = useState('1');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-
-  const activeFrame = project.frames.find(f => f.id === activeFrameId) || project.frames[0];
-
-  // Google Fonts integration
-  const googleFonts = [
-    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald', 
-    'Source Sans Pro', 'Raleway', 'PT Sans', 'Lora', 'Merriweather',
-    'Playfair Display', 'Bebas Neue', 'Dancing Script', 'Lobster'
+  const templates = [
+    { id: "modern", name: "Moderno", description: "Design limpo e minimalista" },
+    { id: "vibrant", name: "Vibrante", description: "Cores vivas e chamativas" },
+    { id: "elegant", name: "Elegante", description: "Sofisticado e profissional" },
+    { id: "playful", name: "Divertido", description: "Colorido e descontraído" }
   ];
 
   useEffect(() => {
-    // Carregar Google Fonts dinamicamente
-    googleFonts.forEach(font => {
-      const link = document.createElement('link');
-      link.href = `https://fonts.googleapis.com/css2?family=${font.replace(' ', '+')}:wght@300;400;500;600;700&display=swap`;
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-    });
-  }, []);
+    drawCanvas();
+  }, [selectedTemplate, title, subtitle, backgroundColor, textColor, accentColor]);
 
-  const updateProject = (updates: Partial<CarouselProject>) => {
-    setProject(prev => ({ ...prev, ...updates }));
+  const drawCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, backgroundColor);
+    gradient.addColorStop(1, adjustBrightness(backgroundColor, -20));
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Decorative elements based on template
+    drawTemplateElements(ctx, selectedTemplate);
+
+    // Title
+    if (title) {
+      ctx.fillStyle = textColor;
+      ctx.font = "bold 48px Arial";
+      ctx.textAlign = "center";
+      const titleY = canvas.height / 2 - 30;
+      wrapText(ctx, title, canvas.width / 2, titleY, canvas.width - 100, 60);
+    }
+
+    // Subtitle
+    if (subtitle) {
+      ctx.fillStyle = adjustOpacity(textColor, 0.8);
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      const subtitleY = canvas.height / 2 + 50;
+      wrapText(ctx, subtitle, canvas.width / 2, subtitleY, canvas.width - 100, 30);
+    }
+
+    // Brand accent
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
   };
 
-  const updateActiveFrame = (updates: Partial<CarouselFrame>) => {
-    setProject(prev => ({
-      ...prev,
-      frames: prev.frames.map(frame => 
-        frame.id === activeFrameId 
-          ? { ...frame, ...updates }
-          : frame
-      )
-    }));
+  const drawTemplateElements = (ctx: CanvasRenderingContext2D, template: string) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    switch (template) {
+      case "modern":
+        // Geometric shapes
+        ctx.fillStyle = adjustOpacity(accentColor, 0.1);
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.fillRect(canvas.width - 100, canvas.height - 100, 100, 100);
+        break;
+      case "vibrant":
+        // Colorful circles
+        for (let i = 0; i < 5; i++) {
+          ctx.fillStyle = adjustOpacity(accentColor, 0.2);
+          ctx.beginPath();
+          ctx.arc(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height,
+            20 + Math.random() * 30,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+        }
+        break;
+      case "elegant":
+        // Subtle lines
+        ctx.strokeStyle = adjustOpacity(textColor, 0.2);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(50, 50);
+        ctx.lineTo(canvas.width - 50, 50);
+        ctx.moveTo(50, canvas.height - 50);
+        ctx.lineTo(canvas.width - 50, canvas.height - 50);
+        ctx.stroke();
+        break;
+      case "playful":
+        // Fun shapes
+        ctx.fillStyle = adjustOpacity(accentColor, 0.3);
+        for (let i = 0; i < 3; i++) {
+          const x = 100 + i * 150;
+          const y = 100;
+          drawStar(ctx, x, y, 5, 20, 40);
+        }
+        break;
+    }
   };
 
-  const addFrame = () => {
-    const newFrame: CarouselFrame = {
-      id: (project.frames.length + 1).toString(),
-      text: 'Novo quadro...',
-      backgroundColor: project.backgroundColor,
-      textColor: project.textColor,
-      fontSize: 24,
-      textAlign: 'center',
-      isBold: false,
-      isItalic: false,
-      isUnderline: false,
-      lineHeight: 1.5,
-      letterSpacing: 0,
-      elements: []
+  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, currentY);
+        line = words[n] + ' ';
+        currentY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, currentY);
+  };
+
+  const drawStar = (ctx: CanvasRenderingContext2D, cx: number, cy: number, spikes: number, outerRadius: number, innerRadius: number) => {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    const step = Math.PI / spikes;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+
+    for (let i = 0; i < spikes; i++) {
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+    }
+
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  const adjustBrightness = (hex: string, percent: number) => {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+  };
+
+  const adjustOpacity = (hex: string, opacity: number) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+    
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  const downloadImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const link = document.createElement('a');
+    link.download = `quikdesign-${Date.now()}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    
+    toast.success("Design baixado com sucesso!");
+  };
+
+  const saveProject = () => {
+    const projectData = {
+      title,
+      subtitle,
+      backgroundColor,
+      textColor,
+      accentColor,
+      selectedTemplate,
+      timestamp: new Date().toISOString()
     };
     
-    updateProject({
-      frames: [...project.frames, newFrame]
-    });
-    setActiveFrameId(newFrame.id);
-    toast("Novo quadro adicionado!");
-  };
-
-  const deleteFrame = (frameId: string) => {
-    if (project.frames.length === 1) {
-      toast("Não é possível excluir o último quadro");
-      return;
-    }
-    
-    const newFrames = project.frames.filter(f => f.id !== frameId);
-    updateProject({ frames: newFrames });
-    
-    if (activeFrameId === frameId) {
-      setActiveFrameId(newFrames[0].id);
-    }
-    toast("Quadro excluído!");
-  };
-
-  const handleEmojiSelect = (emoji: string) => {
-    if (textareaRef.current) {
-      const textarea = textareaRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const currentText = activeFrame.text;
-      const newText = currentText.substring(0, start) + emoji + currentText.substring(end);
-      
-      updateActiveFrame({ text: newText });
-      
-      // Restore cursor position
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-      }, 0);
-    }
-  };
-
-  const handleSignatureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        updateProject({ signatureImage: e.target?.result as string });
-        toast("Assinatura adicionada!");
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const saveProjectToStorage = async () => {
-    setIsSaving(true);
-    try {
-      const savedProject = saveProject(project);
-      updateProject({ id: savedProject.id });
-      toast("Projeto salvo com sucesso!");
-    } catch (error) {
-      toast("Erro ao salvar projeto");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const exportProject = async () => {
-    setIsExporting(true);
-    try {
-      await downloadFramesAsZip(project);
-      toast("Download iniciado!");
-    } catch (error) {
-      toast("Erro ao exportar projeto");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const getDimensions = () => {
-    switch (project.dimensions) {
-      case '1080x1080':
-        return { width: 400, height: 400 };
-      case '1080x1350':
-        return { width: 400, height: 500 };
-      case '1080x1920':
-        return { width: 400, height: 712 };
-      default:
-        return { width: 400, height: 400 };
-    }
-  };
-
-  const getContentAreaStyle = () => {
-    const dimensions = getDimensions();
-    const scaleFactor = dimensions.width / 1080;
-    const scaledMargin = project.marginEnabled ? project.marginSize * scaleFactor : 0;
-    
-    return {
-      padding: `${scaledMargin}px`,
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxSizing: 'border-box' as const
-    };
-  };
-
-  const getSignatureStyle = () => {
-    if (!project.signatureImage) return {};
-    
-    const dimensions = getDimensions();
-    const scaleFactor = dimensions.width / 1080;
-    const size = project.signatureSize * scaleFactor;
-    
-    let position = {};
-    switch (project.signaturePosition) {
-      case 'top-left':
-        position = { top: '10px', left: '10px' };
-        break;
-      case 'top-center':
-        position = { top: '10px', left: '50%', transform: 'translateX(-50%)' };
-        break;
-      case 'top-right':
-        position = { top: '10px', right: '10px' };
-        break;
-      case 'bottom-left':
-        position = { bottom: '10px', left: '10px' };
-        break;
-      case 'bottom-center':
-        position = { bottom: '10px', left: '50%', transform: 'translateX(-50%)' };
-        break;
-      case 'bottom-right':
-        position = { bottom: '10px', right: '10px' };
-        break;
-    }
-    
-    return {
-      position: 'absolute' as const,
-      width: `${size}px`,
-      height: `${size}px`,
-      objectFit: 'contain' as const,
-      ...position
-    };
+    localStorage.setItem(`quikdesign-${Date.now()}`, JSON.stringify(projectData));
+    toast.success("Projeto salvo com sucesso!");
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <div className="min-h-screen bg-background dark:bg-[#131313]">
+      {/* Header com tema escuro apropriado */}
+      <header className="bg-background dark:bg-[#131313] border-b border-border dark:border-gray-700 sticky top-0 z-50 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <Brain className="w-8 h-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">QUIKFY</span>
-              <Badge className="bg-purple-100 text-purple-700">QuikDesign</Badge>
-            </Link>
-            
-            {/* Desktop Header */}
-            <div className="hidden md:flex items-center space-x-3">
-              <Input
-                value={project.name}
-                onChange={(e) => updateProject({ name: e.target.value })}
-                className="w-48 text-center font-medium"
-              />
-              <Button onClick={saveProjectToStorage} disabled={isSaving} variant="outline">
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Salvando..." : "Salvar"}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
               </Button>
-              <Button onClick={exportProject} disabled={isExporting} className="bg-purple-600 hover:bg-purple-700">
-                <Download className="w-4 h-4 mr-2" />
-                {isExporting ? "Exportando..." : "Download"}
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <Button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              variant="outline"
-              size="sm"
-              className="md:hidden"
-            >
-              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </Button>
-          </div>
-
-          {/* Mobile Header Menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden mt-4 pt-4 border-t space-y-3">
-              <Input
-                value={project.name}
-                onChange={(e) => updateProject({ name: e.target.value })}
-                className="w-full text-center font-medium"
-                placeholder="Nome do projeto"
-              />
-              <div className="flex space-x-2">
-                <Button onClick={saveProjectToStorage} disabled={isSaving} variant="outline" className="flex-1">
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "Salvando..." : "Salvar"}
-                </Button>
-                <Button onClick={exportProject} disabled={isExporting} className="flex-1 bg-purple-600 hover:bg-purple-700">
-                  <Download className="w-4 h-4 mr-2" />
-                  {isExporting ? "Exportando..." : "Download"}
-                </Button>
+              <div className="flex items-center gap-2">
+                <Palette className="h-6 w-6 text-purple-600" />
+                <h1 className="text-2xl font-bold text-foreground dark:text-white">QuikDesign</h1>
               </div>
             </div>
-          )}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={saveProject}
+                variant="outline"
+                className="border-border dark:border-gray-600 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Salvar
+              </Button>
+              <Button
+                onClick={downloadImage}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sidebar Esquerda - Configurações Globais */}
-          <div className="lg:col-span-3 space-y-4">
-            <Card>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Controls Panel */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Template Selection */}
+            <Card className="dark-card">
               <CardHeader>
-                <CardTitle className="text-sm flex items-center">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurações do Projeto
+                <CardTitle className="flex items-center gap-2 dark-text">
+                  <Wand2 className="h-5 w-5" />
+                  Templates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                      selectedTemplate === template.id
+                        ? "border-purple-600 bg-purple-50 dark:bg-purple-900/20"
+                        : "border-border dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500"
+                    }`}
+                    onClick={() => setSelectedTemplate(template.id)}
+                  >
+                    <h3 className="font-medium dark-text">{template.name}</h3>
+                    <p className="text-sm text-muted-foreground">{template.description}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Text Content */}
+            <Card className="dark-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 dark-text">
+                  <Type className="h-5 w-5" />
+                  Conteúdo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-xs">Dimensões</Label>
-                  <div className="grid grid-cols-3 gap-2 mt-1">
-                    <Button
-                      variant={project.dimensions === '1080x1080' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateProject({ dimensions: '1080x1080' })}
-                    >
-                      1:1
-                    </Button>
-                    <Button
-                      variant={project.dimensions === '1080x1350' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateProject({ dimensions: '1080x1350' })}
-                    >
-                      4:5
-                    </Button>
-                    <Button
-                      variant={project.dimensions === '1080x1920' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateProject({ dimensions: '1080x1920' })}
-                    >
-                      9:16
-                    </Button>
-                  </div>
+                  <label className="text-sm font-medium dark-text">Título</label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Digite o título..."
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
                 </div>
-
-                {/* Configuração de Margem */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-xs">Margens</Label>
-                    <Switch
-                      checked={project.marginEnabled}
-                      onCheckedChange={(checked) => updateProject({ marginEnabled: checked })}
-                    />
-                  </div>
-                  {project.marginEnabled && (
-                    <div>
-                      <Label className="text-xs">Tamanho: {project.marginSize}px</Label>
-                      <Slider
-                        value={[project.marginSize]}
-                        onValueChange={(value) => updateProject({ marginSize: value[0] })}
-                        max={400}
-                        min={50}
-                        step={25}
-                        className="mt-2"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Assinatura */}
-                <div>
-                  <Label className="text-xs">Assinatura</Label>
-                  <div className="space-y-2 mt-1">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleSignatureUpload}
-                      className="text-xs"
-                    />
-                    {project.signatureImage && (
-                      <>
-                        <div>
-                          <Label className="text-xs">Posição</Label>
-                          <select
-                            value={project.signaturePosition}
-                            onChange={(e) => updateProject({ signaturePosition: e.target.value as any })}
-                            className="w-full mt-1 p-2 border rounded text-xs"
-                          >
-                            <option value="top-left">Superior Esquerda</option>
-                            <option value="top-center">Superior Centro</option>
-                            <option value="top-right">Superior Direita</option>
-                            <option value="bottom-left">Inferior Esquerda</option>
-                            <option value="bottom-center">Inferior Centro</option>
-                            <option value="bottom-right">Inferior Direita</option>
-                          </select>
-                        </div>
-                        <div>
-                          <Label className="text-xs">Tamanho: {project.signatureSize}px</Label>
-                          <Slider
-                            value={[project.signatureSize]}
-                            onValueChange={(value) => updateProject({ signatureSize: value[0] })}
-                            max={200}
-                            min={30}
-                            step={10}
-                            className="mt-2"
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-xs">Cor do Fundo</Label>
-                  <div className="flex space-x-2 mt-1">
-                    <Input
-                      type="color"
-                      value={project.backgroundColor}
-                      onChange={(e) => updateProject({ backgroundColor: e.target.value })}
-                      className="w-12 h-8 p-1 rounded"
-                    />
-                    <Input
-                      value={project.backgroundColor}
-                      onChange={(e) => updateProject({ backgroundColor: e.target.value })}
-                      className="flex-1 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-xs">Cor da Fonte</Label>
-                  <div className="flex space-x-2 mt-1">
-                    <Input
-                      type="color"
-                      value={project.textColor}
-                      onChange={(e) => updateProject({ textColor: e.target.value })}
-                      className="w-12 h-8 p-1 rounded"
-                    />
-                    <Input
-                      value={project.textColor}
-                      onChange={(e) => updateProject({ textColor: e.target.value })}
-                      className="flex-1 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-xs">Fonte</Label>
-                  <select
-                    value={project.fontFamily}
-                    onChange={(e) => updateProject({ fontFamily: e.target.value })}
-                    className="w-full mt-1 p-2 border rounded text-xs"
-                  >
-                    {googleFonts.map(font => (
-                      <option key={font} value={font}>{font}</option>
-                    ))}
-                  </select>
+                  <label className="text-sm font-medium dark-text">Subtítulo</label>
+                  <Textarea
+                    value={subtitle}
+                    onChange={(e) => setSubtitle(e.target.value)}
+                    placeholder="Digite o subtítulo..."
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Miniaturas dos Quadros */}
-            <Card>
+            {/* Colors */}
+            <Card className="dark-card">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Quadros ({project.frames.length}/10)</CardTitle>
-                  <Button
-                    onClick={addFrame}
-                    disabled={project.frames.length >= 10}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
+                <CardTitle className="flex items-center gap-2 dark-text">
+                  <Palette className="h-5 w-5" />
+                  Cores
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {project.frames.map((frame, index) => (
-                    <div
-                      key={frame.id}
-                      className={`relative border-2 rounded p-2 cursor-pointer transition-all ${
-                        activeFrameId === frame.id 
-                          ? 'border-purple-500 bg-purple-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setActiveFrameId(frame.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium">Quadro {index + 1}</span>
-                        {project.frames.length > 1 && (
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteFrame(frame.id);
-                            }}
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 text-red-500"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1 truncate">
-                        {frame.text.substring(0, 30)}...
-                      </div>
-                    </div>
-                  ))}
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium dark-text">Fundo</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                    />
+                    <Input
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium dark-text">Texto</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={(e) => setTextColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                    />
+                    <Input
+                      value={textColor}
+                      onChange={(e) => setTextColor(e.target.value)}
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium dark-text">Destaque</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-border dark:border-gray-600"
+                    />
+                    <Input
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Área Central - Editor */}
-          <div className="lg:col-span-6">
-            <Card>
+          {/* Canvas Preview */}
+          <div className="lg:col-span-2">
+            <Card className="dark-card">
               <CardHeader>
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span className="flex items-center">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Editor - Quadro {project.frames.findIndex(f => f.id === activeFrameId) + 1}
-                  </span>
-                  <Badge variant="outline">
-                    {project.dimensions}
+                <CardTitle className="flex items-center gap-2 dark-text">
+                  <FileImage className="h-5 w-5" />
+                  Preview
+                  <Badge variant="secondary" className="ml-auto">
+                    1080x1080px
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-center">
-                  <div
-                    className="relative border-2 border-gray-300 rounded-lg overflow-hidden"
-                    style={{
-                      width: getDimensions().width,
-                      height: getDimensions().height,
-                      backgroundColor: activeFrame.backgroundColor
-                    }}
-                  >
-                    {/* Área de Texto com Margem */}
-                    <div style={getContentAreaStyle()}>
-                      <div
-                        className="w-full h-full flex items-center"
-                        style={{
-                          fontFamily: project.fontFamily,
-                          fontSize: `${activeFrame.fontSize}px`,
-                          color: activeFrame.textColor,
-                          textAlign: activeFrame.textAlign,
-                          lineHeight: activeFrame.lineHeight,
-                          letterSpacing: `${activeFrame.letterSpacing}px`,
-                          fontWeight: activeFrame.isBold ? 'bold' : 'normal',
-                          fontStyle: activeFrame.isItalic ? 'italic' : 'normal',
-                          textDecoration: activeFrame.isUnderline ? 'underline' : 'none',
-                          justifyContent: activeFrame.textAlign === 'left' ? 'flex-start' : 
-                                          activeFrame.textAlign === 'right' ? 'flex-end' : 'center'
-                        }}
-                      >
-                        <div className="w-full">
-                          {activeFrame.text}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Assinatura */}
-                    {project.signatureImage && (
-                      <img
-                        src={project.signatureImage}
-                        alt="Assinatura"
-                        style={getSignatureStyle()}
-                      />
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar Direita - Configurações do Quadro */}
-          <div className="lg:col-span-3 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center">
-                  <Type className="w-4 h-4 mr-2" />
-                  Texto do Quadro
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Texto</Label>
-                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-                  </div>
-                  <Textarea
-                    ref={textareaRef}
-                    value={activeFrame.text}
-                    onChange={(e) => updateActiveFrame({ text: e.target.value })}
-                    className="min-h-[100px] text-sm"
-                    placeholder="Digite o texto do quadro..."
+              <CardContent className="flex justify-center">
+                <div className="border border-border dark:border-gray-600 rounded-lg overflow-hidden">
+                  <canvas
+                    ref={canvasRef}
+                    width={400}
+                    height={400}
+                    className="max-w-full h-auto"
                   />
-                </div>
-
-                {/* Formatação de Texto */}
-                <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant={activeFrame.isBold ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ isBold: !activeFrame.isBold })}
-                  >
-                    <Bold className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeFrame.isItalic ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ isItalic: !activeFrame.isItalic })}
-                  >
-                    <Italic className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeFrame.isUnderline ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ isUnderline: !activeFrame.isUnderline })}
-                  >
-                    <Underline className="w-3 h-3" />
-                  </Button>
-                </div>
-
-                {/* Alinhamento */}
-                <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant={activeFrame.textAlign === 'left' ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ textAlign: 'left' })}
-                  >
-                    <AlignLeft className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeFrame.textAlign === 'center' ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ textAlign: 'center' })}
-                  >
-                    <AlignCenter className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeFrame.textAlign === 'right' ? "default" : "outline"}
-                    onClick={() => updateActiveFrame({ textAlign: 'right' })}
-                  >
-                    <AlignRight className="w-3 h-3" />
-                  </Button>
-                </div>
-
-                {/* Tamanho da Fonte */}
-                <div>
-                  <Label className="text-xs">Tamanho da Fonte: {activeFrame.fontSize}px</Label>
-                  <Slider
-                    value={[activeFrame.fontSize]}
-                    onValueChange={(value) => updateActiveFrame({ fontSize: value[0] })}
-                    max={72}
-                    min={12}
-                    step={2}
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Espaçamento entre Linhas */}
-                <div>
-                  <Label className="text-xs">Espaçamento de Linha: {activeFrame.lineHeight}</Label>
-                  <Slider
-                    value={[activeFrame.lineHeight]}
-                    onValueChange={(value) => updateActiveFrame({ lineHeight: value[0] })}
-                    max={3}
-                    min={0.8}
-                    step={0.1}
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Espaçamento entre Letras */}
-                <div>
-                  <Label className="text-xs">Espaçamento de Letra: {activeFrame.letterSpacing}px</Label>
-                  <Slider
-                    value={[activeFrame.letterSpacing]}
-                    onValueChange={(value) => updateActiveFrame({ letterSpacing: value[0] })}
-                    max={10}
-                    min={-2}
-                    step={0.5}
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Cor do Texto Individual */}
-                <div>
-                  <Label className="text-xs">Cor do Texto (este quadro)</Label>
-                  <div className="flex space-x-2 mt-1">
-                    <Input
-                      type="color"
-                      value={activeFrame.textColor}
-                      onChange={(e) => updateActiveFrame({ textColor: e.target.value })}
-                      className="w-12 h-8 p-1 rounded"
-                    />
-                    <Input
-                      value={activeFrame.textColor}
-                      onChange={(e) => updateActiveFrame({ textColor: e.target.value })}
-                      className="flex-1 text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Cor de Fundo Individual */}
-                <div>
-                  <Label className="text-xs">Cor de Fundo (este quadro)</Label>
-                  <div className="flex space-x-2 mt-1">
-                    <Input
-                      type="color"
-                      value={activeFrame.backgroundColor}
-                      onChange={(e) => updateActiveFrame({ backgroundColor: e.target.value })}
-                      className="w-12 h-8 p-1 rounded"
-                    />
-                    <Input
-                      value={activeFrame.backgroundColor}
-                      onChange={(e) => updateActiveFrame({ backgroundColor: e.target.value })}
-                      className="flex-1 text-xs"
-                    />
-                  </div>
                 </div>
               </CardContent>
             </Card>
