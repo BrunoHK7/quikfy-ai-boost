@@ -38,16 +38,19 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <>{children}</>;
   }
 
-  // Check admin requirement
+  // Check admin requirement (apenas para funcionalidades específicas de admin)
   if (requiresAdmin) {
     return <Navigate to="/pricing" replace />;
   }
 
-  // Check premium requirement (pro, vip users can access)
+  // Check premium requirement (apenas para cursos e conteúdo)
+  // Ferramentas não precisam de premium, apenas consomem créditos
   if (requiresPremium && profile?.role === 'free') {
     return <Navigate to="/pricing" replace />;
   }
 
+  // Todos os usuários autenticados têm acesso às ferramentas
+  // As ferramentas controlam o acesso via sistema de créditos
   return <>{children}</>;
 };
 

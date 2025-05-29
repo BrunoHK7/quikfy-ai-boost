@@ -58,8 +58,9 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
           <Route path="/pricing" element={<Pricing />} />
+          {/* Ferramentas - acessíveis a todos os usuários autenticados (consomem créditos) */}
           <Route path="/carousel-generator" element={
-            <ProtectedRoute requiresPremium={true}>
+            <ProtectedRoute>
               <CarouselBriefing />
             </ProtectedRoute>
           } />
@@ -83,6 +84,7 @@ const AppContent: React.FC = () => {
               <FinancialManagement />
             </ProtectedRoute>
           } />
+          {/* Conteúdo premium - apenas para usuários pagos e admins */}
           <Route path="/podcasts" element={
             <ProtectedRoute requiresPremium={true}>
               <Podcasts />
