@@ -34,46 +34,15 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // BUSCAR sessionId em TODAS as possibilidades
-        // 1. Primeiro no root como sessionId
+        // BUSCAR sessionId - Make envia com sessionId no root
         if (parsedData.sessionId) {
           sessionId = parsedData.sessionId
-          console.log('✅ Found sessionId in root:', sessionId)
+          console.log('✅ Found sessionId from Make:', sessionId)
         }
-        // 2. Como session_id no root
+        // Backup: session_id
         else if (parsedData.session_id) {
           sessionId = parsedData.session_id
-          console.log('✅ Found session_id in root:', sessionId)
-        }
-        // 3. Dentro de objeto session
-        else if (parsedData.session && parsedData.session.sessionId) {
-          sessionId = parsedData.session.sessionId
-          console.log('✅ Found sessionId in session object:', sessionId)
-        }
-        // 4. Buscar recursivamente em todos os campos
-        else {
-          console.log('🔍 Searching for sessionId recursively...')
-          const findSessionId = (obj, path = '') => {
-            if (!obj || typeof obj !== 'object') return null
-            
-            for (const [key, value] of Object.entries(obj)) {
-              const currentPath = path ? `${path}.${key}` : key
-              console.log(`Checking ${currentPath}:`, value)
-              
-              if ((key === 'sessionId' || key === 'session_id') && typeof value === 'string') {
-                console.log(`✅ Found sessionId at ${currentPath}:`, value)
-                return value
-              }
-              
-              if (typeof value === 'object' && value !== null) {
-                const found = findSessionId(value, currentPath)
-                if (found) return found
-              }
-            }
-            return null
-          }
-          
-          sessionId = findSessionId(parsedData)
+          console.log('✅ Found session_id:', sessionId)
         }
         
         // Extrair o conteúdo da resposta
@@ -99,27 +68,18 @@ serve(async (req) => {
         responseContent = body
       }
       
-      // CRITICAL: Se não encontrou sessionId, NÃO SALVAR com fallback
+      // Se AINDA não temos sessionId do Make, usar fallback mas com warning
       if (!sessionId) {
-        console.error('❌ CRITICAL: No sessionId found in payload!')
-        console.error('Full payload for debugging:', body)
-        return new Response(
-          JSON.stringify({ 
-            error: 'No sessionId found in payload', 
-            received_data: body.substring(0, 500) + '...' 
-          }),
-          { 
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
+        console.warn('⚠️ WARNING: No sessionId found from Make, generating fallback')
+        sessionId = `response_${Date.now()}`
+        console.log('Generated fallback sessionId:', sessionId)
       }
       
       console.log('🎯 FINAL sessionId to save:', sessionId)
       console.log('📝 Final content:', responseContent.substring(0, 200) + '...')
       console.log('📏 Content length:', responseContent.length)
       
-      // Salvar APENAS com o sessionId encontrado
+      // Salvar com o sessionId (do Make ou fallback)
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
