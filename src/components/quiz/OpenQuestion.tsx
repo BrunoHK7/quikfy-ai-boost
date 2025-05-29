@@ -19,14 +19,23 @@ export const OpenQuestion: React.FC<OpenQuestionProps> = ({
 }) => {
   const [value, setValue] = useState('');
 
-  // Atualiza o valor apenas quando initialValue muda e não está vazio
+  // Reset value when initialValue changes or becomes empty
   useEffect(() => {
     setValue(initialValue || '');
   }, [initialValue]);
 
+  // Clear value when component unmounts or question changes
+  useEffect(() => {
+    return () => {
+      setValue('');
+    };
+  }, []);
+
   const handleSubmit = () => {
     if (value.trim() && !disabled) {
       onSubmit(value.trim());
+      // Clear the input after submission
+      setValue('');
     }
   };
 

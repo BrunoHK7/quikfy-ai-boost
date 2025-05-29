@@ -82,50 +82,66 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="glass border-b sticky top-0 z-50 backdrop-blur-md border-border bg-background/80">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
-              <Brain className="w-6 h-6 text-white" />
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold gradient-text">QUIKFY</span>
+            <span className="text-xl sm:text-2xl font-bold gradient-text">QUIKFY</span>
           </Link>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Link to="/settings">
-              <Button variant="outline" className="border-border text-foreground hover:bg-purple-600 hover:text-white">
-                <Settings className="w-4 h-4 mr-2" />
-                Configurações
+              <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-purple-600 hover:text-white text-xs sm:text-sm">
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Configurações</span>
               </Button>
             </Link>
-            <Button variant="outline" onClick={signOut} className="border-border text-foreground hover:bg-red-600 hover:text-white">
+            <Button variant="outline" size="sm" onClick={signOut} className="border-border text-foreground hover:bg-red-600 hover:text-white text-xs sm:text-sm">
               Sair
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">
         {/* Profile Header */}
         <ProfileHeader profile={profile} updateProfile={updateProfile} uploadAvatar={uploadAvatar} />
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 glass rounded-2xl p-1 border-border bg-card/50">
-            <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Visão Geral</TabsTrigger>
-            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Projetos ({projectsCount})</TabsTrigger>
-            <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Fotos</TabsTrigger>
-            <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Conquistas</TabsTrigger>
-            <TabsTrigger value="uses" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Usos</TabsTrigger>
-            <TabsTrigger value="uses-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Histórico</TabsTrigger>
-            <TabsTrigger value="subscription" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Assinatura</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto mb-4 sm:mb-6">
+            <TabsList className="inline-flex min-w-full sm:w-full grid-cols-none sm:grid sm:grid-cols-7 glass rounded-2xl p-1 border-border bg-card/50 whitespace-nowrap">
+              <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Visão Geral
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Projetos ({projectsCount})
+              </TabsTrigger>
+              <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Fotos
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Conquistas
+              </TabsTrigger>
+              <TabsTrigger value="uses" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Usos
+              </TabsTrigger>
+              <TabsTrigger value="uses-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Histórico
+              </TabsTrigger>
+              <TabsTrigger value="subscription" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
+                Assinatura
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-8">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <ProfileStats projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-6 mt-8">
+          <TabsContent value="projects" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <ProfileProjects 
               projects={projects} 
               onDeleteProject={handleDeleteProject} 
@@ -134,27 +150,27 @@ const Profile = () => {
           </TabsContent>
 
           {/* Photos Tab */}
-          <TabsContent value="photos" className="space-y-6 mt-8">
+          <TabsContent value="photos" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <ProfilePhotos />
           </TabsContent>
 
           {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6 mt-8">
+          <TabsContent value="achievements" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <ProfileAchievements profile={profile} projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Uses Tab */}
-          <TabsContent value="uses" className="space-y-6 mt-8">
+          <TabsContent value="uses" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <CarouselUsesDisplay showDetails={true} />
           </TabsContent>
 
           {/* Uses History Tab */}
-          <TabsContent value="uses-history" className="space-y-6 mt-8">
+          <TabsContent value="uses-history" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <CarouselUsesHistory />
           </TabsContent>
 
           {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6 mt-8">
+          <TabsContent value="subscription" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <SubscriptionManagement />
           </TabsContent>
         </Tabs>
