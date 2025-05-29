@@ -57,7 +57,7 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
           <p className="text-muted-foreground">Carregando perfil...</p>
@@ -68,10 +68,10 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Erro ao carregar perfil</p>
-          <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+          <Button onClick={() => window.location.reload()} variant="purple">Tentar novamente</Button>
         </div>
       </div>
     );
@@ -80,13 +80,15 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="glass border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold">QUIKFY</span>
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-glow">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold gradient-text">QUIKFY</span>
           </Link>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Link to="/settings">
               <Button variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
@@ -106,22 +108,22 @@ const Profile = () => {
 
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="projects">Meus Projetos ({projectsCount})</TabsTrigger>
-            <TabsTrigger value="photos">Fotos</TabsTrigger>
-            <TabsTrigger value="achievements">Conquistas</TabsTrigger>
-            <TabsTrigger value="credits">Créditos</TabsTrigger>
-            <TabsTrigger value="credit-history">Histórico</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 glass rounded-2xl p-1">
+            <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Visão Geral</TabsTrigger>
+            <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Meus Projetos ({projectsCount})</TabsTrigger>
+            <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Fotos</TabsTrigger>
+            <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Conquistas</TabsTrigger>
+            <TabsTrigger value="credits" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Créditos</TabsTrigger>
+            <TabsTrigger value="credit-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white">Histórico</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-6 mt-8">
             <ProfileStats projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-6">
+          <TabsContent value="projects" className="space-y-6 mt-8">
             <ProfileProjects 
               projects={projects} 
               onDeleteProject={handleDeleteProject} 
@@ -130,22 +132,22 @@ const Profile = () => {
           </TabsContent>
 
           {/* Photos Tab */}
-          <TabsContent value="photos" className="space-y-6">
+          <TabsContent value="photos" className="space-y-6 mt-8">
             <ProfilePhotos />
           </TabsContent>
 
           {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6">
+          <TabsContent value="achievements" className="space-y-6 mt-8">
             <ProfileAchievements profile={profile} projectsCount={projectsCount} />
           </TabsContent>
 
           {/* Credits Tab */}
-          <TabsContent value="credits" className="space-y-6">
+          <TabsContent value="credits" className="space-y-6 mt-8">
             <CreditDisplay showDetails={true} />
           </TabsContent>
 
           {/* Credit History Tab */}
-          <TabsContent value="credit-history" className="space-y-6">
+          <TabsContent value="credit-history" className="space-y-6 mt-8">
             <CreditHistory />
           </TabsContent>
         </Tabs>
