@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,7 @@ const Index = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const isAdmin = profile?.role === 'admin';
-  const isPremium = profile?.role === 'admin' || profile?.role === 'pro' || profile?.role === 'vip' || profile?.role === 'essential';
+  const isPremium = isAdmin || profile?.role === 'pro' || profile?.role === 'vip' || profile?.role === 'essential';
 
   return (
     <div className="min-h-screen bg-background">
