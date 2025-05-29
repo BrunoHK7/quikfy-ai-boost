@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,62 +55,8 @@ const Index = () => {
       icon: Palette,
       gradient: "from-purple-500 to-indigo-500",
       href: "/design-generator",
-      credits: 2,
+      credits: 0,
       category: "creation"
-    },
-    {
-      title: "Scripts IA",
-      description: "Roteiros para vídeos que engajam e vendem",
-      icon: FileText,
-      gradient: "from-blue-500 to-cyan-500",
-      href: "/script-generator",
-      credits: 2,
-      category: "content"
-    },
-    {
-      title: "Copy IA",
-      description: "Textos persuasivos que convertem visitantes em clientes",
-      icon: MessageCircle,
-      gradient: "from-green-500 to-emerald-500",
-      href: "/copy-generator",
-      credits: 1,
-      category: "content"
-    },
-    {
-      title: "E-mail IA",
-      description: "Campanhas de e-mail que geram resultados",
-      icon: Mail,
-      gradient: "from-orange-500 to-red-500",
-      href: "/email-generator",
-      credits: 2,
-      category: "marketing"
-    },
-    {
-      title: "Análise IA",
-      description: "Insights profundos sobre seu mercado e concorrência",
-      icon: BarChart3,
-      gradient: "from-violet-500 to-purple-500",
-      href: "/analysis-generator",
-      credits: 4,
-      category: "analysis"
-    },
-    {
-      title: "Thumbnails IA",
-      description: "Miniaturas irresistíveis para seus vídeos",
-      icon: Camera,
-      gradient: "from-teal-500 to-green-500",
-      href: "/thumbnail-generator",
-      credits: 2,
-      category: "creation"
-    },
-    {
-      title: "SEO IA",
-      description: "Otimização automática para dominar o Google",
-      icon: Globe,
-      gradient: "from-indigo-500 to-blue-500",
-      href: "/seo-generator",
-      credits: 3,
-      category: "marketing"
     }
   ];
 
@@ -229,7 +174,7 @@ const Index = () => {
               Cada ferramenta foi projetada para maximizar suas conversões e acelerar seus resultados
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {tools.map((tool, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-0 shadow-lg bg-card/50 backdrop-blur-sm">
                 <CardHeader className="pb-4">
@@ -249,7 +194,10 @@ const Index = () => {
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-4">
                     <Badge variant="secondary" className="text-xs">
-                      {tool.credits} {isAdmin ? 'créditos (gratuito)' : 'créditos'}
+                      {tool.credits === 0 
+                        ? (isAdmin ? 'Gratuito (Admin)' : 'Gratuito') 
+                        : `${tool.credits} ${isAdmin ? 'créditos (gratuito)' : 'créditos'}`
+                      }
                     </Badge>
                   </div>
                   <Link to={tool.href}>
