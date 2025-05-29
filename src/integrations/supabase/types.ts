@@ -320,6 +320,9 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          manual_subscription: boolean | null
+          manual_subscription_duration_days: number | null
+          manual_subscription_start: string | null
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
@@ -331,6 +334,9 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          manual_subscription?: boolean | null
+          manual_subscription_duration_days?: number | null
+          manual_subscription_start?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -342,6 +348,9 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          manual_subscription?: boolean | null
+          manual_subscription_duration_days?: number | null
+          manual_subscription_start?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -437,6 +446,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_manual_subscription: {
+        Args: {
+          _email: string
+          _subscription_tier: string
+          _duration_days?: number
+        }
+        Returns: boolean
+      }
+      check_and_expire_manual_subscriptions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_webhook_responses: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -27,6 +27,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // First, check and expire manual subscriptions
+    await supabaseClient.rpc('check_and_expire_manual_subscriptions');
+    logStep("Checked and expired manual subscriptions");
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
@@ -44,6 +48,30 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if user has a manual subscription first
+    const { data: existingSubscriber } = await supabaseClient
+      .from('subscribers')
+      .select('*')
+      .eq('email', user.email)
+      .single();
+
+    if (existingSubscriber?.manual_subscription && existingSubscriber?.subscribed) {
+      logStep("User has active manual subscription", { 
+        tier: existingSubscriber.subscription_tier, 
+        endDate: existingSubscriber.subscription_end 
+      });
+      
+      return new Response(JSON.stringify({
+        subscribed: true,
+        subscription_tier: existingSubscriber.subscription_tier,
+        subscription_end: existingSubscriber.subscription_end
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Continue with Stripe check for regular subscriptions
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
@@ -58,12 +86,16 @@ serve(async (req) => {
         subscribed: false,
         subscription_tier: null,
         subscription_end: null,
+        manual_subscription: false,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
 
       // Reset user to free plan
       await supabaseClient.from("user_credits").update({
         plan_type: 'free',
+        current_credits: 3,
+        total_credits_ever: 3,
+        last_reset_date: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).eq('user_id', user.id);
 
@@ -156,7 +188,7 @@ serve(async (req) => {
       logStep("No active subscription found, keeping current plan");
     }
 
-    // Update subscribers table
+    // Update subscribers table (make sure manual_subscription is false for Stripe subscriptions)
     await supabaseClient.from("subscribers").upsert({
       email: user.email,
       user_id: user.id,
@@ -164,6 +196,7 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
+      manual_subscription: false,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'email' });
 
