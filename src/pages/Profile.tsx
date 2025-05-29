@@ -14,8 +14,8 @@ import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
-import { CreditDisplay } from "@/components/credits/CreditDisplay";
-import { CreditHistory } from "@/components/credits/CreditHistory";
+import { CarouselUsesDisplay } from "@/components/carousel/CarouselUsesDisplay";
+import { CarouselUsesHistory } from "@/components/carousel/CarouselUsesHistory";
 import { SubscriptionManagement } from "@/components/profile/SubscriptionManagement";
 import { useState } from "react";
 
@@ -114,8 +114,8 @@ const Profile = () => {
             <TabsTrigger value="projects" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Projetos ({projectsCount})</TabsTrigger>
             <TabsTrigger value="photos" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Fotos</TabsTrigger>
             <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Conquistas</TabsTrigger>
-            <TabsTrigger value="credits" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Créditos</TabsTrigger>
-            <TabsTrigger value="credit-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Histórico</TabsTrigger>
+            <TabsTrigger value="uses" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Usos</TabsTrigger>
+            <TabsTrigger value="uses-history" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Histórico</TabsTrigger>
             <TabsTrigger value="subscription" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground">Assinatura</TabsTrigger>
           </TabsList>
 
@@ -143,14 +143,14 @@ const Profile = () => {
             <ProfileAchievements profile={profile} projectsCount={projectsCount} />
           </TabsContent>
 
-          {/* Credits Tab */}
-          <TabsContent value="credits" className="space-y-6 mt-8">
-            <CreditDisplay showDetails={true} />
+          {/* Uses Tab */}
+          <TabsContent value="uses" className="space-y-6 mt-8">
+            <CarouselUsesDisplay showDetails={true} />
           </TabsContent>
 
-          {/* Credit History Tab */}
-          <TabsContent value="credit-history" className="space-y-6 mt-8">
-            <CreditHistory />
+          {/* Uses History Tab */}
+          <TabsContent value="uses-history" className="space-y-6 mt-8">
+            <CarouselUsesHistory />
           </TabsContent>
 
           {/* Subscription Tab */}

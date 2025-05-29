@@ -27,7 +27,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { CreditDisplay } from "@/components/credits/CreditDisplay";
 import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
 
 const Index = () => {
@@ -54,7 +53,6 @@ const Index = () => {
       icon: Palette,
       gradient: "from-purple-500 to-indigo-500",
       href: "/carousel-creator",
-      credits: 0,
       category: "creation",
       free: true
     },
@@ -64,9 +62,9 @@ const Index = () => {
       icon: Instagram,
       gradient: "from-pink-500 to-rose-500",
       href: "/carousel-generator",
-      credits: 3,
       hot: true,
-      category: "creation"
+      category: "creation",
+      uses: true
     }
   ];
 
@@ -96,6 +94,18 @@ const Index = () => {
     { icon: Star, value: "4.9", label: "Avaliação Média" }
   ];
 
+  const getUsesText = (planType: string) => {
+    switch (planType) {
+      case 'free': return '3 usos';
+      case 'plus': return '10 usos';
+      case 'pro': return '30 usos';
+      case 'vip': 
+      case 'admin': 
+        return 'Usos ilimitados';
+      default: return '3 usos';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -106,7 +116,6 @@ const Index = () => {
             <span className="text-2xl font-bold">QUIKFY</span>
           </div>
           <div className="flex items-center space-x-4">
-            {user && <CreditDisplay />}
             {user ? (
               <div className="flex items-center space-x-3">
                 {isAdmin && (
@@ -222,9 +231,9 @@ const Index = () => {
                     <Badge variant="secondary" className="text-xs">
                       {tool.free 
                         ? 'Gratuito para todos' 
-                        : tool.credits === 0 
-                          ? (isAdmin ? 'Gratuito (Admin)' : 'Gratuito') 
-                          : `${tool.credits} ${isAdmin ? 'créditos (gratuito)' : 'créditos'}`
+                        : tool.uses 
+                          ? (isAdmin ? 'Usos ilimitados (Admin)' : getUsesText(profile?.role || 'free'))
+                          : 'Gratuito'
                       }
                     </Badge>
                   </div>
