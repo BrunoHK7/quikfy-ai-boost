@@ -138,6 +138,7 @@ const CarouselCreator = () => {
     const marginX = marginEnabled ? marginSize * 0.35 : 20;
     const marginY = marginEnabled ? marginSize * 0.35 : 20;
     const contentWidth = canvas.width - (marginX * 2);
+    const contentHeight = canvas.height - (marginY * 2);
 
     // Text
     if (frame.text) {
@@ -157,7 +158,7 @@ const CarouselCreator = () => {
       }
       
       const lineHeight = frame.fontSize * 0.35 * frame.lineHeight;
-      wrapText(ctx, frame.text, textX, marginY + frame.fontSize * 0.35, contentWidth, lineHeight);
+      wrapText(ctx, frame.text, textX, marginY + frame.fontSize * 0.35, contentWidth, lineHeight, contentHeight);
     }
 
     // Signature
@@ -203,7 +204,7 @@ const CarouselCreator = () => {
     }
   };
 
-  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
     const words = text.split(' ');
     let line = '';
     let currentY = y;
@@ -214,14 +215,25 @@ const CarouselCreator = () => {
       const testWidth = metrics.width;
 
       if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, currentY);
-        line = words[n] + ' ';
-        currentY += lineHeight;
+        // Check if we still have space for another line
+        if (currentY + lineHeight <= y + maxHeight - lineHeight) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          // No more space, truncate with ellipsis
+          ctx.fillText(line.trim() + '...', x, currentY);
+          return;
+        }
       } else {
         line = testLine;
       }
     }
-    ctx.fillText(line, x, currentY);
+    
+    // Check if we have space for the last line
+    if (currentY <= y + maxHeight - lineHeight) {
+      ctx.fillText(line, x, currentY);
+    }
   };
 
   const updateCurrentFrame = (updates: Partial<Frame>) => {
@@ -316,6 +328,7 @@ const CarouselCreator = () => {
     const marginX = marginEnabled ? marginSize : 20;
     const marginY = marginEnabled ? marginSize : 20;
     const contentWidth = canvas.width - (marginX * 2);
+    const contentHeight = canvas.height - (marginY * 2);
 
     // Text
     if (frame.text) {
@@ -335,7 +348,7 @@ const CarouselCreator = () => {
       }
       
       const lineHeight = frame.fontSize * frame.lineHeight;
-      wrapText(ctx, frame.text, textX, marginY + frame.fontSize, contentWidth, lineHeight);
+      wrapTextFullSize(ctx, frame.text, textX, marginY + frame.fontSize, contentWidth, lineHeight, contentHeight);
     }
 
     // Signature
@@ -378,6 +391,38 @@ const CarouselCreator = () => {
         ctx.drawImage(img, sigX, sigY, sigWidth, sigHeight);
       };
       img.src = signatureImage;
+    }
+  };
+
+  const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && n > 0) {
+        // Check if we still have space for another line
+        if (currentY + lineHeight <= y + maxHeight - lineHeight) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          // No more space, truncate with ellipsis
+          ctx.fillText(line.trim() + '...', x, currentY);
+          return;
+        }
+      } else {
+        line = testLine;
+      }
+    }
+    
+    // Check if we have space for the last line
+    if (currentY <= y + maxHeight - lineHeight) {
+      ctx.fillText(line, x, currentY);
     }
   };
 
@@ -596,7 +641,7 @@ const CarouselCreator = () => {
                 <input
                   type="range"
                   min="20"
-                  max="100"
+                  max="400"
                   value={marginSize}
                   onChange={(e) => setMarginSize(Number(e.target.value))}
                   className="w-full accent-purple-600"

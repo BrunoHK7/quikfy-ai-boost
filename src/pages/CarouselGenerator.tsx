@@ -9,11 +9,11 @@ import { Loader2, ArrowLeft, Sparkles, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useCredits } from "@/hooks/useCredits";
+import { useCarouselUses } from "@/hooks/useCarouselUses";
 
 const CarouselGenerator = () => {
   const navigate = useNavigate();
-  const { consumeCredits } = useCredits();
+  const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     topic: "",
@@ -37,11 +37,11 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
 
     try {
-      // Consume credits before generating
-      const creditResult = await consumeCredits("carousel_generation", 3, "Geração de carrossel com IA");
+      // Consume a use before generating
+      const useResult = await consumeUse("Geração de carrossel com IA");
       
-      if (!creditResult.success) {
-        toast.error(creditResult.error || "Erro ao consumir créditos");
+      if (!useResult.success) {
+        toast.error(useResult.error || "Erro ao consumir uso");
         setIsGenerating(false);
         return;
       }
@@ -64,7 +64,11 @@ const CarouselGenerator = () => {
       }
 
       if (data?.session_id) {
-        toast.success("Carrossel sendo gerado! Redirecionando...");
+        if (useResult.uses_remaining !== -1) {
+          toast.success(`Carrossel sendo gerado! ${useResult.uses_remaining} usos restantes.`);
+        } else {
+          toast.success("Carrossel sendo gerado!");
+        }
         setTimeout(() => {
           navigate(`/carousel-result?session=${data.session_id}`);
         }, 1500);
@@ -78,6 +82,10 @@ const CarouselGenerator = () => {
       setIsGenerating(false);
     }
   };
+
+  const currentPlan = getCurrentPlanType();
+  const isUnlimited = currentPlan === 'admin' || currentPlan === 'vip';
+  const hasUses = isUnlimited || (userUses && userUses.current_uses > 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -100,6 +108,17 @@ const CarouselGenerator = () => {
                 </h1>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {isUnlimited ? (
+                  <span className="text-green-600 font-medium">Usos ilimitados</span>
+                ) : (
+                  <span>
+                    {userUses?.current_uses || 0} usos restantes
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -115,6 +134,13 @@ const CarouselGenerator = () => {
               <p className="text-gray-600 dark:text-gray-300">
                 Preencha os campos abaixo para gerar um carrossel personalizado com inteligência artificial.
               </p>
+              {!hasUses && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 dark:bg-yellow-900/20 dark:border-yellow-700">
+                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                    Você esgotou seus usos para este plano. Faça upgrade para continuar gerando carrosséis.
+                  </p>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -128,6 +154,7 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Dicas de marketing digital"
                   className="border-blue-200 focus:border-blue-500"
+                  disabled={!hasUses}
                 />
               </div>
 
@@ -142,6 +169,7 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Empreendedores iniciantes"
                   className="border-blue-200 focus:border-blue-500"
+                  disabled={!hasUses}
                 />
               </div>
 
@@ -156,6 +184,7 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Casual e amigável"
                   className="border-blue-200 focus:border-blue-500"
+                  disabled={!hasUses}
                 />
               </div>
 
@@ -172,6 +201,7 @@ const CarouselGenerator = () => {
                   value={formData.numberOfSlides}
                   onChange={handleInputChange}
                   className="border-blue-200 focus:border-blue-500"
+                  disabled={!hasUses}
                 />
               </div>
 
@@ -187,12 +217,13 @@ const CarouselGenerator = () => {
                   placeholder="Adicione qualquer informação extra que possa ajudar na geração do carrossel..."
                   rows={3}
                   className="border-blue-200 focus:border-blue-500"
+                  disabled={!hasUses}
                 />
               </div>
 
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || !formData.topic.trim()}
+                disabled={isGenerating || !formData.topic.trim() || !hasUses}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
               >
                 {isGenerating ? (
@@ -203,7 +234,7 @@ const CarouselGenerator = () => {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Gerar Carrossel (3 créditos)
+                    {hasUses ? 'Gerar Carrossel (1 uso)' : 'Usos esgotados'}
                   </>
                 )}
               </Button>
