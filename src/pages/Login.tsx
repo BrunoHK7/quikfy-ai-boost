@@ -51,40 +51,40 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#131313] dark:bg-[#131313] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
             <Brain className="w-10 h-10 text-purple-600" />
-            <span className="text-3xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-3xl font-bold text-white dark:text-white">QUIKFY</span>
           </Link>
-          <p className="text-gray-600 mt-2">Entre e transforme seu negócio com IA</p>
+          <p className="text-gray-300 dark:text-gray-300 mt-2">Entre e transforme seu negócio com IA</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700 dark:border-gray-700">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-gray-900">
+            <CardTitle className="text-2xl font-bold text-white dark:text-white">
               Acesse sua conta
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-white dark:text-white">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="text-white dark:text-white">Senha</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -92,13 +92,13 @@ const Login = () => {
                     placeholder="Sua senha"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border-gray-200 focus:border-purple-500 pr-10"
+                    className="border-gray-600 dark:border-gray-600 focus:border-purple-500 pr-10 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -122,9 +122,9 @@ const Login = () => {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-gray-300 dark:text-gray-300">
                 Não tem uma conta?{" "}
-                <Link to="/register" className="text-purple-600 hover:text-purple-500 font-medium">
+                <Link to="/register" className="text-purple-400 hover:text-purple-300 font-medium">
                   Criar conta grátis
                 </Link>
               </p>

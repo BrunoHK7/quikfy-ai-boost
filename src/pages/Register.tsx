@@ -61,121 +61,121 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#131313] dark:bg-[#131313] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
             <Brain className="w-10 h-10 text-purple-600" />
-            <span className="text-3xl font-bold text-gray-900">QUIKFY</span>
+            <span className="text-3xl font-bold text-white dark:text-white">QUIKFY</span>
           </Link>
-          <p className="text-gray-600 mt-2">Crie sua conta e transforme seu negócio</p>
+          <p className="text-gray-300 dark:text-gray-300 mt-2">Crie sua conta e transforme seu negócio</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700 dark:border-gray-700">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-gray-900">
+            <CardTitle className="text-2xl font-bold text-white dark:text-white">
               Criar Conta
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Nome Completo *</Label>
+                <Label htmlFor="fullName" className="text-white dark:text-white">Nome Completo *</Label>
                 <Input
                   id="fullName"
                   type="text"
                   placeholder="Seu nome completo"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email" className="text-white dark:text-white">Email *</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone *</Label>
+                <Label htmlFor="phone" className="text-white dark:text-white">Telefone *</Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="(11) 99999-9999"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="city">Cidade *</Label>
+                  <Label htmlFor="city" className="text-white dark:text-white">Cidade *</Label>
                   <Input
                     id="city"
                     type="text"
                     placeholder="São Paulo"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="border-gray-200 focus:border-purple-500"
+                    className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="state">Estado *</Label>
+                  <Label htmlFor="state" className="text-white dark:text-white">Estado *</Label>
                   <Input
                     id="state"
                     type="text"
                     placeholder="SP"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="border-gray-200 focus:border-purple-500"
+                    className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="country">País *</Label>
+                <Label htmlFor="country" className="text-white dark:text-white">País *</Label>
                 <Input
                   id="country"
                   type="text"
                   placeholder="Brasil"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="occupation">Ocupação *</Label>
+                <Label htmlFor="occupation" className="text-white dark:text-white">Ocupação *</Label>
                 <Select value={occupation} onValueChange={setOccupation} required>
-                  <SelectTrigger className="border-gray-200 focus:border-purple-500">
+                  <SelectTrigger className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white">
                     <SelectValue placeholder="Selecione sua ocupação" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="empresario">Empresário</SelectItem>
-                    <SelectItem value="autonomo">Autônomo</SelectItem>
-                    <SelectItem value="funcionario">Funcionário</SelectItem>
+                  <SelectContent className="bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700 dark:border-gray-700">
+                    <SelectItem value="empresario" className="text-white dark:text-white hover:bg-[#131313]">Empresário</SelectItem>
+                    <SelectItem value="autonomo" className="text-white dark:text-white hover:bg-[#131313]">Autônomo</SelectItem>
+                    <SelectItem value="funcionario" className="text-white dark:text-white hover:bg-[#131313]">Funcionário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha *</Label>
+                <Label htmlFor="password" className="text-white dark:text-white">Senha *</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -183,14 +183,14 @@ const Register = () => {
                     placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="border-gray-200 focus:border-purple-500 pr-10"
+                    className="border-gray-600 dark:border-gray-600 focus:border-purple-500 pr-10 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                     required
                     minLength={6}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -198,14 +198,14 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
+                <Label htmlFor="confirmPassword" className="text-white dark:text-white">Confirmar Senha *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirme sua senha"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="border-gray-200 focus:border-purple-500"
+                  className="border-gray-600 dark:border-gray-600 focus:border-purple-500 bg-[#131313] dark:bg-[#131313] text-white dark:text-white placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -227,9 +227,9 @@ const Register = () => {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-gray-300 dark:text-gray-300">
                 Já tem uma conta?{" "}
-                <Link to="/login" className="text-purple-600 hover:text-purple-500 font-medium">
+                <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium">
                   Fazer login
                 </Link>
               </p>

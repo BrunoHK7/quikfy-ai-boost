@@ -146,7 +146,7 @@ const Pricing = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-purple-600" />
-            <span className="text-2xl font-bold">QUIKFY</span>
+            <span className="text-2xl font-bold text-foreground">QUIKFY</span>
           </Link>
           {user ? (
             <Link to="/profile">
@@ -163,15 +163,15 @@ const Pricing = () => {
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200">
+          <Badge className="mb-6 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700">
             <Rocket className="w-4 h-4 mr-2" />
             Transforme seu negócio hoje
           </Badge>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
             Escolha o plano que vai te fazer 
             <span className="text-purple-600"> milionário</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Cada plano foi desenhado para acelerar seus resultados. 
             Junte-se a mais de 50.000 empreendedores que já faturam milhões com nossas IAs.
           </p>
@@ -186,7 +186,7 @@ const Pricing = () => {
                 : "hover:shadow-xl"
             } transition-all duration-300 ${
               isCurrentPlan(plan.name) ? "ring-2 ring-green-500" : ""
-            }`}>
+            } dark:bg-[#1a1a1a] dark:border-gray-700`}>
               {plan.badge && (
                 <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold text-white ${
                   plan.badge === "MAIS POPULAR" ? "bg-purple-600" : "bg-yellow-600"
@@ -202,56 +202,56 @@ const Pricing = () => {
               )}
               
               <CardHeader className="text-center pb-6">
-                <div className="text-4xl mb-2">{plan.emoji}</div>
-                <CardTitle className="text-2xl font-bold">
+                <div className="text-4xl mb-4">{plan.emoji}</div>
+                <CardTitle className="text-2xl font-bold text-foreground">
                   Plano {plan.name}
                 </CardTitle>
                 
                 <div className="mt-6">
                   <div className="flex items-center justify-center space-x-2">
-                    <span className="text-4xl font-bold">
+                    <span className="text-4xl font-bold text-foreground">
                       {plan.price === 0 ? "Grátis" : `R$ ${plan.price}`}
                     </span>
                   </div>
                   {plan.price > 0 && (
-                    <span className="text-muted-foreground">por mês</span>
+                    <span className="text-muted-foreground text-lg">por mês</span>
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Créditos:</span>
-                    <span>{plan.credits}</span>
+              <CardContent className="space-y-6">
+                <div className="bg-muted/50 dark:bg-[#131313] rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-foreground">Créditos:</span>
+                    <span className="text-foreground">{plan.credits}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Renovação:</span>
-                    <span>{plan.renewal}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-foreground">Renovação:</span>
+                    <span className="text-foreground">{plan.renewal}</span>
                   </div>
                   {plan.accumulation && (
-                    <div className="flex justify-between">
-                      <span className="font-medium">Acúmulo:</span>
-                      <span>{plan.accumulation}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-foreground">Acúmulo:</span>
+                      <span className="text-foreground">{plan.accumulation}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="text-sm text-muted-foreground">
-                  <strong>Observações:</strong> {plan.obs}
+                <div className="text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Observações:</strong> {plan.obs}
                 </div>
                 
-                <ul className="space-y-2 text-sm">
+                <ul className="space-y-3 text-sm">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-                      <span>{feature}</span>
+                    <li key={idx} className="flex items-start space-x-3">
+                      <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground leading-relaxed">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
                 <Button 
-                  className={`w-full py-3 mt-6 ${
+                  className={`w-full py-3 mt-6 font-semibold ${
                     plan.name === "Pro"
                       ? "bg-purple-600 hover:bg-purple-700 text-white"
                       : plan.name === "VIP"
@@ -297,11 +297,11 @@ const Pricing = () => {
 
         {/* Guarantee Section */}
         <div className="text-center mt-16">
-          <div className="bg-muted/50 rounded-2xl p-8 max-w-3xl mx-auto">
-            <h3 className="text-2xl font-bold mb-4">
+          <div className="bg-muted/50 dark:bg-[#1a1a1a] rounded-2xl p-8 max-w-3xl mx-auto border dark:border-gray-700">
+            <h3 className="text-2xl font-bold mb-4 text-foreground">
               Garantia de 30 dias ou seu dinheiro de volta
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground leading-relaxed">
               Testamos nossa metodologia com milhares de empreendedores. 
               Se em 30 dias você não ver resultados concretos, devolvemos 100% do seu investimento.
             </p>

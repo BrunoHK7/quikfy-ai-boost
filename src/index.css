@@ -46,41 +46,41 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%; /* #0a0a0a - Mais escuro */
+    --background: 19 19 19; /* #131313 */
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 6%; /* #0f0f0f - Mais escuro que o background */
+    --card: 21 21 21; /* Slightly lighter than background */
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 6%;
+    --popover: 21 21 21;
     --popover-foreground: 0 0% 98%;
 
     --primary: 267.4 93.1% 70%; /* Purple */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 10%; /* Mais escuro */
+    --secondary: 0 0% 15%; /* Dark secondary */
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 8%; /* Mais escuro */
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 12%; /* Very dark */
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 0 0% 10%;
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 267.4 93.1% 70%;
     
-    --sidebar-background: 0 0% 3.9%;
+    --sidebar-background: 19 19 19;
     --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 267.4 93.1% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 14.9%;
+    --sidebar-border: 0 0% 20%;
     --sidebar-ring: 267.4 93.1% 70%;
   }
 }
@@ -103,6 +103,35 @@
   * {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
+
+  /* Dark mode specific overrides */
+  .dark .bg-gradient-to-br {
+    @apply bg-[#131313];
+  }
+
+  .dark .text-gray-900 {
+    @apply text-white;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-gray-200;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+
+  .dark .bg-white {
+    @apply bg-[#1a1a1a];
+  }
+
+  .dark .shadow-xl {
+    @apply shadow-2xl shadow-black/50;
+  }
 }
 
 /* Custom utilities for better design */
@@ -121,5 +150,18 @@
 
   .dark .shadow-glow {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+  }
+
+  /* Dark mode specific utilities */
+  .dark-bg {
+    background-color: #131313 !important;
+  }
+
+  .dark-card {
+    @apply dark:bg-[#1a1a1a] dark:border-gray-700;
+  }
+
+  .dark-text {
+    @apply dark:text-white;
   }
 }

@@ -258,7 +258,7 @@ const CarouselResult: React.FC = () => {
   // Se ainda estamos carregando o sessionId, mostrar loading
   if (!sessionIdLoaded) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-[#131313] dark:bg-[#131313] p-4">
         <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
@@ -283,7 +283,7 @@ const CarouselResult: React.FC = () => {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-[#131313] dark:bg-[#131313] p-4">
         <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
@@ -313,7 +313,7 @@ const CarouselResult: React.FC = () => {
     const phaseTitle = loadingPhase === 'initial' ? 'Criando seu carrossel...' : 'Finalizando...';
     
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-[#131313] dark:bg-[#131313] p-4">
         <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
@@ -353,7 +353,7 @@ const CarouselResult: React.FC = () => {
 
   if (error || Object.keys(carouselContent).length === 0) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen bg-[#131313] dark:bg-[#131313] p-4">
         <div className="max-w-7xl mx-auto">
           <StandardHeader 
             title="Carrossel 10X" 
@@ -387,7 +387,7 @@ const CarouselResult: React.FC = () => {
   ].filter(card => carouselContent[card.key as keyof CarouselContent]);
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-[#131313] dark:bg-[#131313] p-4">
       <div className="max-w-7xl mx-auto">
         <StandardHeader 
           title="Carrossel 10X" 
@@ -396,26 +396,28 @@ const CarouselResult: React.FC = () => {
         
         <div className="space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-primary">
+            <h2 className="text-3xl font-bold text-white dark:text-white">
               Seu Carrossel Está Pronto! 🎉
             </h2>
-            <p className="text-muted-foreground">
-              Aqui estão os {carouselCards.length} cards do seu carrossel otimizado para conversão
+            <p className="text-gray-300 dark:text-gray-300">
+              Aqui estão os {carouselCards?.length || 0} cards do seu carrossel otimizado para conversão
             </p>
           </div>
 
           {/* Grid de Cards Quadrados */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {carouselCards.map((card, index) => (
-              <CarouselCard
-                key={card.key}
-                title={card.title}
-                content={carouselContent[card.key as keyof CarouselContent] || ''}
-                color={card.color}
-                index={index + 1}
-              />
-            ))}
-          </div>
+          {carouselCards && carouselCards.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {carouselCards.map((card, index) => (
+                <CarouselCard
+                  key={card.key}
+                  title={card.title}
+                  content={carouselContent[card.key as keyof CarouselContent] || ''}
+                  color={card.color}
+                  index={index + 1}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row gap-4 pt-8 max-w-2xl mx-auto">
