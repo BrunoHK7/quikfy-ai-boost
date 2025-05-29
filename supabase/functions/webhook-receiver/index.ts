@@ -34,20 +34,19 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // Priorizar session_id que vem diretamente no root do JSON
-        if (parsedData.session_id) {
-          sessionId = parsedData.session_id
-          console.log('Found sessionId in root:', sessionId)
-        }
-        
-        // Verificar se vem com sessionId separado
+        // ORDEM DE PRIORIDADE para encontrar sessionId:
+        // 1. sessionId no root do JSON (vem do Make)
         if (parsedData.sessionId) {
           sessionId = parsedData.sessionId
-          console.log('Found sessionId in sessionId field:', sessionId)
+          console.log('Found sessionId in Make payload:', sessionId)
         }
-        
-        // Verificar se vem com session bundle
-        if (parsedData.session && parsedData.session.sessionId) {
+        // 2. session_id no root do JSON  
+        else if (parsedData.session_id) {
+          sessionId = parsedData.session_id
+          console.log('Found session_id in root:', sessionId)
+        }
+        // 3. sessionId dentro de session bundle
+        else if (parsedData.session && parsedData.session.sessionId) {
           sessionId = parsedData.session.sessionId
           console.log('Found sessionId in session bundle:', sessionId)
         }
@@ -62,6 +61,9 @@ serve(async (req) => {
         } else if (parsedData.text) {
           responseContent = parsedData.text
           console.log('Using text field as content')
+        } else if (parsedData.value) {
+          responseContent = parsedData.value
+          console.log('Using value field as content')
         } else {
           console.log('Using entire JSON as content')
           responseContent = body
@@ -72,17 +74,17 @@ serve(async (req) => {
         responseContent = body
       }
       
-      // Se não temos sessionId, gerar um baseado no timestamp
+      // Se AINDA não temos sessionId, ONLY THEN gerar um baseado no timestamp
       if (!sessionId) {
         sessionId = `response_${Date.now()}`
         console.log('Generated fallback sessionId:', sessionId)
       }
       
-      console.log('Final sessionId:', sessionId)
+      console.log('Final sessionId to save:', sessionId)
       console.log('Final content:', responseContent)
       console.log('Content length:', responseContent.length)
       
-      // Salvar com o sessionId específico
+      // Salvar com o sessionId correto
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
         .insert({
