@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,7 @@ const Index = () => {
 
   // Admin users have access to everything
   const isAdmin = profile?.role === 'admin';
-  const isPremium = isAdmin || ['essential', 'pro', 'vip'].includes(profile?.role || '');
+  const isPremium = isAdmin || ['plus', 'pro', 'vip'].includes(profile?.role || '');
 
   // Force profile refresh for admin users
   const handleForceRefresh = async () => {
@@ -48,6 +49,16 @@ const Index = () => {
 
   const tools = [
     {
+      title: "QuikDesign",
+      description: "Crie designs profissionais para redes sociais em segundos",
+      icon: Palette,
+      gradient: "from-purple-500 to-indigo-500",
+      href: "/carousel-creator",
+      credits: 0,
+      category: "creation",
+      free: true
+    },
+    {
       title: "Carrossel IA",
       description: "Crie carrosséis virais que convertem com nossa IA especializada",
       icon: Instagram,
@@ -55,15 +66,6 @@ const Index = () => {
       href: "/carousel-generator",
       credits: 3,
       hot: true,
-      category: "creation"
-    },
-    {
-      title: "QuikDesign",
-      description: "Design profissional em segundos com IA avançada",
-      icon: Palette,
-      gradient: "from-purple-500 to-indigo-500",
-      href: "/carousel-creator",
-      credits: 0,
       category: "creation"
     }
   ];
@@ -159,15 +161,15 @@ const Index = () => {
               scripts e campanhas que realmente vendem. Usado por +50K empreendedores.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link to="/carousel-generator">
+              <Link to="/carousel-creator">
                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-4">
-                  <Sparkles className="w-6 h-6 mr-2" />
-                  Começar Grátis
+                  <Palette className="w-6 h-6 mr-2" />
+                  Usar QuikDesign Grátis
                 </Button>
               </Link>
               <Link to="/pricing">
                 <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
-                  Ver Planos
+                  Ver Planos Premium
                 </Button>
               </Link>
             </div>
@@ -206,6 +208,11 @@ const Index = () => {
                         🔥 HOT
                       </Badge>
                     )}
+                    {tool.free && (
+                      <Badge className="absolute -top-2 -right-2 bg-green-500 text-white border-0 text-xs">
+                        ✨ GRÁTIS
+                      </Badge>
+                    )}
                   </div>
                   <CardTitle className="text-xl">{tool.title}</CardTitle>
                   <p className="text-muted-foreground">{tool.description}</p>
@@ -213,15 +220,17 @@ const Index = () => {
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-4">
                     <Badge variant="secondary" className="text-xs">
-                      {tool.credits === 0 
-                        ? (isAdmin ? 'Gratuito (Admin)' : 'Gratuito') 
-                        : `${tool.credits} ${isAdmin ? 'créditos (gratuito)' : 'créditos'}`
+                      {tool.free 
+                        ? 'Gratuito para todos' 
+                        : tool.credits === 0 
+                          ? (isAdmin ? 'Gratuito (Admin)' : 'Gratuito') 
+                          : `${tool.credits} ${isAdmin ? 'créditos (gratuito)' : 'créditos'}`
                       }
                     </Badge>
                   </div>
                   <Link to={tool.href}>
                     <Button className="w-full group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                      Usar Agora
+                      {tool.free ? 'Usar Grátis' : 'Usar Agora'}
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
@@ -306,15 +315,15 @@ const Index = () => {
             Junte-se a mais de 50.000 empreendedores que já estão faturando mais com nossa IA
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
+            <Link to="/carousel-creator">
               <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4">
-                <Sparkles className="w-6 h-6 mr-2" />
-                Começar Grátis Agora
+                <Palette className="w-6 h-6 mr-2" />
+                Começar Grátis com QuikDesign
               </Button>
             </Link>
             <Link to="/pricing">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4">
-                Ver Todos os Planos
+                Ver Planos Premium
               </Button>
             </Link>
           </div>
