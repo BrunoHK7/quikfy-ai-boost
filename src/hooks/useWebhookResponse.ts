@@ -6,6 +6,7 @@ export const useWebhookResponse = (sessionId: string | null) => {
   const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadingPhase, setLoadingPhase] = useState<'initial' | 'polling'>('initial');
 
   useEffect(() => {
     if (!sessionId) {
@@ -15,11 +16,12 @@ export const useWebhookResponse = (sessionId: string | null) => {
       return;
     }
 
-    console.log('🔍 useWebhookResponse - Starting to poll for sessionId:', sessionId);
+    console.log('🔍 useWebhookResponse - Starting loading phases for sessionId:', sessionId);
     
     let pollCount = 0;
-    const maxPolls = 60; // 2 minutos
+    const maxPolls = 13; // 40 segundos ÷ 3 segundos (aproximadamente)
     let intervalId: NodeJS.Timeout;
+    let initialTimeout: NodeJS.Timeout;
     
     const pollForResponse = async () => {
       try {
@@ -58,7 +60,7 @@ export const useWebhookResponse = (sessionId: string | null) => {
 
         if (pollCount >= maxPolls) {
           console.log('⏰ useWebhookResponse - Timeout reached for session:', sessionId);
-          setError('Timeout: Não recebemos resposta após 2 minutos');
+          setError('Timeout: Não conseguimos gerar sua resposta. Tente novamente.');
           setIsLoading(false);
           
           if (intervalId) {
@@ -78,12 +80,20 @@ export const useWebhookResponse = (sessionId: string | null) => {
       }
     };
 
-    // Fazer primeira busca após 3 segundos (dar tempo pro Make)
-    const initialTimeout = setTimeout(() => {
+    // Fase 1: Carregamento inicial de 15 segundos
+    console.log('⏳ useWebhookResponse - Starting initial 15s loading phase');
+    setLoadingPhase('initial');
+    
+    initialTimeout = setTimeout(() => {
+      console.log('🔄 useWebhookResponse - Switching to polling phase');
+      setLoadingPhase('polling');
+      
+      // Fazer primeira busca imediatamente
       pollForResponse();
+      
       // Continuar polling a cada 2 segundos
       intervalId = setInterval(pollForResponse, 2000);
-    }, 3000);
+    }, 15000); // 15 segundos
 
     // Cleanup
     return () => {
@@ -97,5 +107,5 @@ export const useWebhookResponse = (sessionId: string | null) => {
     };
   }, [sessionId]);
 
-  return { response, isLoading, error };
+  return { response, isLoading, error, loadingPhase };
 };

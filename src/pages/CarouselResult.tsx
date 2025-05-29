@@ -23,19 +23,26 @@ const CarouselResult: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const { response, isLoading, error } = useWebhookResponse(sessionId);
+  const { response, isLoading, error, loadingPhase } = useWebhookResponse(sessionId);
   const [carouselContent, setCarouselContent] = useState<CarouselContent>({});
   const [currentLoadingIndex, setCurrentLoadingIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
-  const loadingTexts = [
-    'Pensando...',
-    'Aplicando copy...',
-    'Uma pitada de emoção...',
-    'Criando conexão...',
-    'Ajustando tom...',
-    'Finalizando carrossel...'
-  ];
+  const loadingTexts = {
+    initial: [
+      'Analisando suas respostas...',
+      'Aplicando estratégias de copy...',
+      'Criando conexão emocional...',
+      'Ajustando tom de voz...',
+      'Estruturando carrossel...',
+      'Preparando conteúdo...'
+    ],
+    polling: [
+      'Finalizando carrossel...',
+      'Verificando qualidade...',
+      'Quase pronto...'
+    ]
+  };
 
   useEffect(() => {
     console.log('🔍 CarouselResult - Starting sessionId recovery...');
@@ -72,12 +79,13 @@ const CarouselResult: React.FC = () => {
   }, [location, navigate]);
 
   useEffect(() => {
+    const texts = loadingTexts[loadingPhase];
     const interval = setInterval(() => {
-      setCurrentLoadingIndex((prev) => (prev + 1) % loadingTexts.length);
-    }, 2000);
+      setCurrentLoadingIndex((prev) => (prev + 1) % texts.length);
+    }, 2500);
 
     return () => clearInterval(interval);
-  }, [loadingTexts.length]);
+  }, [loadingPhase]);
 
   useEffect(() => {
     if (response) {
@@ -282,6 +290,9 @@ const CarouselResult: React.FC = () => {
   }
 
   if (isLoading) {
+    const currentTexts = loadingTexts[loadingPhase];
+    const phaseTitle = loadingPhase === 'initial' ? 'Criando seu carrossel...' : 'Finalizando...';
+    
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-7xl mx-auto">
@@ -294,10 +305,16 @@ const CarouselResult: React.FC = () => {
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <h2 className="text-2xl font-bold text-primary">
-                {loadingTexts[currentLoadingIndex]}
+                {phaseTitle}
               </h2>
-              <p className="text-muted-foreground">
-                Estamos criando seu carrossel personalizado...
+              <p className="text-lg text-muted-foreground">
+                {currentTexts[currentLoadingIndex]}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {loadingPhase === 'initial' ? 
+                  'Processando suas respostas...' : 
+                  'Verificando se está pronto...'
+                }
               </p>
               <p className="text-xs text-muted-foreground">
                 Session ID: {sessionId}
