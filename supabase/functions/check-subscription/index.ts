@@ -76,40 +76,47 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, updating unsubscribed state");
+      logStep("No customer found");
       
-      // Update subscribers table
-      await supabaseClient.from("subscribers").upsert({
-        email: user.email,
-        user_id: user.id,
-        stripe_customer_id: null,
-        subscribed: false,
-        subscription_tier: null,
-        subscription_end: null,
-        manual_subscription: false,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'email' });
+      // Only update to free if user doesn't have an active manual subscription
+      if (!existingSubscriber?.manual_subscription || !existingSubscriber?.subscribed) {
+        logStep("No manual subscription, updating to free plan");
+        
+        // Update subscribers table
+        await supabaseClient.from("subscribers").upsert({
+          email: user.email,
+          user_id: user.id,
+          stripe_customer_id: null,
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null,
+          manual_subscription: false,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'email' });
 
-      // Reset user to free plan
-      await supabaseClient.from("user_credits").update({
-        plan_type: 'free',
-        current_credits: 3,
-        total_credits_ever: 3,
-        last_reset_date: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }).eq('user_id', user.id);
+        // Reset user to free plan
+        await supabaseClient.from("user_credits").update({
+          plan_type: 'free',
+          current_credits: 3,
+          total_credits_ever: 3,
+          last_reset_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', user.id);
 
-      await supabaseClient.from("profiles").update({
-        role: 'free',
-        updated_at: new Date().toISOString(),
-      }).eq('id', user.id);
+        await supabaseClient.from("profiles").update({
+          role: 'free',
+          updated_at: new Date().toISOString(),
+        }).eq('id', user.id);
 
-      logStep("Updated user to free plan");
+        logStep("Updated user to free plan");
+      } else {
+        logStep("User has manual subscription, keeping current plan");
+      }
       
       return new Response(JSON.stringify({ 
-        subscribed: false, 
-        subscription_tier: null, 
-        subscription_end: null 
+        subscribed: existingSubscriber?.subscribed || false, 
+        subscription_tier: existingSubscriber?.subscription_tier || null, 
+        subscription_end: existingSubscriber?.subscription_end || null 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
