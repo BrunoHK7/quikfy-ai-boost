@@ -38,13 +38,17 @@ const CarouselGenerator = () => {
 
     try {
       // Consume a use before generating
-      const useResult = await consumeUse("Geração de carrossel com IA");
+      console.log('🎯 CarouselGenerator - Consuming use for generation');
+      const useResult = await consumeUse("Geração de carrossel com IA personalizada");
       
       if (!useResult.success) {
+        console.error('❌ CarouselGenerator - Failed to consume use:', useResult.error);
         toast.error(useResult.error || "Erro ao consumir uso");
         setIsGenerating(false);
         return;
       }
+
+      console.log('✅ CarouselGenerator - Use consumed successfully:', useResult);
 
       // Call the webhook function
       const { data, error } = await supabase.functions.invoke('webhook-receiver', {
