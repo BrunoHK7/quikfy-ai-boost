@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,10 +44,9 @@ interface Comment {
   id: string;
   content: string;
   created_at: string;
-  profiles: {
-    full_name: string;
-    avatar_url: string | null;
-  };
+  user_id: string;
+  user_name: string;
+  user_avatar: string | null;
 }
 
 interface Rating {
@@ -125,7 +123,7 @@ const LessonView = () => {
     }
   });
 
-  // Buscar comentários
+  // Buscar comentários com dados do usuário
   const { data: comments } = useQuery({
     queryKey: ['lesson-comments', lessonId],
     queryFn: async () => {
@@ -135,16 +133,33 @@ const LessonView = () => {
           id,
           content,
           created_at,
-          profiles (
-            full_name,
-            avatar_url
-          )
+          user_id
         `)
         .eq('lesson_id', lessonId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Comment[];
+
+      // Buscar dados dos usuários separadamente
+      const userIds = [...new Set(data.map(comment => comment.user_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combinar comentários com dados dos usuários
+      const commentsWithUsers: Comment[] = data.map(comment => {
+        const userProfile = profiles.find(p => p.id === comment.user_id);
+        return {
+          ...comment,
+          user_name: userProfile?.full_name || 'Usuário',
+          user_avatar: userProfile?.avatar_url || null
+        };
+      });
+
+      return commentsWithUsers;
     }
   });
 
@@ -447,22 +462,22 @@ const LessonView = () => {
                   {comments?.map((comment) => (
                     <div key={comment.id} className="flex gap-3">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        {comment.profiles.avatar_url ? (
+                        {comment.user_avatar ? (
                           <img 
-                            src={comment.profiles.avatar_url} 
+                            src={comment.user_avatar} 
                             alt="Avatar"
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
                           <span className="text-purple-600 font-medium">
-                            {comment.profiles.full_name.charAt(0).toUpperCase()}
+                            {comment.user_name.charAt(0).toUpperCase()}
                           </span>
                         )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-gray-900">
-                            {comment.profiles.full_name}
+                            {comment.user_name}
                           </span>
                           <span className="text-sm text-gray-500">
                             {format(new Date(comment.created_at), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
