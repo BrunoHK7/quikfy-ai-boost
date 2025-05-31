@@ -2,7 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -15,8 +15,10 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { subscription, loading: subscriptionLoading } = useSubscription();
+  const location = useLocation();
 
-  console.log('🔒 ProtectedRoute - Auth state:', {
+  console.log('🔒 ProtectedRoute - Debug info:', {
+    path: location.pathname,
     user: user ? { id: user.id, email: user.email } : null,
     profile: profile ? { id: profile.id, role: profile.role } : null,
     requiresAdmin,
@@ -50,26 +52,26 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Se requer admin, verificar APENAS se é admin
+  // Verificação específica para páginas de admin
   if (requiresAdmin) {
-    console.log('🔒 ProtectedRoute - Checking admin requirement for:', user.id);
-    console.log('🔒 ProtectedRoute - Profile:', profile);
+    console.log('🔒 ProtectedRoute - Checking admin access for path:', location.pathname);
+    console.log('🔒 ProtectedRoute - User profile:', profile);
     
     if (!profile) {
-      console.log('❌ ProtectedRoute - No profile found, denying admin access');
+      console.log('❌ ProtectedRoute - No profile found for admin check');
       return <Navigate to="/" replace />;
     }
     
     if (profile.role !== 'admin') {
-      console.log('❌ ProtectedRoute - User role is not admin:', profile.role);
+      console.log('❌ ProtectedRoute - User role is not admin. Current role:', profile.role);
       return <Navigate to="/" replace />;
     }
     
-    console.log('✅ ProtectedRoute - Admin access granted');
+    console.log('✅ ProtectedRoute - Admin access granted for:', location.pathname);
     return <>{children}</>;
   }
 
-  // Se requer premium, verificar assinatura (admins sempre passam)
+  // Verificação para páginas premium
   if (requiresPremium) {
     console.log('🔒 ProtectedRoute - Checking premium requirement');
     
@@ -94,7 +96,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     console.log('✅ ProtectedRoute - Premium access granted');
   }
 
-  console.log('✅ ProtectedRoute - General access granted');
+  console.log('✅ ProtectedRoute - General access granted for:', location.pathname);
   return <>{children}</>;
 };
 

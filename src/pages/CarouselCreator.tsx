@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { EmojiPicker } from "@/components/carousel/EmojiPicker";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 interface Frame {
   id: string;
@@ -489,6 +490,79 @@ const CarouselCreator = () => {
     setShowEmojiPicker(false);
   };
 
+  // Auto-save configuration
+  const autoSaveData = {
+    projectName,
+    dimensions,
+    globalBackgroundColor,
+    globalTextColor,
+    globalFontFamily,
+    marginEnabled,
+    marginSize,
+    signatureImage,
+    signaturePosition,
+    signatureSize,
+    currentFrameIndex,
+    frames
+  };
+
+  const { loadSavedData } = useAutoSave({
+    data: autoSaveData,
+    key: 'carousel_creator',
+    debounceMs: 3000,
+    enabled: true
+  });
+
+  // Carregar dados salvos na inicialização
+  useEffect(() => {
+    const loadPreviousWork = async () => {
+      if (!user) return;
+
+      try {
+        const savedData = await loadSavedData();
+        if (savedData) {
+          console.log('🔄 Carregando trabalho anterior...');
+          
+          // Restaurar todos os dados salvos
+          if (savedData.projectName) setProjectName(savedData.projectName);
+          if (savedData.dimensions) setDimensions(savedData.dimensions);
+          if (savedData.globalBackgroundColor) setGlobalBackgroundColor(savedData.globalBackgroundColor);
+          if (savedData.globalTextColor) setGlobalTextColor(savedData.globalTextColor);
+          if (savedData.globalFontFamily) setGlobalFontFamily(savedData.globalFontFamily);
+          if (savedData.marginEnabled !== undefined) setMarginEnabled(savedData.marginEnabled);
+          if (savedData.marginSize) setMarginSize(savedData.marginSize);
+          if (savedData.signatureImage) setSignatureImage(savedData.signatureImage);
+          if (savedData.signaturePosition) setSignaturePosition(savedData.signaturePosition);
+          if (savedData.signatureSize) setSignatureSize(savedData.signatureSize);
+          if (savedData.currentFrameIndex !== undefined) setCurrentFrameIndex(savedData.currentFrameIndex);
+          if (savedData.frames && savedData.frames.length > 0) setFrames(savedData.frames);
+
+          toast.success("Trabalho anterior restaurado automaticamente!");
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados salvos:', error);
+      }
+    };
+
+    loadPreviousWork();
+  }, [user, loadSavedData]);
+
+  // Aviso antes de sair da página
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const message = "Você tem alterações não salvas. Deseja sair mesmo assim?";
+      e.preventDefault();
+      e.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background dark:bg-background">
       {/* Header */}
@@ -509,6 +583,9 @@ const CarouselCreator = () => {
                 <div className="text-xl font-semibold text-foreground">QuikDesign</div>
                 <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                   Grátis
+                </Badge>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300">
+                  Auto-save ativo
                 </Badge>
               </div>
             </div>

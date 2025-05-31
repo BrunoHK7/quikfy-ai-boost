@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, ArrowLeft, Sparkles, Bot } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, Bot, Badge } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCarouselUses } from "@/hooks/useCarouselUses";
 import { usePageReload } from "@/hooks/usePageReload";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 const CarouselGenerator = () => {
   const navigate = useNavigate();
@@ -26,6 +27,50 @@ const CarouselGenerator = () => {
     numberOfSlides: "5",
     additionalInfo: ""
   });
+
+  // Auto-save para o formulário
+  const { loadSavedData } = useAutoSave({
+    data: formData,
+    key: 'carousel_generator_form',
+    debounceMs: 2000,
+    enabled: true
+  });
+
+  // Carregar dados salvos na inicialização
+  useEffect(() => {
+    const loadPreviousForm = async () => {
+      try {
+        const savedData = await loadSavedData();
+        if (savedData && Object.keys(savedData).length > 0) {
+          console.log('🔄 Carregando formulário anterior...');
+          setFormData(savedData);
+          toast.success("Formulário anterior restaurado!");
+        }
+      } catch (error) {
+        console.error('Erro ao carregar formulário salvo:', error);
+      }
+    };
+
+    loadPreviousForm();
+  }, [loadSavedData]);
+
+  // Aviso antes de sair da página se houver dados no formulário
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (formData.topic || formData.targetAudience || formData.additionalInfo) {
+        const message = "Você tem um formulário preenchido. Deseja sair mesmo assim?";
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [formData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -115,6 +160,9 @@ const CarouselGenerator = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Gerador de Carrossel IA
                 </h1>
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300">
+                  Auto-save ativo
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-2">
