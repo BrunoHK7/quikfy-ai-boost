@@ -40,8 +40,8 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   // Check admin requirement first
   if (requiresAdmin) {
     console.log('Checking admin access for user:', user.id, 'Profile role:', profile?.role);
-    if (profile?.role !== 'admin') {
-      console.log('Access denied - user is not admin');
+    if (!profile || profile.role !== 'admin') {
+      console.log('Access denied - user is not admin. Profile:', profile);
       return <Navigate to="/" replace />;
     }
     console.log('Admin access granted');
