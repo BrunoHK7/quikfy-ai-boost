@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +9,13 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCarouselUses } from "@/hooks/useCarouselUses";
+import { usePageReload } from "@/hooks/usePageReload";
 
 const CarouselGenerator = () => {
   const navigate = useNavigate();
   const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
+  usePageReload(); // Previne recarregamento da página
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     topic: "",

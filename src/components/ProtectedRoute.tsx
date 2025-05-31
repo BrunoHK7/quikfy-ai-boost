@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Check admin requirement first
+  // Check admin requirement
   if (requiresAdmin) {
     console.log('Checking admin access for user:', user.id, 'Profile role:', profile?.role);
     if (!profile || profile.role !== 'admin') {
@@ -45,7 +45,6 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
       return <Navigate to="/" replace />;
     }
     console.log('Admin access granted');
-    // Admin users bypass all other restrictions
     return <>{children}</>;
   }
 

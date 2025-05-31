@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 
 export const usePageReload = () => {
@@ -12,34 +11,15 @@ export const usePageReload = () => {
       // Não fazer nada ao focar na janela
     };
 
-    const handlePageShow = (event: PageTransitionEvent) => {
-      // Não recarregar quando a página é restaurada do cache
-      if (event.persisted) {
-        // Previne recarregamento do cache
-        event.preventDefault();
-      }
-    };
-
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // Remove qualquer prompt de recarregamento
+      // Apenas previne o prompt de saída em algumas situações
+      // Não bloqueia completamente a navegação
       event.preventDefault();
       event.returnValue = '';
       return '';
     };
 
-    const handlePopState = (event: PopStateEvent) => {
-      // Previne navegação indesejada
-      event.preventDefault();
-    };
-
-    // Listeners que previnem comportamentos indesejados
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-
-    // Previne refresh com F5 ou Ctrl+R
+    // Previne apenas F5 e Ctrl+R (refresh manual)
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
         event.preventDefault();
@@ -47,14 +27,16 @@ export const usePageReload = () => {
       }
     };
 
+    // Listeners mais suaves - não impedem navegação normal
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
