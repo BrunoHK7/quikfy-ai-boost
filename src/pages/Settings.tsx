@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Brain, ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,6 @@ const Settings = () => {
   // Settings state
   const [showPublicProfile, setShowPublicProfile] = useState(false);
   const [language, setLanguage] = useState("pt");
-  const [theme, setTheme] = useState("light");
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
 
@@ -32,7 +30,6 @@ const Settings = () => {
     }
     if (preferences) {
       setLanguage(preferences.language || "pt");
-      setTheme(preferences.theme || "light");
     }
   }, [profile, preferences]);
 
@@ -47,7 +44,6 @@ const Settings = () => {
       // Update user preferences
       const preferencesResult = await updatePreferences({
         language,
-        theme,
       });
 
       if (profileResult.error || preferencesResult.error) {
@@ -155,32 +151,6 @@ const Settings = () => {
                     <SelectItem value="pt">{t('language.portuguese')}</SelectItem>
                     <SelectItem value="en">{t('language.english')}</SelectItem>
                     <SelectItem value="es">{t('language.spanish')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Theme Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('settings.theme')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="text-base">{t('settings.theme')}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {t('settings.themeDesc')}
-                  </div>
-                </div>
-                <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">{t('theme.light')}</SelectItem>
-                    <SelectItem value="dark">{t('theme.dark')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

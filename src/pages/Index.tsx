@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import {
   Sparkles, 
   ArrowRight,
   User,
-  Upgrade,
+  Crown,
   Palette,
   Image
 } from "lucide-react";
@@ -66,7 +65,7 @@ const Index = () => {
                     size="lg" 
                     className="border-2 border-purple-600 text-purple-600 hover:bg-purple-50"
                   >
-                    <Upgrade className="w-5 h-5 mr-2" />
+                    <Crown className="w-5 h-5 mr-2" />
                     Fazer Upgrade
                   </Button>
                 </Link>
