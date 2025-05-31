@@ -37,18 +37,22 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Admin users bypass all restrictions
-  if (profile?.role === 'admin') {
-    return <>{children}</>;
-  }
-
-  // Check admin requirement
+  // Check admin requirement first
   if (requiresAdmin) {
-    return <Navigate to="/pricing" replace />;
+    if (profile?.role !== 'admin') {
+      return <Navigate to="/" replace />;
+    }
+    // Admin users bypass all other restrictions
+    return <>{children}</>;
   }
 
   // Check premium requirement
   if (requiresPremium) {
+    // Admin users bypass premium requirement
+    if (profile?.role === 'admin') {
+      return <>{children}</>;
+    }
+    
     // Usuários teste têm acesso como se fossem Pro
     if (profile?.role === 'teste') {
       return <>{children}</>;

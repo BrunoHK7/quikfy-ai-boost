@@ -36,6 +36,48 @@ export type Database = {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string
+          estimated_duration: string | null
+          id: string
+          level: string | null
+          price: number | null
+          thumbnail: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          estimated_duration?: string | null
+          id?: string
+          level?: string | null
+          price?: number | null
+          thumbnail?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          estimated_duration?: string | null
+          id?: string
+          level?: string | null
+          price?: number | null
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -110,6 +152,120 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      lesson_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_comments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_ratings: {
+        Row: {
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          rating: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          rating?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          rating?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_ratings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          description: string | null
+          duration: string | null
+          id: string
+          order_number: number
+          title: string
+          updated_at: string | null
+          video_url: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string
+          order_number: number
+          title: string
+          updated_at?: string | null
+          video_url: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string | null
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_photos: {
         Row: {

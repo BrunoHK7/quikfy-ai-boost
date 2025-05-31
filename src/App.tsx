@@ -25,6 +25,8 @@ import ContentFeed from "./pages/ContentFeed";
 import FinancialManagement from "./pages/FinancialManagement";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreateCourse from "./pages/CreateCourse";
+import CourseView from "./pages/CourseView";
+import LessonView from "./pages/LessonView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -60,7 +62,8 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
           <Route path="/pricing" element={<Pricing />} />
-          {/* Ferramentas - acessíveis a todos os usuários autenticados (consomem créditos) */}
+          
+          {/* Ferramentas - acessíveis a todos os usuários autenticados */}
           <Route path="/carousel-generator" element={
             <ProtectedRoute>
               <CarouselBriefing />
@@ -86,6 +89,7 @@ const AppContent: React.FC = () => {
               <FinancialManagement />
             </ProtectedRoute>
           } />
+
           {/* Conteúdo premium - apenas para usuários pagos e admins */}
           <Route path="/podcasts" element={
             <ProtectedRoute requiresPremium={true}>
@@ -97,6 +101,19 @@ const AppContent: React.FC = () => {
               <ContentFeed />
             </ProtectedRoute>
           } />
+
+          {/* Cursos - apenas para usuários pagos e admins */}
+          <Route path="/courses/:courseId" element={
+            <ProtectedRoute requiresPremium={true}>
+              <CourseView />
+            </ProtectedRoute>
+          } />
+          <Route path="/courses/:courseId/lessons/:lessonId" element={
+            <ProtectedRoute requiresPremium={true}>
+              <LessonView />
+            </ProtectedRoute>
+          } />
+
           {/* Rotas de administração - apenas para admins */}
           <Route path="/admin" element={
             <ProtectedRoute requiresAdmin={true}>
@@ -108,7 +125,8 @@ const AppContent: React.FC = () => {
               <CreateCourse />
             </ProtectedRoute>
           } />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

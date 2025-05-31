@@ -11,7 +11,6 @@ import {
   BookOpen, 
   Plus, 
   Trash2, 
-  Upload,
   Save,
   Eye
 } from 'lucide-react';
@@ -19,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Lesson {
   id: string;
@@ -107,13 +107,44 @@ const CreateCourse = () => {
     setIsLoading(true);
     
     try {
-      // Aqui você salvaria o curso no banco de dados
-      // Por ora, apenas simularemos o salvamento
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Criar o curso
+      const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .insert({
+          title: courseData.title,
+          description: courseData.description,
+          thumbnail: courseData.thumbnail || null,
+          category: courseData.category || null,
+          level: courseData.level,
+          price: courseData.price ? parseFloat(courseData.price) : 0,
+          estimated_duration: courseData.estimatedDuration || null,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (courseError) throw courseError;
+
+      // Criar as aulas
+      const lessonsToInsert = lessons.map(lesson => ({
+        course_id: course.id,
+        title: lesson.title,
+        description: lesson.description || null,
+        video_url: lesson.videoUrl,
+        duration: lesson.duration || null,
+        order_number: lesson.order
+      }));
+
+      const { error: lessonsError } = await supabase
+        .from('lessons')
+        .insert(lessonsToInsert);
+
+      if (lessonsError) throw lessonsError;
       
       toast.success('Curso criado com sucesso!');
       navigate('/admin');
     } catch (error) {
+      console.error('Erro ao criar curso:', error);
       toast.error('Erro ao criar curso');
     } finally {
       setIsLoading(false);
@@ -319,7 +350,7 @@ const CreateCourse = () => {
             <Button 
               onClick={saveCourse} 
               disabled={isLoading} 
-              className="flex-1"
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
             >
               {isLoading ? (
                 <>Salvando...</>

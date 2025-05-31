@@ -4,36 +4,38 @@ import { useEffect } from 'react';
 export const usePageReload = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // Previne o recarregamento automático quando a aba volta a ficar visível
-      if (document.visibilityState === 'visible') {
-        // Remove qualquer listener de beforeunload que possa estar causando recarregamento
-        window.onbeforeunload = null;
-      }
+      // Não fazer nada quando a aba volta a ficar visível
+      // Remove qualquer comportamento de recarregamento
     };
 
     const handleFocus = () => {
-      // Previne comportamentos indesejados ao focar na janela
-      window.onbeforeunload = null;
+      // Não fazer nada ao focar na janela
     };
 
     const handlePageShow = (event: PageTransitionEvent) => {
-      // Previne recarregamento quando a página é restaurada do cache
+      // Não recarregar quando a página é restaurada do cache
       if (event.persisted) {
-        event.preventDefault();
+        // Não previne o evento, apenas não faz nada
       }
     };
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // Remove qualquer prompt de recarregamento
+      event.preventDefault();
+      return undefined;
+    };
+
+    // Listeners que não fazem nada - apenas previnem comportamentos indesejados
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
     window.addEventListener('pageshow', handlePageShow);
-
-    // Desabilita o recarregamento automático
-    window.onbeforeunload = null;
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 };
