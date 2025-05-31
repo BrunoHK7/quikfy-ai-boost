@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +27,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { AdminAccessWrapper } from "@/components/AdminAccessWrapper";
+import { usePageReload } from "@/hooks/usePageReload";
 
 const Index = () => {
   const { user } = useAuth();
   const { profile, refetch: refetchProfile } = useProfile();
   const navigate = useNavigate();
+
+  // Previne recarregamento da página
+  usePageReload();
 
   // Admin users have access to everything
   const isAdmin = profile?.role === 'admin';
@@ -134,6 +137,13 @@ const Index = () => {
                   >
                     Atualizar Role
                   </Button>
+                )}
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="outline" className="border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950">
+                      Administração
+                    </Button>
+                  </Link>
                 )}
                 <Link to="/profile">
                   <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950">
@@ -314,27 +324,74 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Pronto para <span className="text-yellow-300">Revolucionar</span> seu Negócio?
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Junte-se a mais de 50.000 empreendedores que já estão faturando mais com nossa IA
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/carousel-creator">
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-4">
-                <Palette className="w-6 h-6 mr-2" />
-                Começar Grátis com QuikDesign
-              </Button>
-            </Link>
-            <Link to="/pricing">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-4">
-                Ver Planos Premium
-              </Button>
-            </Link>
+      {/* CTA Section - Melhor design e contraste */}
+      <section className="py-24 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white relative overflow-hidden">
+        {/* Background decorativo */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20"></div>
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-300/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-pink-300/10 rounded-full blur-xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-300/5 rounded-full blur-2xl transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <Badge className="mb-8 bg-yellow-400/20 text-yellow-200 border-yellow-400/30 backdrop-blur-sm">
+              ⚡ Transforme seu negócio hoje mesmo
+            </Badge>
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              Pronto para <span className="text-yellow-300 drop-shadow-lg">Revolucionar</span> seu Negócio?
+            </h2>
+            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 leading-relaxed">
+              Junte-se a mais de <strong className="text-yellow-300">50.000 empreendedores</strong> que já estão 
+              faturando mais com nossa plataforma de IA
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Link to="/carousel-creator">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-purple-900 hover:bg-gray-100 text-lg px-10 py-5 font-semibold shadow-2xl hover:shadow-white/25 transition-all duration-300 hover:scale-105 border-2 border-white/20"
+                >
+                  <Palette className="w-6 h-6 mr-3" />
+                  Começar Grátis com QuikDesign
+                </Button>
+              </Link>
+              <Link to="/pricing">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-white/40 text-white hover:bg-white/10 hover:border-white text-lg px-10 py-5 font-semibold backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                >
+                  <Crown className="w-6 h-6 mr-3" />
+                  Ver Planos Premium
+                </Button>
+              </Link>
+            </div>
+            
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="text-center p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
+                <div className="w-12 h-12 bg-green-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-green-300" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Resultados Imediatos</h3>
+                <p className="text-white/80 text-sm">Veja resultados em minutos, não em meses</p>
+              </div>
+              <div className="text-center p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
+                <div className="w-12 h-12 bg-blue-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-6 h-6 text-blue-300" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Comunidade Ativa</h3>
+                <p className="text-white/80 text-sm">Networking com outros empreendedores</p>
+              </div>
+              <div className="text-center p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
+                <div className="w-12 h-12 bg-purple-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Star className="w-6 h-6 text-purple-300" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Suporte Premium</h3>
+                <p className="text-white/80 text-sm">Assistência dedicada para seu sucesso</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

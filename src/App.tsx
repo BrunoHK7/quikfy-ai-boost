@@ -23,6 +23,8 @@ import CarouselResult from "./pages/CarouselResult";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
 import FinancialManagement from "./pages/FinancialManagement";
+import AdminDashboard from "./pages/AdminDashboard";
+import CreateCourse from "./pages/CreateCourse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -93,6 +95,17 @@ const AppContent: React.FC = () => {
           <Route path="/content-feed" element={
             <ProtectedRoute requiresPremium={true}>
               <ContentFeed />
+            </ProtectedRoute>
+          } />
+          {/* Rotas de administração - apenas para admins */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiresAdmin={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/create-course" element={
+            <ProtectedRoute requiresAdmin={true}>
+              <CreateCourse />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
