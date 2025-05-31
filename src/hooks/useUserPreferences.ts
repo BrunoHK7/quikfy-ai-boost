@@ -7,7 +7,6 @@ interface UserPreferences {
   id: string;
   user_id: string;
   language: string;
-  theme: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,16 +17,6 @@ export const useUserPreferences = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Aplicar tema inicial baseado no sistema ou preferência salva
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      applyTheme(savedTheme);
-    } else {
-      // Detectar preferência do sistema
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(systemPrefersDark ? 'dark' : 'light');
-    }
-
     if (user) {
       fetchOrCreatePreferences();
     } else {
@@ -57,15 +46,11 @@ export const useUserPreferences = () => {
       if (data) {
         console.log('Preferences found:', data);
         setPreferences(data);
-        applyTheme(data.theme);
-        localStorage.setItem('theme', data.theme);
       } else {
         console.log('No preferences found, creating new preferences');
-        const currentTheme = localStorage.getItem('theme') || 'light';
         const newPreferences = {
           user_id: user.id,
-          language: 'pt',
-          theme: currentTheme
+          language: 'pt'
         };
 
         const { data: createdPreferences, error: createError } = await supabase
@@ -79,8 +64,6 @@ export const useUserPreferences = () => {
         } else {
           console.log('Preferences created:', createdPreferences);
           setPreferences(createdPreferences);
-          applyTheme(createdPreferences.theme);
-          localStorage.setItem('theme', createdPreferences.theme);
         }
       }
     } catch (error) {
@@ -90,7 +73,7 @@ export const useUserPreferences = () => {
     }
   };
 
-  const updatePreferences = async (updates: Partial<Pick<UserPreferences, 'language' | 'theme'>>) => {
+  const updatePreferences = async (updates: Partial<Pick<UserPreferences, 'language'>>) => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
@@ -107,10 +90,6 @@ export const useUserPreferences = () => {
       } else {
         console.log('Preferences updated:', data);
         setPreferences(data);
-        if (updates.theme) {
-          applyTheme(updates.theme);
-          localStorage.setItem('theme', updates.theme);
-        }
         return { data };
       }
     } catch (error) {
@@ -119,27 +98,10 @@ export const useUserPreferences = () => {
     }
   };
 
-  const applyTheme = (theme: string) => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  };
-
-  // Função para alternar tema manualmente
-  const toggleTheme = () => {
-    const currentTheme = preferences?.theme || 'light';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    updatePreferences({ theme: newTheme });
-  };
-
   return {
     preferences,
     loading,
     updatePreferences,
-    toggleTheme,
     refetch: fetchOrCreatePreferences
   };
 };

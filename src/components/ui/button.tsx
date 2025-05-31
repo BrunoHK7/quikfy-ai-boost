@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
+        default: "bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg",
+          "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg",
         outline:
-          "border-2 border-border bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md",
+          "border-2 border-purple-600 bg-white text-purple-600 hover:bg-purple-50 shadow-sm hover:shadow-md",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        purple: "bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg shadow-glow",
-        "purple-outline": "border-2 border-purple-600 text-purple-600 bg-transparent hover:bg-purple-600 hover:text-white dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-400 dark:hover:text-black",
+          "bg-gray-100 text-gray-900 hover:bg-gray-200 shadow-sm hover:shadow-md",
+        ghost: "hover:bg-purple-50 hover:text-purple-600",
+        link: "text-purple-600 underline-offset-4 hover:underline",
+        purple: "bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg",
+        "purple-outline": "border-2 border-purple-600 text-purple-600 bg-white hover:bg-purple-600 hover:text-white",
       },
       size: {
         default: "h-11 px-6 py-2",

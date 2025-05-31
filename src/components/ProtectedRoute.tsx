@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
           <p className="text-gray-600">Carregando...</p>
@@ -39,9 +39,12 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
 
   // Check admin requirement first
   if (requiresAdmin) {
+    console.log('Checking admin access for user:', user.id, 'Profile role:', profile?.role);
     if (profile?.role !== 'admin') {
+      console.log('Access denied - user is not admin');
       return <Navigate to="/" replace />;
     }
+    console.log('Admin access granted');
     // Admin users bypass all other restrictions
     return <>{children}</>;
   }
