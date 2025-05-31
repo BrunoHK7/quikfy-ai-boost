@@ -490,7 +490,7 @@ const CarouselCreator = () => {
     setShowEmojiPicker(false);
   };
 
-  // Auto-save configuration
+  // Auto-save otimizado - mover para depois dos states
   const autoSaveData = {
     projectName,
     dimensions,
@@ -509,21 +509,23 @@ const CarouselCreator = () => {
   const { loadSavedData } = useAutoSave({
     data: autoSaveData,
     key: 'carousel_creator',
-    debounceMs: 3000,
+    debounceMs: 4000,
     enabled: true
   });
 
-  // Carregar dados salvos na inicialização
+  // Otimizar o useEffect de carregamento inicial
   useEffect(() => {
-    const loadPreviousWork = async () => {
-      if (!user) return;
+    if (!user) return;
+    
+    let mounted = true;
 
+    const loadPreviousWork = async () => {
       try {
         const savedData = await loadSavedData();
-        if (savedData) {
+        if (savedData && mounted) {
           console.log('🔄 Carregando trabalho anterior...');
           
-          // Restaurar todos os dados salvos
+          // Restaurar dados de forma mais segura
           if (savedData.projectName) setProjectName(savedData.projectName);
           if (savedData.dimensions) setDimensions(savedData.dimensions);
           if (savedData.globalBackgroundColor) setGlobalBackgroundColor(savedData.globalBackgroundColor);
@@ -536,8 +538,6 @@ const CarouselCreator = () => {
           if (savedData.signatureSize) setSignatureSize(savedData.signatureSize);
           if (savedData.currentFrameIndex !== undefined) setCurrentFrameIndex(savedData.currentFrameIndex);
           if (savedData.frames && savedData.frames.length > 0) setFrames(savedData.frames);
-
-          toast.success("Trabalho anterior restaurado automaticamente!");
         }
       } catch (error) {
         console.error('Erro ao carregar dados salvos:', error);
@@ -545,9 +545,13 @@ const CarouselCreator = () => {
     };
 
     loadPreviousWork();
-  }, [user, loadSavedData]);
 
-  // Aviso antes de sair da página
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  // Simplificar beforeunload
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const message = "Você tem alterações não salvas. Deseja sair mesmo assim?";
@@ -561,7 +565,7 @@ const CarouselCreator = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, []); // Sem dependências
 
   return (
     <div className="min-h-screen bg-background dark:bg-background">

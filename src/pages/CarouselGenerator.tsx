@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +16,8 @@ const CarouselGenerator = () => {
   const navigate = useNavigate();
   const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
   
-  // Previne recarregamento apenas com F5/Ctrl+R
-  usePageReload();
+  // Remove usePageReload que estava causando problemas
+  // usePageReload();
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,23 +28,24 @@ const CarouselGenerator = () => {
     additionalInfo: ""
   });
 
-  // Auto-save para o formulário
+  // Auto-save otimizado
   const { loadSavedData } = useAutoSave({
     data: formData,
     key: 'carousel_generator_form',
-    debounceMs: 2000,
+    debounceMs: 3000,
     enabled: true
   });
 
-  // Carregar dados salvos na inicialização
+  // Carregar dados salvos apenas UMA VEZ na inicialização
   useEffect(() => {
+    let mounted = true;
+
     const loadPreviousForm = async () => {
       try {
         const savedData = await loadSavedData();
-        if (savedData && Object.keys(savedData).length > 0) {
+        if (savedData && Object.keys(savedData).length > 0 && mounted) {
           console.log('🔄 Carregando formulário anterior...');
           setFormData(savedData);
-          toast.success("Formulário anterior restaurado!");
         }
       } catch (error) {
         console.error('Erro ao carregar formulário salvo:', error);
@@ -53,12 +53,17 @@ const CarouselGenerator = () => {
     };
 
     loadPreviousForm();
-  }, [loadSavedData]);
 
-  // Aviso antes de sair da página se houver dados no formulário
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Simplificar o beforeunload - sem dependências problemáticas
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (formData.topic || formData.targetAudience || formData.additionalInfo) {
+      const hasData = formData.topic || formData.targetAudience || formData.additionalInfo;
+      if (hasData) {
         const message = "Você tem um formulário preenchido. Deseja sair mesmo assim?";
         e.preventDefault();
         e.returnValue = message;
@@ -71,7 +76,7 @@ const CarouselGenerator = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [formData]);
+  }, []); // Sem dependências para evitar re-registros
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
