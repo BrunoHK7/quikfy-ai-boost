@@ -14,7 +14,9 @@ import { usePageReload } from "@/hooks/usePageReload";
 const CarouselGenerator = () => {
   const navigate = useNavigate();
   const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
-  usePageReload(); // Previne recarregamento da página
+  
+  // Previne recarregamento apenas com F5/Ctrl+R
+  usePageReload();
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({

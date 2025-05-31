@@ -16,9 +16,20 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   const { profile, loading: profileLoading } = useProfile();
   const { subscription, loading: subscriptionLoading } = useSubscription();
 
+  console.log('🔒 ProtectedRoute - Auth state:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    profile: profile ? { id: profile.id, role: profile.role } : null,
+    requiresAdmin,
+    requiresPremium,
+    authLoading,
+    profileLoading,
+    subscriptionLoading
+  });
+
   const loading = authLoading || profileLoading || subscriptionLoading;
 
   if (loading) {
+    console.log('🔒 ProtectedRoute - Still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -30,43 +41,60 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   }
 
   if (!user) {
+    console.log('🔒 ProtectedRoute - No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   if (!user.email_confirmed_at) {
+    console.log('🔒 ProtectedRoute - Email not confirmed, redirecting to verification');
     return <Navigate to="/email-verification" replace />;
   }
 
-  // Check admin requirement
+  // Se requer admin, verificar APENAS se é admin
   if (requiresAdmin) {
-    console.log('Checking admin access for user:', user.id, 'Profile role:', profile?.role);
-    if (!profile || profile.role !== 'admin') {
-      console.log('Access denied - user is not admin. Profile:', profile);
+    console.log('🔒 ProtectedRoute - Checking admin requirement for:', user.id);
+    console.log('🔒 ProtectedRoute - Profile:', profile);
+    
+    if (!profile) {
+      console.log('❌ ProtectedRoute - No profile found, denying admin access');
       return <Navigate to="/" replace />;
     }
-    console.log('Admin access granted');
+    
+    if (profile.role !== 'admin') {
+      console.log('❌ ProtectedRoute - User role is not admin:', profile.role);
+      return <Navigate to="/" replace />;
+    }
+    
+    console.log('✅ ProtectedRoute - Admin access granted');
     return <>{children}</>;
   }
 
-  // Check premium requirement
+  // Se requer premium, verificar assinatura (admins sempre passam)
   if (requiresPremium) {
-    // Admin users bypass premium requirement
+    console.log('🔒 ProtectedRoute - Checking premium requirement');
+    
+    // Admin users sempre passam
     if (profile?.role === 'admin') {
+      console.log('✅ ProtectedRoute - Admin bypassing premium requirement');
       return <>{children}</>;
     }
     
     // Usuários teste têm acesso como se fossem Pro
     if (profile?.role === 'teste') {
+      console.log('✅ ProtectedRoute - Test user bypassing premium requirement');
       return <>{children}</>;
     }
     
-    // Verificar se tem assinatura ativa
+    // Verificar assinatura ativa
     if (!subscription.subscribed) {
+      console.log('❌ ProtectedRoute - No active subscription, redirecting to pricing');
       return <Navigate to="/pricing" replace />;
     }
+    
+    console.log('✅ ProtectedRoute - Premium access granted');
   }
 
-  // Todos os usuários autenticados têm acesso às ferramentas básicas
+  console.log('✅ ProtectedRoute - General access granted');
   return <>{children}</>;
 };
 
