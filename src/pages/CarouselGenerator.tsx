@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -160,9 +161,10 @@ const CarouselGenerator = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Gerador de Carrossel IA
                 </h1>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300">
+                <div className="bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                  <Badge className="h-3 w-3" />
                   Auto-save ativo
-                </Badge>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
