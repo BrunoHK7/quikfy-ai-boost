@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +15,15 @@ import {
   BookOpen,
   BarChart3,
   Eye,
-  Calendar
+  Calendar,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { Link } from 'react-router-dom';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface DashboardStats {
   totalUsers: number;
@@ -34,12 +35,18 @@ interface DashboardStats {
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { logout: adminLogout } = useAdminAuth();
+  const navigate = useNavigate();
 
   console.log('🏠 AdminDashboard - Component loaded:', {
-    user: user ? { id: user.id, email: user.email } : null,
-    profile: profile ? { role: profile.role } : null
+    user: user ? { id: user.id, email: user.email } : null
   });
+
+  const handleAdminLogout = () => {
+    adminLogout();
+    toast.success('Logout da área administrativa realizado');
+    navigate('/');
+  };
 
   // Buscar estatísticas do dashboard
   const { data: stats, isLoading } = useQuery({
@@ -115,9 +122,20 @@ const AdminDashboard = () => {
           title="Painel de Administração" 
           showBackButton={true}
           rightContent={
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-              Admin
-            </Badge>
+            <div className="flex items-center space-x-2">
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                Admin
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAdminLogout}
+                className="text-red-600 hover:text-red-700"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Sair
+              </Button>
+            </div>
           }
         />
 

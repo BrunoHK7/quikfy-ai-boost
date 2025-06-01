@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,11 @@ import {
   Plus, 
   Trash2, 
   Save,
-  Eye
+  Eye,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,13 +31,18 @@ interface Lesson {
 
 const CreateCourse = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { logout: adminLogout } = useAdminAuth();
   const navigate = useNavigate();
 
   console.log('📚 CreateCourse - Component loaded:', {
-    user: user ? { id: user.id, email: user.email } : null,
-    profile: profile ? { role: profile.role } : null
+    user: user ? { id: user.id, email: user.email } : null
   });
+
+  const handleAdminLogout = () => {
+    adminLogout();
+    toast.success('Logout da área administrativa realizado');
+    navigate('/');
+  };
 
   const [courseData, setCourseData] = useState({
     title: '',
@@ -158,9 +163,20 @@ const CreateCourse = () => {
           title="Criar Novo Curso" 
           backTo="/admin"
           rightContent={
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-              Admin
-            </Badge>
+            <div className="flex items-center space-x-2">
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                Admin
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAdminLogout}
+                className="text-red-600 hover:text-red-700"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Sair
+              </Button>
+            </div>
           }
         />
 

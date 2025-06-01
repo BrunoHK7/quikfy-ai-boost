@@ -7,11 +7,10 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiresAdmin?: boolean;
   requiresPremium?: boolean;
 }
 
-const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiresPremium = false }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { subscription, loading: subscriptionLoading } = useSubscription();
@@ -21,7 +20,6 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
     path: location.pathname,
     user: user ? { id: user.id, email: user.email } : null,
     profile: profile ? { id: profile.id, role: profile.role, full_name: profile.full_name } : null,
-    requiresAdmin,
     requiresPremium,
     authLoading,
     profileLoading,
@@ -50,30 +48,6 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   if (!user.email_confirmed_at) {
     console.log('🔒 ProtectedRoute - Email not confirmed, redirecting to verification');
     return <Navigate to="/email-verification" replace />;
-  }
-
-  // Verificação específica para páginas de admin
-  if (requiresAdmin) {
-    console.log('🔒 ProtectedRoute - Admin access required for:', location.pathname);
-    console.log('🔒 ProtectedRoute - User details:', {
-      userId: user.id,
-      email: user.email,
-      profileExists: !!profile,
-      profileRole: profile?.role
-    });
-    
-    if (!profile) {
-      console.log('❌ ProtectedRoute - No profile found, redirecting to home');
-      return <Navigate to="/" replace />;
-    }
-    
-    if (profile.role !== 'admin') {
-      console.log('❌ ProtectedRoute - Access denied. User role:', profile.role, '| Required: admin');
-      return <Navigate to="/" replace />;
-    }
-    
-    console.log('✅ ProtectedRoute - Admin access granted for:', location.pathname);
-    return <>{children}</>;
   }
 
   // Verificação para páginas premium

@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -23,6 +24,7 @@ import CarouselResult from "./pages/CarouselResult";
 import Podcasts from "./pages/Podcasts";
 import ContentFeed from "./pages/ContentFeed";
 import FinancialManagement from "./pages/FinancialManagement";
+import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import CourseView from "./pages/CourseView";
@@ -114,15 +116,22 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
 
-          {/* Rotas de administração - apenas para admins */}
+          {/* Autenticação admin */}
+          <Route path="/admin-auth" element={<AdminAuth />} />
+
+          {/* Rotas de administração - protegidas por senha */}
           <Route path="/admin" element={
-            <ProtectedRoute requiresAdmin={true}>
-              <AdminDashboard />
+            <ProtectedRoute>
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
             </ProtectedRoute>
           } />
           <Route path="/admin/create-course" element={
-            <ProtectedRoute requiresAdmin={true}>
-              <CreateCourse />
+            <ProtectedRoute>
+              <AdminProtectedRoute>
+                <CreateCourse />
+              </AdminProtectedRoute>
             </ProtectedRoute>
           } />
 
