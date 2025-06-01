@@ -26,13 +26,17 @@ export const useProfile = () => {
 
   const fetchOrCreateProfile = async () => {
     if (!user) {
+      console.log('📱 useProfile: No user found, clearing profile state');
       setProfile(null);
       setLoading(false);
       return;
     }
 
+    console.log('📱 useProfile: Starting fetchOrCreateProfile for user:', user.id);
+    console.log('📱 useProfile: User email:', user.email);
+
     try {
-      console.log('Fetching profile for user:', user.id);
+      console.log('🔍 useProfile: Fetching profile from database...');
       
       // Try to fetch existing profile
       const { data, error } = await supabase
@@ -42,17 +46,22 @@ export const useProfile = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ useProfile: Error fetching profile:', error);
         setLoading(false);
         return;
       }
 
       if (data) {
-        console.log('Profile found:', data);
+        console.log('✅ useProfile: Profile found in database:', {
+          id: data.id,
+          email: user.email,
+          role: data.role,
+          full_name: data.full_name
+        });
         
         // Only force admin role for specific user if they don't already have it
         if (user.id === 'f870ffbc-d23a-458d-bac5-131291b5676d' && data.role !== 'admin') {
-          console.log('Forcing admin role for specific user');
+          console.log('🔧 useProfile: Forcing admin role for specific user');
           const { data: updatedProfile, error: updateError } = await supabase
             .from('profiles')
             .update({ role: 'admin' })
@@ -61,18 +70,18 @@ export const useProfile = () => {
             .single();
           
           if (updateError) {
-            console.error('Error updating role to admin:', updateError);
+            console.error('❌ useProfile: Error updating role to admin:', updateError);
             setProfile(data);
           } else {
-            console.log('Role updated to admin:', updatedProfile);
+            console.log('✅ useProfile: Role updated to admin:', updatedProfile);
             setProfile(updatedProfile);
           }
         } else {
-          console.log('Profile loaded without role change:', data);
+          console.log('✅ useProfile: Setting profile with role:', data.role);
           setProfile(data);
         }
       } else {
-        console.log('No profile found, creating new profile');
+        console.log('🆕 useProfile: No profile found, creating new profile');
         // Create a new profile if none exists
         const newProfile = {
           id: user.id,
@@ -88,6 +97,8 @@ export const useProfile = () => {
           show_public_profile: false
         };
 
+        console.log('🆕 useProfile: Creating profile with role:', newProfile.role);
+
         const { data: createdProfile, error: createError } = await supabase
           .from('profiles')
           .insert(newProfile)
@@ -95,23 +106,25 @@ export const useProfile = () => {
           .single();
 
         if (createError) {
-          console.error('Error creating profile:', createError);
+          console.error('❌ useProfile: Error creating profile:', createError);
         } else {
-          console.log('Profile created:', createdProfile);
+          console.log('✅ useProfile: Profile created:', createdProfile);
           setProfile(createdProfile);
         }
       }
     } catch (error) {
-      console.error('Error in fetchOrCreateProfile:', error);
+      console.error('❌ useProfile: Error in fetchOrCreateProfile:', error);
     } finally {
+      console.log('🏁 useProfile: Finished loading, setting loading to false');
       setLoading(false);
     }
   };
 
-  // Carrega o perfil apenas quando user muda
+  // Carrega o perfil quando o user muda
   useEffect(() => {
+    console.log('🔄 useProfile: useEffect triggered, user changed:', user?.id);
     fetchOrCreateProfile();
-  }, [user?.id]); // Dependência específica para evitar loops
+  }, [user?.id]);
 
   const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => {
     if (!user) return { error: 'User not authenticated' };
@@ -170,6 +183,13 @@ export const useProfile = () => {
       return { error };
     }
   };
+
+  console.log('📊 useProfile: Current state:', {
+    hasUser: !!user,
+    hasProfile: !!profile,
+    profileRole: profile?.role,
+    loading
+  });
 
   return {
     profile,

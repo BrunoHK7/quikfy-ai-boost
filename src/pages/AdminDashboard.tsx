@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -36,10 +36,10 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
 
-  // Verificar se é admin
-  if (!user || profile?.role !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
+  console.log('🏠 AdminDashboard - Component loaded:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    profile: profile ? { role: profile.role } : null
+  });
 
   // Buscar estatísticas do dashboard
   const { data: stats, isLoading } = useQuery({

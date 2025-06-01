@@ -17,10 +17,10 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const location = useLocation();
 
-  console.log('🔒 ProtectedRoute - Debug info:', {
+  console.log('🔒 ProtectedRoute - Current state:', {
     path: location.pathname,
     user: user ? { id: user.id, email: user.email } : null,
-    profile: profile ? { id: profile.id, role: profile.role } : null,
+    profile: profile ? { id: profile.id, role: profile.role, full_name: profile.full_name } : null,
     requiresAdmin,
     requiresPremium,
     authLoading,
@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
   const loading = authLoading || profileLoading || subscriptionLoading;
 
   if (loading) {
-    console.log('🔒 ProtectedRoute - Still loading...');
+    console.log('🔒 ProtectedRoute - Still loading, showing spinner...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -54,16 +54,21 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
 
   // Verificação específica para páginas de admin
   if (requiresAdmin) {
-    console.log('🔒 ProtectedRoute - Checking admin access for path:', location.pathname);
-    console.log('🔒 ProtectedRoute - User profile:', profile);
+    console.log('🔒 ProtectedRoute - Admin access required for:', location.pathname);
+    console.log('🔒 ProtectedRoute - User details:', {
+      userId: user.id,
+      email: user.email,
+      profileExists: !!profile,
+      profileRole: profile?.role
+    });
     
     if (!profile) {
-      console.log('❌ ProtectedRoute - No profile found for admin check');
+      console.log('❌ ProtectedRoute - No profile found, redirecting to home');
       return <Navigate to="/" replace />;
     }
     
     if (profile.role !== 'admin') {
-      console.log('❌ ProtectedRoute - User role is not admin. Current role:', profile.role);
+      console.log('❌ ProtectedRoute - Access denied. User role:', profile.role, '| Required: admin');
       return <Navigate to="/" replace />;
     }
     
@@ -73,7 +78,7 @@ const ProtectedRoute = ({ children, requiresAdmin = false, requiresPremium = fal
 
   // Verificação para páginas premium
   if (requiresPremium) {
-    console.log('🔒 ProtectedRoute - Checking premium requirement');
+    console.log('🔒 ProtectedRoute - Premium access required');
     
     // Admin users sempre passam
     if (profile?.role === 'admin') {
