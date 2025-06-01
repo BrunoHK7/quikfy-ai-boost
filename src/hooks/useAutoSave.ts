@@ -81,7 +81,7 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
     }
   }, [user, key, enabled]);
 
-  // Auto-save estável sem re-execuções desnecessárias
+  // Auto-save otimizado - SEM listeners de visibility ou focus
   useEffect(() => {
     if (!enabled || !data || isInitialLoadRef.current || !isMountedRef.current) return;
 
@@ -100,9 +100,9 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [data, debounceMs, enabled]); // Removido saveData das dependências para evitar re-execuções
+  }, [data, debounceMs, enabled, saveData]);
 
-  // Cleanup no unmount
+  // Cleanup simples no unmount
   useEffect(() => {
     isMountedRef.current = true;
     

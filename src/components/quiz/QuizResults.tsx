@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,8 @@ export const QuizResults: React.FC<QuizResultsProps> = ({ answers, briefingData 
   const navigate = useNavigate();
 
   const handleRestart = () => {
-    window.location.reload();
+    // USO NAVIGATE AO INVÉS DE WINDOW.LOCATION.RELOAD
+    navigate('/carousel-briefing', { replace: true });
   };
 
   const handleExport = () => {

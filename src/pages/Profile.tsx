@@ -20,7 +20,7 @@ import { useState } from "react";
 
 const Profile = () => {
   const { projects, deleteProject } = useCarouselProjects();
-  const { profile, loading: profileLoading, updateProfile, uploadAvatar } = useProfile();
+  const { profile, loading: profileLoading, updateProfile, uploadAvatar, refetch } = useProfile();
   const { uploadPhoto } = useProfilePhotos();
   const { signOut, user } = useAuth();
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
@@ -48,6 +48,11 @@ const Profile = () => {
     setProjectsCount(count);
   };
 
+  const handleRetry = async () => {
+    // USO REFETCH AO INVÉS DE WINDOW.LOCATION.RELOAD
+    await refetch();
+  };
+
   console.log('Profile component state:', { 
     user: user?.email, 
     profile: profile?.full_name, 
@@ -71,7 +76,7 @@ const Profile = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Erro ao carregar perfil</p>
-          <Button onClick={() => window.location.reload()} variant="secondary">Tentar novamente</Button>
+          <Button onClick={handleRetry} variant="secondary">Tentar novamente</Button>
         </div>
       </div>
     );

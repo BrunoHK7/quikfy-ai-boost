@@ -12,7 +12,6 @@ import { useQuizFlow } from '@/hooks/useQuizFlow';
 
 const CarouselBriefing: React.FC = () => {
   const { t } = useTranslation();
-  // REMOVIDO usePageReload que estava causando problemas
   
   const {
     currentQuestion,

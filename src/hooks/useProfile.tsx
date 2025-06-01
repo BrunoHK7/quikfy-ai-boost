@@ -24,17 +24,12 @@ export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchOrCreateProfile();
-    } else {
+  const fetchOrCreateProfile = async () => {
+    if (!user) {
       setProfile(null);
       setLoading(false);
+      return;
     }
-  }, [user]);
-
-  const fetchOrCreateProfile = async () => {
-    if (!user) return;
 
     try {
       console.log('Fetching profile for user:', user.id);
@@ -112,6 +107,11 @@ export const useProfile = () => {
       setLoading(false);
     }
   };
+
+  // Carrega o perfil apenas quando user muda
+  useEffect(() => {
+    fetchOrCreateProfile();
+  }, [user?.id]); // Dependência específica para evitar loops
 
   const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => {
     if (!user) return { error: 'User not authenticated' };
