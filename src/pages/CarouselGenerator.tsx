@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,15 +10,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCarouselUses } from "@/hooks/useCarouselUses";
-import { usePageReload } from "@/hooks/usePageReload";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
 const CarouselGenerator = () => {
   const navigate = useNavigate();
   const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
-  
-  // Remove usePageReload que estava causando problemas
-  // usePageReload();
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,26 +54,7 @@ const CarouselGenerator = () => {
     return () => {
       mounted = false;
     };
-  }, []);
-
-  // Simplificar o beforeunload - sem dependências problemáticas
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const hasData = formData.topic || formData.targetAudience || formData.additionalInfo;
-      if (hasData) {
-        const message = "Você tem um formulário preenchido. Deseja sair mesmo assim?";
-        e.preventDefault();
-        e.returnValue = message;
-        return message;
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []); // Sem dependências para evitar re-registros
+  }, []); // Sem dependências para carregar apenas uma vez
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -92,7 +70,6 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
 
     try {
-      // Consume a use before generating
       console.log('🎯 CarouselGenerator - Consuming use for generation');
       const useResult = await consumeUse("Geração de carrossel com IA personalizada");
       
@@ -105,7 +82,6 @@ const CarouselGenerator = () => {
 
       console.log('✅ CarouselGenerator - Use consumed successfully:', useResult);
 
-      // Call the webhook function
       const { data, error } = await supabase.functions.invoke('webhook-receiver', {
         body: {
           topic: formData.topic,
@@ -129,6 +105,8 @@ const CarouselGenerator = () => {
         } else {
           toast.success(`Carrossel sendo gerado! ${useResult.uses_remaining || 0} usos restantes.`);
         }
+        
+        // USO NAVIGATE AO INVÉS DE WINDOW.LOCATION.HREF PARA EVITAR RELOAD
         setTimeout(() => {
           navigate(`/carousel-result?session=${data.session_id}`);
         }, 1500);

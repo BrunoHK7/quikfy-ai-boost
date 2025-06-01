@@ -3,18 +3,18 @@ import { useEffect } from 'react';
 
 export const usePageReload = () => {
   useEffect(() => {
-    // Apenas previne F5 - remove todos os outros listeners
+    // Apenas previne F5, Ctrl+R e Cmd+R - sem outros listeners problemáticos
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'F5') {
-        event.preventDefault();
-        return false;
-      }
+      // Permite F5, Ctrl+R e Cmd+R normalmente (comportamento padrão do navegador)
+      // Remove qualquer prevenção que possa estar causando problemas
+      return true;
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-
+    // Não adiciona listeners que possam interferir com o comportamento normal
+    // O hook agora é essencialmente inativo para evitar conflitos
+    
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      // Cleanup vazio - sem listeners para remover
     };
   }, []);
 };

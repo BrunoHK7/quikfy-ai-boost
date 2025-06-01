@@ -9,11 +9,10 @@ import { OpenQuestion } from '@/components/quiz/OpenQuestion';
 import { QuizResults } from '@/components/quiz/QuizResults';
 import { StandardHeader } from '@/components/StandardHeader';
 import { useQuizFlow } from '@/hooks/useQuizFlow';
-import { usePageReload } from '@/hooks/usePageReload';
 
 const CarouselBriefing: React.FC = () => {
   const { t } = useTranslation();
-  usePageReload(); // Previne recarregamento da página
+  // REMOVIDO usePageReload que estava causando problemas
   
   const {
     currentQuestion,

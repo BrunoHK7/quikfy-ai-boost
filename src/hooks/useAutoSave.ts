@@ -15,9 +15,10 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
   const timeoutRef = useRef<NodeJS.Timeout>();
   const lastSavedDataRef = useRef<string>('');
   const isInitialLoadRef = useRef(true);
+  const isMountedRef = useRef(true);
 
   const saveData = useCallback(async (dataToSave: any) => {
-    if (!user || !enabled) return;
+    if (!user || !enabled || !isMountedRef.current) return;
 
     try {
       const dataString = JSON.stringify(dataToSave);
@@ -28,6 +29,7 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
       // Evita salvar no carregamento inicial da página
       if (isInitialLoadRef.current) {
         isInitialLoadRef.current = false;
+        lastSavedDataRef.current = dataString;
         return;
       }
 
@@ -42,17 +44,19 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
           ignoreDuplicates: false
         });
 
-      if (!error) {
+      if (!error && isMountedRef.current) {
         lastSavedDataRef.current = dataString;
         console.log('✅ Auto-save realizado');
       }
     } catch (error) {
-      console.error('❌ Erro no auto-save:', error);
+      if (isMountedRef.current) {
+        console.error('❌ Erro no auto-save:', error);
+      }
     }
   }, [user, key, enabled]);
 
   const loadSavedData = useCallback(async () => {
-    if (!user || !enabled) return null;
+    if (!user || !enabled || !isMountedRef.current) return null;
 
     try {
       const { data: savedData, error } = await supabase
@@ -64,27 +68,31 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
         .limit(1)
         .maybeSingle();
 
-      if (error || !savedData) return null;
+      if (error || !savedData || !isMountedRef.current) return null;
 
       const parsedData = JSON.parse(savedData.content);
       lastSavedDataRef.current = savedData.content;
       return parsedData;
     } catch (error) {
-      console.error('❌ Erro ao carregar dados salvos:', error);
+      if (isMountedRef.current) {
+        console.error('❌ Erro ao carregar dados salvos:', error);
+      }
       return null;
     }
   }, [user, key, enabled]);
 
-  // Auto-save com debounce melhorado
+  // Auto-save estável sem re-execuções desnecessárias
   useEffect(() => {
-    if (!enabled || !data || isInitialLoadRef.current) return;
+    if (!enabled || !data || isInitialLoadRef.current || !isMountedRef.current) return;
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     timeoutRef.current = setTimeout(() => {
-      saveData(data);
+      if (isMountedRef.current) {
+        saveData(data);
+      }
     }, debounceMs);
 
     return () => {
@@ -92,11 +100,14 @@ export const useAutoSave = ({ data, key, debounceMs = 3000, enabled = true }: Au
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [data, saveData, debounceMs, enabled]);
+  }, [data, debounceMs, enabled]); // Removido saveData das dependências para evitar re-execuções
 
   // Cleanup no unmount
   useEffect(() => {
+    isMountedRef.current = true;
+    
     return () => {
+      isMountedRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
