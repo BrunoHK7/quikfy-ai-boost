@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -112,6 +113,12 @@ const CreateCourse = () => {
     setIsLoading(true);
     
     try {
+      console.log('💾 Criando curso:', {
+        courseData,
+        lessonsCount: lessons.length,
+        userId: user?.id
+      });
+
       // Criar o curso
       const { data: course, error: courseError } = await supabase
         .from('courses')
@@ -123,12 +130,17 @@ const CreateCourse = () => {
           level: courseData.level,
           price: courseData.price ? parseFloat(courseData.price) : 0,
           estimated_duration: courseData.estimatedDuration || null,
-          created_by: user.id
+          created_by: user?.id
         })
         .select()
         .single();
 
-      if (courseError) throw courseError;
+      if (courseError) {
+        console.error('❌ Erro ao criar curso:', courseError);
+        throw courseError;
+      }
+
+      console.log('✅ Curso criado:', course);
 
       // Criar as aulas
       const lessonsToInsert = lessons.map(lesson => ({
@@ -140,17 +152,40 @@ const CreateCourse = () => {
         order_number: lesson.order
       }));
 
-      const { error: lessonsError } = await supabase
-        .from('lessons')
-        .insert(lessonsToInsert);
+      console.log('💾 Inserindo aulas:', lessonsToInsert);
 
-      if (lessonsError) throw lessonsError;
+      const { data: insertedLessons, error: lessonsError } = await supabase
+        .from('lessons')
+        .insert(lessonsToInsert)
+        .select();
+
+      if (lessonsError) {
+        console.error('❌ Erro ao criar aulas:', lessonsError);
+        throw lessonsError;
+      }
+
+      console.log('✅ Aulas criadas:', insertedLessons);
       
       toast.success('Curso criado com sucesso!');
-      navigate('/admin');
-    } catch (error) {
-      console.error('Erro ao criar curso:', error);
-      toast.error('Erro ao criar curso');
+      
+      // Limpar formulário
+      setCourseData({
+        title: '',
+        description: '',
+        thumbnail: '',
+        category: '',
+        level: 'iniciante',
+        price: '',
+        estimatedDuration: ''
+      });
+      setLessons([]);
+      
+      // Opcional: redirecionar para o painel admin
+      // navigate('/admin');
+      
+    } catch (error: any) {
+      console.error('❌ Erro geral ao criar curso:', error);
+      toast.error(`Erro ao criar curso: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setIsLoading(false);
     }
