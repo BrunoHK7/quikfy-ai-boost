@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,9 @@ import {
   BarChart3,
   Eye,
   Calendar,
-  LogOut
+  LogOut,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -33,6 +36,20 @@ interface DashboardStats {
   usersByRole: Record<string, number>;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  category: string | null;
+  level: string;
+  price: number;
+  estimated_duration: string | null;
+  thumbnail: string | null;
+  created_at: string;
+  created_by: string | null;
+  lessons?: { count: number }[];
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { logout: adminLogout } = useAdminAuth();
@@ -47,6 +64,30 @@ const AdminDashboard = () => {
     toast.success('Logout da área administrativa realizado');
     navigate('/');
   };
+
+  // Buscar cursos disponíveis
+  const { data: courses, isLoading: coursesLoading, refetch: refetchCourses } = useQuery({
+    queryKey: ['admin-courses'],
+    queryFn: async (): Promise<Course[]> => {
+      console.log('📚 Buscando cursos...');
+      
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select(`
+          *,
+          lessons(count)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (coursesError) {
+        console.error('❌ Erro ao buscar cursos:', coursesError);
+        throw coursesError;
+      }
+
+      console.log('✅ Cursos encontrados:', coursesData);
+      return coursesData || [];
+    }
+  });
 
   // Buscar estatísticas do dashboard
   const { data: stats, isLoading } = useQuery({
@@ -113,6 +154,53 @@ const AdminDashboard = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const deleteCourse = async (courseId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este curso? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Deletando curso:', courseId);
+
+      // Primeiro deletar as aulas
+      const { error: lessonsError } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('course_id', courseId);
+
+      if (lessonsError) {
+        console.error('❌ Erro ao deletar aulas:', lessonsError);
+        throw lessonsError;
+      }
+
+      // Depois deletar o curso
+      const { error: courseError } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseId);
+
+      if (courseError) {
+        console.error('❌ Erro ao deletar curso:', courseError);
+        throw courseError;
+      }
+
+      console.log('✅ Curso deletado com sucesso');
+      toast.success('Curso excluído com sucesso!');
+      refetchCourses();
+    } catch (error: any) {
+      console.error('❌ Erro ao deletar curso:', error);
+      toast.error(`Erro ao excluir curso: ${error.message}`);
+    }
   };
 
   return (
@@ -195,13 +283,15 @@ const AdminDashboard = () => {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Crescimento</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Cursos</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+12%</div>
+                  <div className="text-2xl font-bold">
+                    {coursesLoading ? '...' : courses?.length || 0}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Crescimento mensal
+                    Total de cursos criados
                   </p>
                 </CardContent>
               </Card>
@@ -319,14 +409,82 @@ const AdminDashboard = () => {
             {/* Lista de Cursos Existentes */}
             <Card>
               <CardHeader>
-                <CardTitle>Cursos Disponíveis</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Cursos Disponíveis</span>
+                  <Badge variant="outline">{courses?.length || 0} cursos</Badge>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhum curso criado ainda</p>
-                  <p className="text-sm">Clique em "Criar Curso" para começar</p>
-                </div>
+                {coursesLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                    <p className="mt-2 text-muted-foreground">Carregando cursos...</p>
+                  </div>
+                ) : courses && courses.length > 0 ? (
+                  <div className="space-y-4">
+                    {courses.map((course) => (
+                      <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <BookOpen className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{course.title}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
+                              <div className="flex items-center space-x-4 mt-2">
+                                {course.category && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {course.category}
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className="text-xs">
+                                  {course.level}
+                                </Badge>
+                                {course.price > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatCurrency(course.price)}
+                                  </Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {course.lessons?.[0]?.count || 0} aulas
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  Criado em {formatDate(course.created_at)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            Visualizar
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Edit className="w-4 h-4 mr-1" />
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => deleteCourse(course.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Excluir
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhum curso criado ainda</p>
+                    <p className="text-sm">Clique em "Criar Curso" para começar</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
