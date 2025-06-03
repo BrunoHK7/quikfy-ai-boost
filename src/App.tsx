@@ -53,6 +53,16 @@ const AppContent: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/email-verification" element={<EmailVerification />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/terms" element={
+            <React.Suspense fallback={<div>Carregando...</div>}>
+              {React.createElement(React.lazy(() => import('./pages/Terms')))}
+            </React.Suspense>
+          } />
+          <Route path="/privacy" element={
+            <React.Suspense fallback={<div>Carregando...</div>}>
+              {React.createElement(React.lazy(() => import('./pages/Privacy')))}
+            </React.Suspense>
+          } />
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />

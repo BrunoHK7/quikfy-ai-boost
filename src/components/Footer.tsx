@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
   ];
 
   const socialLinks = [
-    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Instagram, href: 'https://www.instagram.com/quikfy/', label: 'Instagram' },
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Mail, href: 'mailto:contato@quikfy.com', label: 'Email' },
   ];
@@ -62,6 +62,8 @@ export const Footer: React.FC = () => {
                 <a
                   key={social.label}
                   href={social.href}
+                  target={social.href.startsWith('http') ? '_blank' : '_self'}
+                  rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   className="w-9 h-9 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-purple-600 hover:border-purple-300 transition-colors"
                   aria-label={social.label}
                 >
