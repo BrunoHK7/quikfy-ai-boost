@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
   const isSubscribed = subscription?.subscribed;
 
   const navigationItems = [
-    { label: 'Ferramentas', href: '#ferramentas', external: false },
+    { label: 'Ferramentas', href: '/tools', external: false },
     { label: 'Cursos', href: '/pricing', external: false },
     { 
       label: 'Comunidade', 

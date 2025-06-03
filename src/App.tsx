@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -30,6 +29,7 @@ import CreateCourse from "./pages/CreateCourse";
 import CourseView from "./pages/CourseView";
 import LessonView from "./pages/LessonView";
 import NotFound from "./pages/NotFound";
+import Tools from "./pages/Tools";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +52,7 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/email-verification" element={<EmailVerification />} />
+          <Route path="/tools" element={<Tools />} />
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
