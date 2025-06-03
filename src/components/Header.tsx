@@ -7,6 +7,7 @@ import { Menu, X, User, Settings, LogOut, Crown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
+  const { subscription } = useSubscription();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -26,7 +28,7 @@ export const Header: React.FC = () => {
     navigate('/');
   };
 
-  const isSubscribed = profile?.subscription_status === 'active';
+  const isSubscribed = subscription?.subscribed;
 
   const navigationItems = [
     { label: 'Ferramentas', href: '#ferramentas', external: false },

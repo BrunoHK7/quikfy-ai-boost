@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { 
@@ -16,9 +16,9 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { subscription } = useSubscription();
   
-  const isSubscribed = profile?.subscription_status === 'active';
+  const isSubscribed = subscription?.subscribed;
 
   const tools = [
     {
