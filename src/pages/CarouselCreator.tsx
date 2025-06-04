@@ -137,7 +137,7 @@ const CarouselCreator = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Calculate margins - agora usando margem horizontal e vertical separadamente
+    // Calculate margins - usando margem horizontal e vertical separadamente
     const marginX = marginEnabled ? marginHorizontal * 0.35 : 20;
     const marginY = marginEnabled ? marginVertical * 0.35 : 20;
     const contentWidth = canvas.width - (marginX * 2);
@@ -750,7 +750,7 @@ const CarouselCreator = () => {
             </select>
           </div>
 
-          {/* Margem - Agora com controles separados */}
+          {/* Margem - Com controles separados para horizontal e vertical */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <input
