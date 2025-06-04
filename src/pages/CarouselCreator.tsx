@@ -41,7 +41,8 @@ const CarouselCreator = () => {
   const [globalTextColor, setGlobalTextColor] = useState("#131313");
   const [globalFontFamily, setGlobalFontFamily] = useState("Inter");
   const [marginEnabled, setMarginEnabled] = useState(true);
-  const [marginSize, setMarginSize] = useState(40);
+  const [marginHorizontal, setMarginHorizontal] = useState(40);
+  const [marginVertical, setMarginVertical] = useState(40);
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
   const [signaturePosition, setSignaturePosition] = useState<'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'>('bottom-right');
   const [signatureSize, setSignatureSize] = useState(80);
@@ -92,7 +93,7 @@ const CarouselCreator = () => {
 
   useEffect(() => {
     drawCanvas();
-  }, [frames, currentFrameIndex, globalBackgroundColor, globalTextColor, globalFontFamily, marginEnabled, marginSize, signatureImage, signaturePosition, signatureSize, dimensions]);
+  }, [frames, currentFrameIndex, globalBackgroundColor, globalTextColor, globalFontFamily, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize, dimensions]);
 
   // Apply global changes to all frames in real-time
   useEffect(() => {
@@ -136,9 +137,9 @@ const CarouselCreator = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Calculate margins
-    const marginX = marginEnabled ? marginSize * 0.35 : 20;
-    const marginY = marginEnabled ? marginSize * 0.35 : 20;
+    // Calculate margins - agora usando margem horizontal e vertical separadamente
+    const marginX = marginEnabled ? marginHorizontal * 0.35 : 20;
+    const marginY = marginEnabled ? marginVertical * 0.35 : 20;
     const contentWidth = canvas.width - (marginX * 2);
     const contentHeight = canvas.height - (marginY * 2);
 
@@ -207,34 +208,50 @@ const CarouselCreator = () => {
   };
 
   const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
-    const words = text.split(' ');
-    let line = '';
+    // Dividir o texto por quebras de linha primeiro
+    const paragraphs = text.split('\n');
     let currentY = y;
 
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-
-      if (testWidth > maxWidth && n > 0) {
-        // Check if we still have space for another line
-        if (currentY + lineHeight <= y + maxHeight - lineHeight) {
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          // No more space, truncate with ellipsis
-          ctx.fillText(line.trim() + '...', x, currentY);
-          return;
-        }
-      } else {
-        line = testLine;
+    for (let p = 0; p < paragraphs.length; p++) {
+      const paragraph = paragraphs[p];
+      
+      // Se o parágrafo está vazio (linha em branco), apenas pula a linha
+      if (paragraph.trim() === '') {
+        currentY += lineHeight;
+        continue;
       }
-    }
-    
-    // Check if we have space for the last line
-    if (currentY <= y + maxHeight - lineHeight) {
-      ctx.fillText(line, x, currentY);
+
+      const words = paragraph.split(' ');
+      let line = '';
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          // Check if we still have space for another line
+          if (currentY + lineHeight <= y + maxHeight - lineHeight) {
+            ctx.fillText(line, x, currentY);
+            line = words[n] + ' ';
+            currentY += lineHeight;
+          } else {
+            // No more space, truncate with ellipsis
+            ctx.fillText(line.trim() + '...', x, currentY);
+            return;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+      
+      // Check if we have space for the last line of this paragraph
+      if (currentY <= y + maxHeight - lineHeight) {
+        ctx.fillText(line, x, currentY);
+        currentY += lineHeight;
+      } else {
+        break;
+      }
     }
   };
 
@@ -335,8 +352,8 @@ const CarouselCreator = () => {
   };
 
   const drawFullSizeContent = (ctx: CanvasRenderingContext2D, frame: Frame, canvas: HTMLCanvasElement) => {
-    const marginX = marginEnabled ? marginSize : 20;
-    const marginY = marginEnabled ? marginSize : 20;
+    const marginX = marginEnabled ? marginHorizontal : 20;
+    const marginY = marginEnabled ? marginVertical : 20;
     const contentWidth = canvas.width - (marginX * 2);
     const contentHeight = canvas.height - (marginY * 2);
 
@@ -405,34 +422,50 @@ const CarouselCreator = () => {
   };
 
   const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
-    const words = text.split(' ');
-    let line = '';
+    // Dividir o texto por quebras de linha primeiro
+    const paragraphs = text.split('\n');
     let currentY = y;
 
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-
-      if (testWidth > maxWidth && n > 0) {
-        // Check if we still have space for another line
-        if (currentY + lineHeight <= y + maxHeight - lineHeight) {
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          // No more space, truncate with ellipsis
-          ctx.fillText(line.trim() + '...', x, currentY);
-          return;
-        }
-      } else {
-        line = testLine;
+    for (let p = 0; p < paragraphs.length; p++) {
+      const paragraph = paragraphs[p];
+      
+      // Se o parágrafo está vazio (linha em branco), apenas pula a linha
+      if (paragraph.trim() === '') {
+        currentY += lineHeight;
+        continue;
       }
-    }
-    
-    // Check if we have space for the last line
-    if (currentY <= y + maxHeight - lineHeight) {
-      ctx.fillText(line, x, currentY);
+
+      const words = paragraph.split(' ');
+      let line = '';
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          // Check if we still have space for another line
+          if (currentY + lineHeight <= y + maxHeight - lineHeight) {
+            ctx.fillText(line, x, currentY);
+            line = words[n] + ' ';
+            currentY += lineHeight;
+          } else {
+            // No more space, truncate with ellipsis
+            ctx.fillText(line.trim() + '...', x, currentY);
+            return;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+      
+      // Check if we have space for the last line of this paragraph
+      if (currentY <= y + maxHeight - lineHeight) {
+        ctx.fillText(line, x, currentY);
+        currentY += lineHeight;
+      } else {
+        break;
+      }
     }
   };
 
@@ -460,7 +493,8 @@ const CarouselCreator = () => {
           globalTextColor,
           globalFontFamily,
           marginEnabled,
-          marginSize,
+          marginHorizontal,
+          marginVertical,
           signatureImage,
           signaturePosition,
           signatureSize,
@@ -498,7 +532,8 @@ const CarouselCreator = () => {
     globalTextColor,
     globalFontFamily,
     marginEnabled,
-    marginSize,
+    marginHorizontal,
+    marginVertical,
     signatureImage,
     signaturePosition,
     signatureSize,
@@ -532,7 +567,8 @@ const CarouselCreator = () => {
           if (savedData.globalTextColor) setGlobalTextColor(savedData.globalTextColor);
           if (savedData.globalFontFamily) setGlobalFontFamily(savedData.globalFontFamily);
           if (savedData.marginEnabled !== undefined) setMarginEnabled(savedData.marginEnabled);
-          if (savedData.marginSize) setMarginSize(savedData.marginSize);
+          if (savedData.marginHorizontal) setMarginHorizontal(savedData.marginHorizontal);
+          if (savedData.marginVertical) setMarginVertical(savedData.marginVertical);
           if (savedData.signatureImage) setSignatureImage(savedData.signatureImage);
           if (savedData.signaturePosition) setSignaturePosition(savedData.signaturePosition);
           if (savedData.signatureSize) setSignatureSize(savedData.signatureSize);
@@ -714,7 +750,7 @@ const CarouselCreator = () => {
             </select>
           </div>
 
-          {/* Margem */}
+          {/* Margem - Agora com controles separados */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <input
@@ -729,16 +765,29 @@ const CarouselCreator = () => {
               </label>
             </div>
             {marginEnabled && (
-              <div>
-                <label className="text-xs text-muted-foreground mb-2 block">Tamanho: {marginSize}px</label>
-                <input
-                  type="range"
-                  min="20"
-                  max="400"
-                  value={marginSize}
-                  onChange={(e) => setMarginSize(Number(e.target.value))}
-                  className="w-full accent-purple-600"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-2 block">Margem Horizontal: {marginHorizontal}px</label>
+                  <input
+                    type="range"
+                    min="20"
+                    max="400"
+                    value={marginHorizontal}
+                    onChange={(e) => setMarginHorizontal(Number(e.target.value))}
+                    className="w-full accent-purple-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-2 block">Margem Vertical: {marginVertical}px</label>
+                  <input
+                    type="range"
+                    min="20"
+                    max="400"
+                    value={marginVertical}
+                    onChange={(e) => setMarginVertical(Number(e.target.value))}
+                    className="w-full accent-purple-600"
+                  />
+                </div>
               </div>
             )}
           </div>
