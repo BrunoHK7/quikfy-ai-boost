@@ -97,7 +97,6 @@ const CarouselCreator = () => {
     drawCanvas();
   }, [frames, currentFrameIndex, globalBackgroundColor, globalTextColor, globalFontFamily, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize, dimensions]);
 
-  // Apply global changes to all frames in real-time
   useEffect(() => {
     setFrames(prev => prev.map(frame => ({
       ...frame,
@@ -139,7 +138,7 @@ const CarouselCreator = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Calculate margins - usando margem horizontal e vertical separadamente
+    // Calculate margins
     const marginX = marginEnabled ? marginHorizontal * 0.35 : 20;
     const marginY = marginEnabled ? marginVertical * 0.35 : 20;
     const contentWidth = canvas.width - (marginX * 2);
@@ -162,17 +161,9 @@ const CarouselCreator = () => {
         textX = canvas.width - marginX;
       }
       
-      // Calculate vertical position based on verticalAlign
       const lineHeight = frame.fontSize * 0.35 * frame.lineHeight;
-      let textY = marginY + frame.fontSize * 0.35;
       
-      if (frame.verticalAlign === 'center') {
-        textY = canvas.height / 2;
-      } else if (frame.verticalAlign === 'bottom') {
-        textY = canvas.height - marginY;
-      }
-      
-      wrapText(ctx, frame.text, textX, textY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
+      wrapText(ctx, frame.text, textX, marginY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
     }
 
     // Signature
@@ -218,7 +209,7 @@ const CarouselCreator = () => {
     }
   };
 
-  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
+  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, topMargin: number, maxWidth: number, lineHeight: number, contentHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
     // Dividir o texto por quebras de linha primeiro
     const paragraphs = text.split('\n');
     const lines: string[] = [];
@@ -255,19 +246,22 @@ const CarouselCreator = () => {
     const totalTextHeight = lines.length * lineHeight;
     
     // Ajustar posição Y baseada no alinhamento vertical
-    let startY = y;
+    let startY = topMargin + lineHeight; // Posição padrão (topo)
+    
     if (verticalAlign === 'center') {
-      startY = y - (totalTextHeight / 2) + lineHeight;
+      // Centralizar o texto no meio da área de conteúdo
+      startY = topMargin + (contentHeight / 2) - (totalTextHeight / 2) + lineHeight;
     } else if (verticalAlign === 'bottom') {
-      startY = y - totalTextHeight + lineHeight;
+      // Alinhar o texto na parte inferior da área de conteúdo
+      startY = topMargin + contentHeight - totalTextHeight + lineHeight;
     }
     
     // Renderizar as linhas
     for (let i = 0; i < lines.length; i++) {
       const currentY = startY + (i * lineHeight);
       
-      // Verificar se ainda há espaço na tela
-      if (currentY > y - lineHeight && currentY < y + maxHeight) {
+      // Verificar se a linha está dentro da área visível
+      if (currentY >= topMargin && currentY <= topMargin + contentHeight) {
         ctx.fillText(lines[i], x, currentY);
       }
     }
@@ -393,17 +387,9 @@ const CarouselCreator = () => {
         textX = canvas.width - marginX;
       }
       
-      // Calculate vertical position based on verticalAlign
       const lineHeight = frame.fontSize * frame.lineHeight;
-      let textY = marginY + frame.fontSize;
       
-      if (frame.verticalAlign === 'center') {
-        textY = canvas.height / 2;
-      } else if (frame.verticalAlign === 'bottom') {
-        textY = canvas.height - marginY;
-      }
-      
-      wrapTextFullSize(ctx, frame.text, textX, textY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
+      wrapTextFullSize(ctx, frame.text, textX, marginY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
     }
 
     // Signature
@@ -449,7 +435,7 @@ const CarouselCreator = () => {
     }
   };
 
-  const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
+  const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, topMargin: number, maxWidth: number, lineHeight: number, contentHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
     // Dividir o texto por quebras de linha primeiro
     const paragraphs = text.split('\n');
     const lines: string[] = [];
@@ -486,19 +472,22 @@ const CarouselCreator = () => {
     const totalTextHeight = lines.length * lineHeight;
     
     // Ajustar posição Y baseada no alinhamento vertical
-    let startY = y;
+    let startY = topMargin + lineHeight; // Posição padrão (topo)
+    
     if (verticalAlign === 'center') {
-      startY = y - (totalTextHeight / 2) + lineHeight;
+      // Centralizar o texto no meio da área de conteúdo
+      startY = topMargin + (contentHeight / 2) - (totalTextHeight / 2) + lineHeight;
     } else if (verticalAlign === 'bottom') {
-      startY = y - totalTextHeight + lineHeight;
+      // Alinhar o texto na parte inferior da área de conteúdo
+      startY = topMargin + contentHeight - totalTextHeight + lineHeight;
     }
     
     // Renderizar as linhas
     for (let i = 0; i < lines.length; i++) {
       const currentY = startY + (i * lineHeight);
       
-      // Verificar se ainda há espaço na tela
-      if (currentY > y - lineHeight && currentY < y + maxHeight) {
+      // Verificar se a linha está dentro da área visível
+      if (currentY >= topMargin && currentY <= topMargin + contentHeight) {
         ctx.fillText(lines[i], x, currentY);
       }
     }
@@ -559,7 +548,6 @@ const CarouselCreator = () => {
     setShowEmojiPicker(false);
   };
 
-  // Auto-save otimizado - mover para depois dos states
   const autoSaveData = {
     projectName,
     dimensions,
@@ -583,7 +571,6 @@ const CarouselCreator = () => {
     enabled: true
   });
 
-  // Otimizar o useEffect de carregamento inicial
   useEffect(() => {
     if (!user) return;
     
@@ -595,7 +582,6 @@ const CarouselCreator = () => {
         if (savedData && mounted) {
           console.log('🔄 Carregando trabalho anterior...');
           
-          // Restaurar dados de forma mais segura
           if (savedData.projectName) setProjectName(savedData.projectName);
           if (savedData.dimensions) setDimensions(savedData.dimensions);
           if (savedData.globalBackgroundColor) setGlobalBackgroundColor(savedData.globalBackgroundColor);
@@ -622,7 +608,6 @@ const CarouselCreator = () => {
     };
   }, [user]);
 
-  // Simplificar beforeunload
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const message = "Você tem alterações não salvas. Deseja sair mesmo assim?";
@@ -636,7 +621,7 @@ const CarouselCreator = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []); // Sem dependências
+  }, []);
 
   return (
     <div className="min-h-screen bg-background dark:bg-background">
@@ -697,7 +682,6 @@ const CarouselCreator = () => {
         <div className="w-80 border-r border-border bg-muted/30 p-6 overflow-y-auto">
           <h3 className="font-semibold text-foreground mb-4 text-center">Configurações Globais</h3>
           
-          {/* Dimensões */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-3 block">Dimensões</label>
             <div className="grid grid-cols-3 gap-2">
@@ -731,7 +715,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Cores Globais */}
           <div className="mb-6">
             <div className="mb-4">
               <label className="text-sm font-medium text-foreground mb-2 block">Cor do Fundo (Global)</label>
@@ -768,7 +751,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Fonte Global */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">Fonte (Global)</label>
             <select
@@ -785,7 +767,6 @@ const CarouselCreator = () => {
             </select>
           </div>
 
-          {/* Margem - Com controles separados para horizontal e vertical */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <input
@@ -827,7 +808,6 @@ const CarouselCreator = () => {
             )}
           </div>
 
-          {/* Assinatura */}
           <div className="mb-6">
             <h4 className="text-sm font-medium text-foreground mb-3">Assinatura</h4>
             <Button
@@ -889,7 +869,6 @@ const CarouselCreator = () => {
             )}
           </div>
 
-          {/* Lista de Quadros */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground">Quadros</h3>
@@ -959,7 +938,6 @@ const CarouselCreator = () => {
         <div className="w-80 border-l border-border bg-muted/30 p-6 overflow-y-auto">
           <h3 className="font-semibold text-foreground mb-4 text-center">Slide Atual</h3>
           
-          {/* Texto */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <label className="text-sm font-medium text-foreground">Texto</label>
@@ -985,7 +963,6 @@ const CarouselCreator = () => {
             )}
           </div>
 
-          {/* Cores do Slide Atual */}
           <div className="mb-6">
             <div className="mb-4">
               <label className="text-sm font-medium text-foreground mb-2 block">Cor do Fundo (Slide)</label>
@@ -1022,7 +999,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Fonte do Slide Atual */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">Fonte (Slide)</label>
             <select
@@ -1041,7 +1017,6 @@ const CarouselCreator = () => {
             </select>
           </div>
 
-          {/* Alinhamento Horizontal */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento Horizontal</label>
             <div className="grid grid-cols-3 gap-2">
@@ -1072,7 +1047,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Alinhamento Vertical */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento Vertical</label>
             <div className="grid grid-cols-3 gap-2">
@@ -1103,7 +1077,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Formatação */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-3 block">Formatação</label>
             <div className="grid grid-cols-3 gap-2">
@@ -1134,7 +1107,6 @@ const CarouselCreator = () => {
             </div>
           </div>
 
-          {/* Tamanho da Fonte */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">
               Tamanho da Fonte: {currentFrame?.fontSize}px
@@ -1149,7 +1121,6 @@ const CarouselCreator = () => {
             />
           </div>
 
-          {/* Altura da Linha */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">
               Altura da Linha: {currentFrame?.lineHeight?.toFixed(1)}
@@ -1165,7 +1136,6 @@ const CarouselCreator = () => {
             />
           </div>
 
-          {/* Espaçamento de Letras */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">
               Espaçamento de Letras: {currentFrame?.letterSpacing}px
@@ -1181,7 +1151,6 @@ const CarouselCreator = () => {
             />
           </div>
 
-          {/* Imagem de Fundo do Quadro */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">Imagem de Fundo</label>
             <Button
