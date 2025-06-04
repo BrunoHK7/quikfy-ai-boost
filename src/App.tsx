@@ -116,6 +116,13 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
 
+          {/* Cursos - página de lista de cursos acessível a todos */}
+          <Route path="/courses" element={
+            <React.Suspense fallback={<div>Carregando...</div>}>
+              {React.createElement(React.lazy(() => import('./pages/Courses')))}
+            </React.Suspense>
+          } />
+          
           {/* Cursos - acessíveis a todos os usuários autenticados */}
           <Route path="/courses/:courseId" element={
             <ProtectedRoute>

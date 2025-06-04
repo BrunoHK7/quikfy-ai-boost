@@ -32,7 +32,7 @@ export const Header: React.FC = () => {
 
   const navigationItems = [
     { label: 'Ferramentas', href: '/tools', external: false },
-    { label: 'Cursos', href: '/pricing', external: false },
+    { label: 'Cursos', href: '/courses', external: false },
     { 
       label: 'Comunidade', 
       href: '#', 
