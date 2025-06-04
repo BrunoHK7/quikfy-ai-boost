@@ -43,26 +43,9 @@ interface Lesson {
 const CourseView = () => {
   const { courseId } = useParams();
   const { user } = useAuth();
-  const { profile } = useProfile();
-  const { subscription } = useSubscription();
-
-  // Verificar acesso - admins têm acesso total, outros usuários precisam de assinatura
-  const hasAccess = profile?.role === 'admin' || 
-                   profile?.role === 'teste' || 
-                   subscription.subscribed;
-
-  console.log('🎓 CourseView - Access check:', {
-    userRole: profile?.role,
-    subscribed: subscription.subscribed,
-    hasAccess
-  });
 
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (!hasAccess) {
-    return <Navigate to="/pricing" replace />;
   }
 
   const { data: course, isLoading: courseLoading } = useQuery({

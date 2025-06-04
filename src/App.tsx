@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -115,14 +116,14 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } />
 
-          {/* Cursos - apenas para usuários pagos e admins */}
+          {/* Cursos - acessíveis a todos os usuários autenticados */}
           <Route path="/courses/:courseId" element={
-            <ProtectedRoute requiresPremium={true}>
+            <ProtectedRoute>
               <CourseView />
             </ProtectedRoute>
           } />
           <Route path="/courses/:courseId/lessons/:lessonId" element={
-            <ProtectedRoute requiresPremium={true}>
+            <ProtectedRoute>
               <LessonView />
             </ProtectedRoute>
           } />
