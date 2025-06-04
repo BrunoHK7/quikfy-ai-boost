@@ -46,10 +46,16 @@ const CourseView = () => {
   const { profile } = useProfile();
   const { subscription } = useSubscription();
 
-  // Verificar acesso - apenas usuários pagos e admins
+  // Verificar acesso - admins têm acesso total, outros usuários precisam de assinatura
   const hasAccess = profile?.role === 'admin' || 
                    profile?.role === 'teste' || 
                    subscription.subscribed;
+
+  console.log('🎓 CourseView - Access check:', {
+    userRole: profile?.role,
+    subscribed: subscription.subscribed,
+    hasAccess
+  });
 
   if (!user) {
     return <Navigate to="/login" replace />;

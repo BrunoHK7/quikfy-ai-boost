@@ -13,7 +13,7 @@ export const AdminAccessWrapper = ({ children, fallback, requiresPlan }: AdminAc
   const { profile } = useProfile();
   const { subscription } = useSubscription();
   
-  // Admin users get full access to everything
+  // Admin users get full access to everything - sem exceções
   if (profile?.role === 'admin') {
     return <>{children}</>;
   }
