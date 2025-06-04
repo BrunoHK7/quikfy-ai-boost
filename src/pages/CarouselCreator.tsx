@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Save, Plus, Trash2, Upload, Smile, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { ArrowLeft, Download, Save, Plus, Trash2, Upload, Smile, AlignLeft, AlignCenter, AlignRight, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ interface Frame {
   text: string;
   fontSize: number;
   textAlign: 'left' | 'center' | 'right';
+  verticalAlign: 'top' | 'center' | 'bottom';
   isBold: boolean;
   isItalic: boolean;
   isUnderline: boolean;
@@ -56,6 +57,7 @@ const CarouselCreator = () => {
       text: 'Seu título aqui',
       fontSize: 32,
       textAlign: 'center',
+      verticalAlign: 'center',
       isBold: true,
       isItalic: false,
       isUnderline: false,
@@ -160,8 +162,17 @@ const CarouselCreator = () => {
         textX = canvas.width - marginX;
       }
       
+      // Calculate vertical position based on verticalAlign
       const lineHeight = frame.fontSize * 0.35 * frame.lineHeight;
-      wrapText(ctx, frame.text, textX, marginY + frame.fontSize * 0.35, contentWidth, lineHeight, contentHeight);
+      let textY = marginY + frame.fontSize * 0.35;
+      
+      if (frame.verticalAlign === 'center') {
+        textY = canvas.height / 2;
+      } else if (frame.verticalAlign === 'bottom') {
+        textY = canvas.height - marginY;
+      }
+      
+      wrapText(ctx, frame.text, textX, textY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
     }
 
     // Signature
@@ -207,17 +218,17 @@ const CarouselCreator = () => {
     }
   };
 
-  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
+  const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
     // Dividir o texto por quebras de linha primeiro
     const paragraphs = text.split('\n');
-    let currentY = y;
-
+    const lines: string[] = [];
+    
+    // Quebrar texto em linhas
     for (let p = 0; p < paragraphs.length; p++) {
       const paragraph = paragraphs[p];
       
-      // Se o parágrafo está vazio (linha em branco), apenas pula a linha
       if (paragraph.trim() === '') {
-        currentY += lineHeight;
+        lines.push('');
         continue;
       }
 
@@ -230,27 +241,34 @@ const CarouselCreator = () => {
         const testWidth = metrics.width;
 
         if (testWidth > maxWidth && n > 0) {
-          // Check if we still have space for another line
-          if (currentY + lineHeight <= y + maxHeight - lineHeight) {
-            ctx.fillText(line, x, currentY);
-            line = words[n] + ' ';
-            currentY += lineHeight;
-          } else {
-            // No more space, truncate with ellipsis
-            ctx.fillText(line.trim() + '...', x, currentY);
-            return;
-          }
+          lines.push(line);
+          line = words[n] + ' ';
         } else {
           line = testLine;
         }
       }
       
-      // Check if we have space for the last line of this paragraph
-      if (currentY <= y + maxHeight - lineHeight) {
-        ctx.fillText(line, x, currentY);
-        currentY += lineHeight;
-      } else {
-        break;
+      lines.push(line);
+    }
+    
+    // Calcular altura total do texto
+    const totalTextHeight = lines.length * lineHeight;
+    
+    // Ajustar posição Y baseada no alinhamento vertical
+    let startY = y;
+    if (verticalAlign === 'center') {
+      startY = y - (totalTextHeight / 2) + lineHeight;
+    } else if (verticalAlign === 'bottom') {
+      startY = y - totalTextHeight + lineHeight;
+    }
+    
+    // Renderizar as linhas
+    for (let i = 0; i < lines.length; i++) {
+      const currentY = startY + (i * lineHeight);
+      
+      // Verificar se ainda há espaço na tela
+      if (currentY > y - lineHeight && currentY < y + maxHeight) {
+        ctx.fillText(lines[i], x, currentY);
       }
     }
   };
@@ -275,6 +293,7 @@ const CarouselCreator = () => {
       text: `Slide ${frames.length + 1}`,
       fontSize: 32,
       textAlign: 'center',
+      verticalAlign: 'center',
       isBold: true,
       isItalic: false,
       isUnderline: false,
@@ -374,8 +393,17 @@ const CarouselCreator = () => {
         textX = canvas.width - marginX;
       }
       
+      // Calculate vertical position based on verticalAlign
       const lineHeight = frame.fontSize * frame.lineHeight;
-      wrapTextFullSize(ctx, frame.text, textX, marginY + frame.fontSize, contentWidth, lineHeight, contentHeight);
+      let textY = marginY + frame.fontSize;
+      
+      if (frame.verticalAlign === 'center') {
+        textY = canvas.height / 2;
+      } else if (frame.verticalAlign === 'bottom') {
+        textY = canvas.height - marginY;
+      }
+      
+      wrapTextFullSize(ctx, frame.text, textX, textY, contentWidth, lineHeight, contentHeight, frame.verticalAlign);
     }
 
     // Signature
@@ -421,17 +449,17 @@ const CarouselCreator = () => {
     }
   };
 
-  const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number) => {
+  const wrapTextFullSize = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxHeight: number, verticalAlign: 'top' | 'center' | 'bottom') => {
     // Dividir o texto por quebras de linha primeiro
     const paragraphs = text.split('\n');
-    let currentY = y;
-
+    const lines: string[] = [];
+    
+    // Quebrar texto em linhas
     for (let p = 0; p < paragraphs.length; p++) {
       const paragraph = paragraphs[p];
       
-      // Se o parágrafo está vazio (linha em branco), apenas pula a linha
       if (paragraph.trim() === '') {
-        currentY += lineHeight;
+        lines.push('');
         continue;
       }
 
@@ -444,27 +472,34 @@ const CarouselCreator = () => {
         const testWidth = metrics.width;
 
         if (testWidth > maxWidth && n > 0) {
-          // Check if we still have space for another line
-          if (currentY + lineHeight <= y + maxHeight - lineHeight) {
-            ctx.fillText(line, x, currentY);
-            line = words[n] + ' ';
-            currentY += lineHeight;
-          } else {
-            // No more space, truncate with ellipsis
-            ctx.fillText(line.trim() + '...', x, currentY);
-            return;
-          }
+          lines.push(line);
+          line = words[n] + ' ';
         } else {
           line = testLine;
         }
       }
       
-      // Check if we have space for the last line of this paragraph
-      if (currentY <= y + maxHeight - lineHeight) {
-        ctx.fillText(line, x, currentY);
-        currentY += lineHeight;
-      } else {
-        break;
+      lines.push(line);
+    }
+    
+    // Calcular altura total do texto
+    const totalTextHeight = lines.length * lineHeight;
+    
+    // Ajustar posição Y baseada no alinhamento vertical
+    let startY = y;
+    if (verticalAlign === 'center') {
+      startY = y - (totalTextHeight / 2) + lineHeight;
+    } else if (verticalAlign === 'bottom') {
+      startY = y - totalTextHeight + lineHeight;
+    }
+    
+    // Renderizar as linhas
+    for (let i = 0; i < lines.length; i++) {
+      const currentY = startY + (i * lineHeight);
+      
+      // Verificar se ainda há espaço na tela
+      if (currentY > y - lineHeight && currentY < y + maxHeight) {
+        ctx.fillText(lines[i], x, currentY);
       }
     }
   };
@@ -1006,9 +1041,9 @@ const CarouselCreator = () => {
             </select>
           </div>
 
-          {/* Alinhamento */}
+          {/* Alinhamento Horizontal */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento</label>
+            <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento Horizontal</label>
             <div className="grid grid-cols-3 gap-2">
               <Button
                 variant={currentFrame?.textAlign === 'left' ? 'default' : 'outline'}
@@ -1033,6 +1068,37 @@ const CarouselCreator = () => {
                 className="flex items-center justify-center"
               >
                 <AlignRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Alinhamento Vertical */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-foreground mb-3 block">Alinhamento Vertical</label>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={currentFrame?.verticalAlign === 'top' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ verticalAlign: 'top' })}
+                className="flex items-center justify-center"
+              >
+                <AlignHorizontalJustifyStart className="h-4 w-4 rotate-90" />
+              </Button>
+              <Button
+                variant={currentFrame?.verticalAlign === 'center' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ verticalAlign: 'center' })}
+                className="flex items-center justify-center"
+              >
+                <AlignHorizontalJustifyCenter className="h-4 w-4 rotate-90" />
+              </Button>
+              <Button
+                variant={currentFrame?.verticalAlign === 'bottom' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateCurrentFrame({ verticalAlign: 'bottom' })}
+                className="flex items-center justify-center"
+              >
+                <AlignHorizontalJustifyEnd className="h-4 w-4 rotate-90" />
               </Button>
             </div>
           </div>
