@@ -40,7 +40,7 @@ interface Course {
   price: number;
   estimated_duration: string | null;
   cover_image: string | null;
-  access_level: string;
+  access_level: 'free' | 'plus' | 'pro' | 'vip';
 }
 
 interface Module {
@@ -163,7 +163,7 @@ const EditCourse = () => {
 
   // Mutação para atualizar curso
   const updateCourseMutation = useMutation({
-    mutationFn: async (data: Course) => {
+    mutationFn: async (data: Partial<Course>) => {
       const { error } = await supabase
         .from('courses')
         .update(data)

@@ -66,7 +66,7 @@ const CreateCourse = () => {
     level: 'iniciante',
     price: '',
     estimatedDuration: '',
-    accessLevel: 'free'
+    accessLevel: 'free' as 'free' | 'plus' | 'pro' | 'vip'
   });
 
   const [modules, setModules] = useState<Module[]>([]);
@@ -194,7 +194,7 @@ const CreateCourse = () => {
           level: courseData.level,
           price: courseData.price ? parseFloat(courseData.price) : 0,
           estimated_duration: courseData.estimatedDuration || null,
-          access_level: courseData.accessLevel,
+          access_level: courseData.accessLevel as 'free' | 'plus' | 'pro' | 'vip',
           created_by: user?.id
         })
         .select()
