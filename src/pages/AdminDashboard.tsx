@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -461,10 +460,12 @@ const AdminDashboard = () => {
                             <Eye className="w-4 h-4 mr-1" />
                             Visualizar
                           </Button>
-                          <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4 mr-1" />
-                            Editar
-                          </Button>
+                          <Link to={`/admin/edit-course/${course.id}`}>
+                            <Button variant="outline" size="sm">
+                              <Edit className="w-4 h-4 mr-1" />
+                              Editar
+                            </Button>
+                          </Link>
                           <Button 
                             variant="outline" 
                             size="sm" 
