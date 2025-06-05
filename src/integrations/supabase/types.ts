@@ -39,6 +39,7 @@ export type Database = {
       courses: {
         Row: {
           category: string | null
+          cover_image: string | null
           created_at: string | null
           created_by: string | null
           description: string
@@ -52,6 +53,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          cover_image?: string | null
           created_at?: string | null
           created_by?: string | null
           description: string
@@ -65,6 +67,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          cover_image?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string
@@ -226,10 +229,12 @@ export type Database = {
       lessons: {
         Row: {
           course_id: string | null
+          cover_image: string | null
           created_at: string | null
           description: string | null
           duration: string | null
           id: string
+          module_id: string | null
           order_number: number
           title: string
           updated_at: string | null
@@ -237,10 +242,12 @@ export type Database = {
         }
         Insert: {
           course_id?: string | null
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           duration?: string | null
           id?: string
+          module_id?: string | null
           order_number: number
           title: string
           updated_at?: string | null
@@ -248,10 +255,12 @@ export type Database = {
         }
         Update: {
           course_id?: string | null
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           duration?: string | null
           id?: string
+          module_id?: string | null
           order_number?: number
           title?: string
           updated_at?: string | null
@@ -260,6 +269,54 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modules: {
+        Row: {
+          course_id: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          order_number: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_number: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"

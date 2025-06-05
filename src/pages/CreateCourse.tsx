@@ -7,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { StandardHeader } from '@/components/StandardHeader';
 import { Badge } from '@/components/ui/badge';
+import { ImageUpload } from '@/components/ImageUpload';
 import { 
   BookOpen, 
   Plus, 
   Trash2, 
   Save,
   Eye,
-  LogOut
+  LogOut,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -21,13 +23,23 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  coverImage: string;
+  order: number;
+}
+
 interface Lesson {
   id: string;
   title: string;
   description: string;
   videoUrl: string;
   duration: string;
+  coverImage: string;
   order: number;
+  moduleId?: string;
 }
 
 const CreateCourse = () => {
@@ -49,10 +61,18 @@ const CreateCourse = () => {
     title: '',
     description: '',
     thumbnail: '',
+    coverImage: '',
     category: '',
     level: 'iniciante',
     price: '',
     estimatedDuration: ''
+  });
+
+  const [modules, setModules] = useState<Module[]>([]);
+  const [currentModule, setCurrentModule] = useState<Partial<Module>>({
+    title: '',
+    description: '',
+    coverImage: ''
   });
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -60,7 +80,9 @@ const CreateCourse = () => {
     title: '',
     description: '',
     videoUrl: '',
-    duration: ''
+    duration: '',
+    coverImage: '',
+    moduleId: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -69,8 +91,43 @@ const CreateCourse = () => {
     setCourseData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleModuleChange = (field: string, value: string) => {
+    setCurrentModule(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleLessonChange = (field: string, value: string) => {
     setCurrentLesson(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addModule = () => {
+    if (!currentModule.title) {
+      toast.error('Título do módulo é obrigatório');
+      return;
+    }
+
+    const newModule: Module = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: currentModule.title || '',
+      description: currentModule.description || '',
+      coverImage: currentModule.coverImage || '',
+      order: modules.length + 1
+    };
+
+    setModules(prev => [...prev, newModule]);
+    setCurrentModule({
+      title: '',
+      description: '',
+      coverImage: ''
+    });
+    
+    toast.success('Módulo adicionado com sucesso!');
+  };
+
+  const removeModule = (id: string) => {
+    setModules(prev => prev.filter(module => module.id !== id));
+    // Remover aulas associadas ao módulo
+    setLessons(prev => prev.filter(lesson => lesson.moduleId !== id));
+    toast.success('Módulo removido');
   };
 
   const addLesson = () => {
@@ -85,7 +142,9 @@ const CreateCourse = () => {
       description: currentLesson.description || '',
       videoUrl: currentLesson.videoUrl || '',
       duration: currentLesson.duration || '',
-      order: lessons.length + 1
+      coverImage: currentLesson.coverImage || '',
+      order: lessons.length + 1,
+      moduleId: currentLesson.moduleId || undefined
     };
 
     setLessons(prev => [...prev, newLesson]);
@@ -93,7 +152,9 @@ const CreateCourse = () => {
       title: '',
       description: '',
       videoUrl: '',
-      duration: ''
+      duration: '',
+      coverImage: '',
+      moduleId: ''
     });
     
     toast.success('Aula adicionada com sucesso!');
@@ -105,8 +166,8 @@ const CreateCourse = () => {
   };
 
   const saveCourse = async () => {
-    if (!courseData.title || !courseData.description || lessons.length === 0) {
-      toast.error('Preencha todos os campos obrigatórios e adicione pelo menos uma aula');
+    if (!courseData.title || !courseData.description) {
+      toast.error('Preencha todos os campos obrigatórios do curso');
       return;
     }
 
@@ -115,6 +176,7 @@ const CreateCourse = () => {
     try {
       console.log('💾 Criando curso:', {
         courseData,
+        modulesCount: modules.length,
         lessonsCount: lessons.length,
         userId: user?.id
       });
@@ -126,6 +188,7 @@ const CreateCourse = () => {
           title: courseData.title,
           description: courseData.description,
           thumbnail: courseData.thumbnail || null,
+          cover_image: courseData.coverImage || null,
           category: courseData.category || null,
           level: courseData.level,
           price: courseData.price ? parseFloat(courseData.price) : 0,
@@ -142,29 +205,97 @@ const CreateCourse = () => {
 
       console.log('✅ Curso criado:', course);
 
-      // Criar as aulas
-      const lessonsToInsert = lessons.map(lesson => ({
-        course_id: course.id,
-        title: lesson.title,
-        description: lesson.description || null,
-        video_url: lesson.videoUrl,
-        duration: lesson.duration || null,
-        order_number: lesson.order
-      }));
+      // Criar os módulos se existirem
+      if (modules.length > 0) {
+        const modulesToInsert = modules.map(module => ({
+          course_id: course.id,
+          title: module.title,
+          description: module.description || null,
+          cover_image: module.coverImage || null,
+          order_number: module.order
+        }));
 
-      console.log('💾 Inserindo aulas:', lessonsToInsert);
+        console.log('💾 Inserindo módulos:', modulesToInsert);
 
-      const { data: insertedLessons, error: lessonsError } = await supabase
-        .from('lessons')
-        .insert(lessonsToInsert)
-        .select();
+        const { data: insertedModules, error: modulesError } = await supabase
+          .from('modules')
+          .insert(modulesToInsert)
+          .select();
 
-      if (lessonsError) {
-        console.error('❌ Erro ao criar aulas:', lessonsError);
-        throw lessonsError;
+        if (modulesError) {
+          console.error('❌ Erro ao criar módulos:', modulesError);
+          throw modulesError;
+        }
+
+        console.log('✅ Módulos criados:', insertedModules);
+
+        // Mapear IDs dos módulos temporários para os reais
+        const moduleIdMap: { [key: string]: string } = {};
+        modules.forEach((tempModule, index) => {
+          if (insertedModules[index]) {
+            moduleIdMap[tempModule.id] = insertedModules[index].id;
+          }
+        });
+
+        // Atualizar moduleId das aulas
+        const updatedLessons = lessons.map(lesson => ({
+          ...lesson,
+          moduleId: lesson.moduleId ? moduleIdMap[lesson.moduleId] : undefined
+        }));
+
+        // Criar as aulas
+        if (updatedLessons.length > 0) {
+          const lessonsToInsert = updatedLessons.map(lesson => ({
+            course_id: course.id,
+            module_id: lesson.moduleId || null,
+            title: lesson.title,
+            description: lesson.description || null,
+            video_url: lesson.videoUrl,
+            duration: lesson.duration || null,
+            cover_image: lesson.coverImage || null,
+            order_number: lesson.order
+          }));
+
+          console.log('💾 Inserindo aulas:', lessonsToInsert);
+
+          const { data: insertedLessons, error: lessonsError } = await supabase
+            .from('lessons')
+            .insert(lessonsToInsert)
+            .select();
+
+          if (lessonsError) {
+            console.error('❌ Erro ao criar aulas:', lessonsError);
+            throw lessonsError;
+          }
+
+          console.log('✅ Aulas criadas:', insertedLessons);
+        }
+      } else if (lessons.length > 0) {
+        // Criar aulas sem módulos
+        const lessonsToInsert = lessons.map(lesson => ({
+          course_id: course.id,
+          title: lesson.title,
+          description: lesson.description || null,
+          video_url: lesson.videoUrl,
+          duration: lesson.duration || null,
+          cover_image: lesson.coverImage || null,
+          order_number: lesson.order
+        }));
+
+        console.log('💾 Inserindo aulas:', lessonsToInsert);
+
+        const { data: insertedLessons, error: lessonsError } = await supabase
+          .from('lessons')
+          .insert(lessonsToInsert)
+          .select();
+
+        if (lessonsError) {
+          console.error('❌ Erro ao criar aulas:', lessonsError);
+          throw lessonsError;
+        }
+
+        console.log('✅ Aulas criadas:', insertedLessons);
       }
-
-      console.log('✅ Aulas criadas:', insertedLessons);
       
       toast.success('Curso criado com sucesso!');
       
@@ -173,15 +304,14 @@ const CreateCourse = () => {
         title: '',
         description: '',
         thumbnail: '',
+        coverImage: '',
         category: '',
         level: 'iniciante',
         price: '',
         estimatedDuration: ''
       });
+      setModules([]);
       setLessons([]);
-      
-      // Opcional: redirecionar para o painel admin
-      // navigate('/admin');
       
     } catch (error: any) {
       console.error('❌ Erro geral ao criar curso:', error);
@@ -292,17 +422,113 @@ const CreateCourse = () => {
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="thumbnail">URL da Thumbnail</Label>
-                <Input
-                  id="thumbnail"
-                  value={courseData.thumbnail}
-                  onChange={(e) => handleCourseChange('thumbnail', e.target.value)}
-                  placeholder="https://exemplo.com/thumbnail.jpg"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="thumbnail">URL da Thumbnail</Label>
+                  <Input
+                    id="thumbnail"
+                    value={courseData.thumbnail}
+                    onChange={(e) => handleCourseChange('thumbnail', e.target.value)}
+                    placeholder="https://exemplo.com/thumbnail.jpg"
+                  />
+                </div>
+                <ImageUpload
+                  label="Imagem de Capa do Curso"
+                  value={courseData.coverImage}
+                  onChange={(url) => handleCourseChange('coverImage', url)}
+                  expectedDimensions={{ width: 1080, height: 1350 }}
                 />
               </div>
             </CardContent>
           </Card>
+
+          {/* Adicionar Módulos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Layers className="w-5 h-5 mr-2" />
+                Adicionar Módulo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="moduleTitle">Título do Módulo *</Label>
+                  <Input
+                    id="moduleTitle"
+                    value={currentModule.title}
+                    onChange={(e) => handleModuleChange('title', e.target.value)}
+                    placeholder="Ex: Fundamentos do Marketing"
+                  />
+                </div>
+                <ImageUpload
+                  label="Imagem de Capa do Módulo"
+                  value={currentModule.coverImage || ''}
+                  onChange={(url) => handleModuleChange('coverImage', url)}
+                  expectedDimensions={{ width: 1080, height: 1350 }}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="moduleDescription">Descrição do Módulo</Label>
+                <Textarea
+                  id="moduleDescription"
+                  value={currentModule.description}
+                  onChange={(e) => handleModuleChange('description', e.target.value)}
+                  placeholder="Descrição do que será abordado no módulo..."
+                  rows={3}
+                />
+              </div>
+
+              <Button onClick={addModule} className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Módulo
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Lista de Módulos */}
+          {modules.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Módulos do Curso ({modules.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {modules.map((module, index) => (
+                    <div key={module.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4 flex-1">
+                        {module.coverImage && (
+                          <img
+                            src={module.coverImage}
+                            alt={module.title}
+                            className="w-16 h-20 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline">Módulo {index + 1}</Badge>
+                            <h4 className="font-medium">{module.title}</h4>
+                          </div>
+                          {module.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{module.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeModule(module.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Adicionar Aulas */}
           <Card>
@@ -329,6 +555,31 @@ const CreateCourse = () => {
                     placeholder="Ex: 15 min"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="moduleSelect">Módulo (opcional)</Label>
+                  <select
+                    id="moduleSelect"
+                    value={currentLesson.moduleId}
+                    onChange={(e) => handleLessonChange('moduleId', e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="">Sem módulo</option>
+                    {modules.map((module) => (
+                      <option key={module.id} value={module.id}>
+                        {module.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <ImageUpload
+                  label="Imagem de Capa da Aula"
+                  value={currentLesson.coverImage || ''}
+                  onChange={(url) => handleLessonChange('coverImage', url)}
+                  expectedDimensions={{ width: 1920, height: 1080 }}
+                />
               </div>
 
               <div>
@@ -369,17 +620,31 @@ const CreateCourse = () => {
                 <div className="space-y-3">
                   {lessons.map((lesson, index) => (
                     <div key={lesson.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline">Aula {index + 1}</Badge>
-                          <h4 className="font-medium">{lesson.title}</h4>
-                          {lesson.duration && (
-                            <span className="text-sm text-muted-foreground">({lesson.duration})</span>
+                      <div className="flex items-center space-x-4 flex-1">
+                        {lesson.coverImage && (
+                          <img
+                            src={lesson.coverImage}
+                            alt={lesson.title}
+                            className="w-20 h-11 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline">Aula {index + 1}</Badge>
+                            <h4 className="font-medium">{lesson.title}</h4>
+                            {lesson.duration && (
+                              <span className="text-sm text-muted-foreground">({lesson.duration})</span>
+                            )}
+                            {lesson.moduleId && (
+                              <Badge variant="secondary" className="text-xs">
+                                {modules.find(m => m.id === lesson.moduleId)?.title || 'Módulo'}
+                              </Badge>
+                            )}
+                          </div>
+                          {lesson.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
                           )}
                         </div>
-                        {lesson.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
-                        )}
                       </div>
                       <Button
                         variant="outline"
