@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,7 +82,7 @@ const EditCourse = () => {
     video_url: '', 
     cover_image: '', 
     duration: '', 
-    module_id: '' 
+    module_id: 'none' 
   });
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingLesson, setEditingLesson] = useState<string | null>(null);
@@ -199,13 +198,16 @@ const EditCourse = () => {
   // Mutação para criar aula
   const createLessonMutation = useMutation({
     mutationFn: async (lessonData: any) => {
+      const lessonToInsert = {
+        ...lessonData,
+        course_id: courseId,
+        order_number: lessons.length + 1,
+        module_id: lessonData.module_id === 'none' ? null : lessonData.module_id
+      };
+
       const { error } = await supabase
         .from('lessons')
-        .insert({
-          ...lessonData,
-          course_id: courseId,
-          order_number: lessons.length + 1
-        });
+        .insert(lessonToInsert);
       
       if (error) throw error;
     },
@@ -217,7 +219,7 @@ const EditCourse = () => {
         video_url: '', 
         cover_image: '', 
         duration: '', 
-        module_id: '' 
+        module_id: 'none' 
       });
       queryClient.invalidateQueries({ queryKey: ['course-lessons', courseId] });
     },
@@ -249,9 +251,14 @@ const EditCourse = () => {
   // Mutação para atualizar aula
   const updateLessonMutation = useMutation({
     mutationFn: async ({ lessonId, data }: { lessonId: string, data: any }) => {
+      const lessonToUpdate = {
+        ...data,
+        module_id: data.module_id === 'none' ? null : data.module_id
+      };
+
       const { error } = await supabase
         .from('lessons')
-        .update(data)
+        .update(lessonToUpdate)
         .eq('id', lessonId);
       
       if (error) throw error;
@@ -666,7 +673,7 @@ const EditCourse = () => {
                         <SelectValue placeholder="Selecione um módulo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sem módulo</SelectItem>
+                        <SelectItem value="none">Sem módulo</SelectItem>
                         {modules.map((module) => (
                           <SelectItem key={module.id} value={module.id}>
                             {module.title}
@@ -748,16 +755,16 @@ const EditCourse = () => {
                                 placeholder="URL do vídeo"
                               />
                               <Select 
-                                value={lesson.module_id || ''} 
+                                value={lesson.module_id || 'none'} 
                                 onValueChange={(value) => setLessons(lessons.map(l => 
-                                  l.id === lesson.id ? {...l, module_id: value || null} : l
+                                  l.id === lesson.id ? {...l, module_id: value === 'none' ? null : value} : l
                                 ))}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Selecione um módulo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">Sem módulo</SelectItem>
+                                  <SelectItem value="none">Sem módulo</SelectItem>
                                   {modules.map((module) => (
                                     <SelectItem key={module.id} value={module.id}>
                                       {module.title}
