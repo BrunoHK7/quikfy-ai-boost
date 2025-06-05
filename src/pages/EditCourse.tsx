@@ -1,3 +1,7 @@
+<think>
+
+</think>
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StandardHeader } from '@/components/StandardHeader';
 import { ImageUpload } from '@/components/ImageUpload';
+import { AccessLevelSelector } from '@/components/AccessLevelSelector';
+import { CourseAccessBadge } from '@/components/CourseAccessBadge';
 import { 
   Plus, 
   Edit, 
@@ -34,6 +40,7 @@ interface Course {
   price: number;
   estimated_duration: string | null;
   cover_image: string | null;
+  access_level: string;
 }
 
 interface Module {
@@ -70,7 +77,8 @@ const EditCourse = () => {
     level: 'Iniciante',
     price: 0,
     estimated_duration: '',
-    cover_image: ''
+    cover_image: '',
+    access_level: 'free'
   });
 
   const [modules, setModules] = useState<Module[]>([]);
@@ -370,6 +378,11 @@ const EditCourse = () => {
         <StandardHeader 
           title={`Editar Curso: ${courseData.title}`}
           showBackButton={true}
+          rightContent={
+            courseData.access_level && (
+              <CourseAccessBadge accessLevel={courseData.access_level} size="md" />
+            )
+          }
         />
 
         <Tabs defaultValue="course" className="space-y-6">
@@ -445,6 +458,11 @@ const EditCourse = () => {
                       placeholder="Ex: 4 horas"
                     />
                   </div>
+
+                  <AccessLevelSelector
+                    value={courseData.access_level}
+                    onChange={(value) => setCourseData({...courseData, access_level: value})}
+                  />
                 </div>
 
                 <div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { StandardHeader } from '@/components/StandardHeader';
 import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ImageUpload';
+import { AccessLevelSelector } from '@/components/AccessLevelSelector';
 import { 
   BookOpen, 
   Plus, 
@@ -65,7 +65,8 @@ const CreateCourse = () => {
     category: '',
     level: 'iniciante',
     price: '',
-    estimatedDuration: ''
+    estimatedDuration: '',
+    accessLevel: 'free'
   });
 
   const [modules, setModules] = useState<Module[]>([]);
@@ -193,6 +194,7 @@ const CreateCourse = () => {
           level: courseData.level,
           price: courseData.price ? parseFloat(courseData.price) : 0,
           estimated_duration: courseData.estimatedDuration || null,
+          access_level: courseData.accessLevel,
           created_by: user?.id
         })
         .select()
@@ -308,7 +310,8 @@ const CreateCourse = () => {
         category: '',
         level: 'iniciante',
         price: '',
-        estimatedDuration: ''
+        estimatedDuration: '',
+        accessLevel: 'free'
       });
       setModules([]);
       setLessons([]);
@@ -423,6 +426,10 @@ const CreateCourse = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AccessLevelSelector
+                  value={courseData.accessLevel}
+                  onChange={(value) => handleCourseChange('accessLevel', value)}
+                />
                 <div>
                   <Label htmlFor="thumbnail">URL da Thumbnail</Label>
                   <Input
@@ -432,13 +439,14 @@ const CreateCourse = () => {
                     placeholder="https://exemplo.com/thumbnail.jpg"
                   />
                 </div>
-                <ImageUpload
-                  label="Imagem de Capa do Curso"
-                  value={courseData.coverImage}
-                  onChange={(url) => handleCourseChange('coverImage', url)}
-                  expectedDimensions={{ width: 1080, height: 1350 }}
-                />
               </div>
+
+              <ImageUpload
+                label="Imagem de Capa do Curso"
+                value={courseData.coverImage}
+                onChange={(url) => handleCourseChange('coverImage', url)}
+                expectedDimensions={{ width: 1080, height: 1350 }}
+              />
             </CardContent>
           </Card>
 

@@ -9,9 +9,10 @@ import { Loader2 } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiresPremium?: boolean;
+  requiredPlan?: 'plus' | 'pro' | 'vip';
 }
 
-const ProtectedRoute = ({ children, requiresPremium = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiresPremium = false, requiredPlan }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { subscription, loading: subscriptionLoading } = useSubscription();
@@ -44,7 +45,26 @@ const ProtectedRoute = ({ children, requiresPremium = false }: ProtectedRoutePro
     return <>{children}</>;
   }
 
-  // Se a rota requer premium e o usuário não tem acesso
+  // Verificar plano específico
+  if (requiredPlan) {
+    const userPlan = subscription.subscribed ? subscription.subscription_tier?.toLowerCase() : 'free';
+    
+    const planHierarchy = {
+      free: 0,
+      plus: 1,
+      pro: 2,
+      vip: 3
+    };
+
+    const userPlanLevel = planHierarchy[userPlan as keyof typeof planHierarchy] || 0;
+    const requiredPlanLevel = planHierarchy[requiredPlan] || 0;
+
+    if (userPlanLevel < requiredPlanLevel) {
+      return <Navigate to="/pricing" replace />;
+    }
+  }
+
+  // Se a rota requer premium e o usuário não tem acesso (backward compatibility)
   if (requiresPremium && !subscription.subscribed) {
     return <Navigate to="/pricing" replace />;
   }
