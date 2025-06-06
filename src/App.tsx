@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -127,7 +128,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                <Route path="/financial" element={
+                <Route path="/financial-management" element={
                   <ProtectedRoute>
                     <FinancialManagement />
                   </ProtectedRoute>
