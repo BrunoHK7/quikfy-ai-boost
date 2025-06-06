@@ -1,7 +1,3 @@
-<think>
-
-</think>
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -461,7 +457,7 @@ const EditCourse = () => {
 
                   <AccessLevelSelector
                     value={courseData.access_level}
-                    onChange={(value) => setCourseData({...courseData, access_level: value})}
+                    onChange={(value) => setCourseData({...courseData, access_level: value as 'free' | 'plus' | 'pro' | 'vip'})}
                   />
                 </div>
 
