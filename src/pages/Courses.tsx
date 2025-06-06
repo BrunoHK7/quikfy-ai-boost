@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,7 +37,6 @@ interface Course {
 const CourseCard = ({ course }: { course: Course }) => {
   const navigate = useNavigate();
   const { hasAccess, requiredPlan } = useCourseAccess(course.access_level);
-  const { createCheckout } = useSubscription();
   
   const handleCourseClick = () => {
     if (hasAccess) {
@@ -46,13 +44,9 @@ const CourseCard = ({ course }: { course: Course }) => {
     }
   };
 
-  const handleUpgrade = async (e: React.MouseEvent) => {
+  const handleUpgrade = (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await createCheckout(requiredPlan || 'plus');
-    } catch (error) {
-      console.error('Erro ao criar checkout:', error);
-    }
+    navigate('/pricing');
   };
 
   const getPlanLabel = (plan: string) => {
