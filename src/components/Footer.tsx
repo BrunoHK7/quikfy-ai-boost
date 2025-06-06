@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Linkedin, Mail } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -26,9 +27,7 @@ export const Footer: React.FC = () => {
           {/* Logo e descrição */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Q</span>
-              </div>
+              <Logo className="text-purple-600" size={32} />
               <span className="text-xl font-bold text-gray-900">Quikfy</span>
             </Link>
             <p className="text-gray-600 text-sm max-w-md">
