@@ -12,12 +12,32 @@ export const useCourseAccess = (courseAccessLevel: string): CourseAccessResult =
   const { profile } = useProfile();
   const { subscription } = useSubscription();
 
-  // Admin e teste têm acesso a tudo
-  if (profile?.role === 'admin' || profile?.role === 'teste') {
+  // Admin têm acesso a tudo
+  if (profile?.role === 'admin') {
     return {
       hasAccess: true,
       requiredPlan: null,
       userPlan: profile.role
+    };
+  }
+
+  // Usuários teste têm acesso como Pro (não VIP)
+  if (profile?.role === 'teste') {
+    const planHierarchy = {
+      free: 0,
+      plus: 1,
+      pro: 2,
+      vip: 3
+    };
+
+    const testUserLevel = planHierarchy['pro']; // Teste = Pro level
+    const requiredPlanLevel = planHierarchy[courseAccessLevel as keyof typeof planHierarchy] || 0;
+    const hasAccess = testUserLevel >= requiredPlanLevel;
+
+    return {
+      hasAccess,
+      requiredPlan: hasAccess ? null : courseAccessLevel,
+      userPlan: 'pro' // Retorna 'pro' como plano do usuário teste
     };
   }
 
