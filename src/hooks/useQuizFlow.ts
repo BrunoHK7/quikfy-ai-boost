@@ -1,9 +1,7 @@
-
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
-import { useCarouselUses } from '@/hooks/useCarouselUses';
 
 interface Question {
   id: string;
@@ -361,7 +359,6 @@ const formatBriefingText = (data: BriefingData): string => {
 export const useQuizFlow = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { consumeUse } = useCarouselUses();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -457,22 +454,7 @@ export const useQuizFlow = () => {
       setIsSubmitting(true);
       
       try {
-        // Consumir um uso antes de finalizar o quiz
-        console.log('🎯 useQuizFlow - Consuming use for quiz completion');
-        const useResult = await consumeUse('Quiz Carrossel 10X concluído');
-        
-        if (!useResult.success) {
-          console.error('❌ useQuizFlow - Failed to consume use:', useResult.error);
-          toast({
-            title: "Usos esgotados",
-            description: useResult.error || "Você não possui usos suficientes para gerar um carrossel.",
-            variant: "destructive"
-          });
-          setIsSubmitting(false);
-          return;
-        }
-
-        console.log('✅ useQuizFlow - Use consumed successfully:', useResult);
+        console.log('🎯 useQuizFlow - Quiz completion started');
         
         // Gerar sessionId único ANTES de navegar
         const timestamp = Date.now();
@@ -518,19 +500,11 @@ export const useQuizFlow = () => {
         // Enviar para o webhook com sessionId separado
         await sendToWebhook(briefingData, sessionId);
         
-        // Mostrar mensagem de sucesso - updated to handle new response format
-        const isUnlimited = useResult.uses_remaining === -1;
-        if (isUnlimited) {
-          toast({
-            title: "Quiz concluído!",
-            description: "Seu carrossel está sendo gerado com IA. Redirecionando...",
-          });
-        } else {
-          toast({
-            title: "Quiz concluído!",
-            description: `Seu carrossel está sendo gerado. ${useResult.uses_remaining || 0} usos restantes.`,
-          });
-        }
+        // Mostrar mensagem de sucesso
+        toast({
+          title: "Quiz concluído!",
+          description: "Seu carrossel está sendo gerado com IA. Redirecionando...",
+        });
         
         // Pequeno delay para garantir que tudo foi processado
         await new Promise(resolve => setTimeout(resolve, 500));
