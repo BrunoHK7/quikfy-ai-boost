@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +35,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let subscriptionCheckTimeout: NodeJS.Timeout;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -44,10 +45,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Check subscription when user logs in
+        // Check subscription when user logs in (com debounce para evitar múltiplas chamadas)
         if (event === 'SIGNED_IN' && session) {
-          setTimeout(() => {
-            checkSubscription();
+          // Limpar timeout anterior se existir
+          if (subscriptionCheckTimeout) {
+            clearTimeout(subscriptionCheckTimeout);
+          }
+          
+          // Só verifica se a página está visível
+          subscriptionCheckTimeout = setTimeout(() => {
+            if (!document.hidden) {
+              checkSubscription();
+            }
           }, 1000);
         }
       }
@@ -59,15 +68,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Check subscription on initial load if user is logged in
-      if (session) {
-        setTimeout(() => {
+      // Check subscription on initial load if user is logged in (só se página visível)
+      if (session && !document.hidden) {
+        subscriptionCheckTimeout = setTimeout(() => {
           checkSubscription();
         }, 1000);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (subscriptionCheckTimeout) {
+        clearTimeout(subscriptionCheckTimeout);
+      }
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone: string, city: string, state: string, country: string, occupation: string) => {
@@ -147,3 +161,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthProvider;

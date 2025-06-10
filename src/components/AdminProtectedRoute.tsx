@@ -12,14 +12,19 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const { isAdminAuthenticated, loading } = useAdminAuth();
   const location = useLocation();
 
-  console.log('🛡️ AdminProtectedRoute - Current state:', {
-    path: location.pathname,
-    isAdminAuthenticated,
-    loading
-  });
+  // Reduzir logs em produção para melhorar performance
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🛡️ AdminProtectedRoute - Current state:', {
+      path: location.pathname,
+      isAdminAuthenticated,
+      loading
+    });
+  }
 
   if (loading) {
-    console.log('🛡️ AdminProtectedRoute - Still loading...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🛡️ AdminProtectedRoute - Still loading...');
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -31,12 +36,16 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   }
 
   if (!isAdminAuthenticated) {
-    console.log('🛡️ AdminProtectedRoute - Not authenticated, redirecting to admin auth');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🛡️ AdminProtectedRoute - Not authenticated, redirecting to admin auth');
+    }
     const returnTo = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/admin-auth?returnTo=${returnTo}`} replace />;
   }
 
-  console.log('✅ AdminProtectedRoute - Access granted');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ AdminProtectedRoute - Access granted');
+  }
   return <>{children}</>;
 };
 
