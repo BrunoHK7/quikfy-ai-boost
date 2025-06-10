@@ -38,22 +38,12 @@ export const useAdminAuth = () => {
       setLoading(false);
     };
 
-    // Verificação inicial
     checkAdminAuth();
 
-    // Listener APENAS para mudanças no sessionStorage (sem timers ou outros eventos)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'adminAuthenticated' || e.key === 'adminAuthTime') {
-        checkAdminAuth();
-      }
-    };
+    // Verificar a cada minuto se a autenticação ainda é válida
+    const interval = setInterval(checkAdminAuth, 60000);
 
-    // APENAS storage listener - SEM visibilitychange, focus, intervals ou timers
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const logout = () => {

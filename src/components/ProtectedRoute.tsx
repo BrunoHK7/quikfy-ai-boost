@@ -20,7 +20,6 @@ const ProtectedRoute = ({ children, requiresPremium = false, requiredPlan }: Pro
 
   const loading = authLoading || profileLoading || subscriptionLoading;
 
-  // Early return para melhorar performance
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -36,20 +35,17 @@ const ProtectedRoute = ({ children, requiresPremium = false, requiredPlan }: Pro
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Cache do role para evitar verificações repetidas
-  const userRole = profile?.role;
-
   // Admins têm acesso total a tudo
-  if (userRole === 'admin') {
+  if (profile?.role === 'admin') {
     return <>{children}</>;
   }
 
   // Usuários teste têm acesso como Pro
-  if (userRole === 'teste') {
+  if (profile?.role === 'teste') {
     return <>{children}</>;
   }
 
-  // Verificar plano específico (otimizado)
+  // Verificar plano específico
   if (requiredPlan) {
     const userPlan = subscription.subscribed ? subscription.subscription_tier?.toLowerCase() : 'free';
     
@@ -58,7 +54,7 @@ const ProtectedRoute = ({ children, requiresPremium = false, requiredPlan }: Pro
       plus: 1,
       pro: 2,
       vip: 3
-    } as const;
+    };
 
     const userPlanLevel = planHierarchy[userPlan as keyof typeof planHierarchy] || 0;
     const requiredPlanLevel = planHierarchy[requiredPlan] || 0;

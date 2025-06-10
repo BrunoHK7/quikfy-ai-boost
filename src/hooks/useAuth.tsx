@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,13 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Check subscription APENAS quando o usuário faz login (sem timers ou debounce)
+        // Check subscription when user logs in
         if (event === 'SIGNED_IN' && session) {
-          try {
-            await checkSubscription();
-          } catch (error) {
-            console.error('Error checking subscription on sign in:', error);
-          }
+          setTimeout(() => {
+            checkSubscription();
+          }, 1000);
         }
       }
     );
@@ -60,17 +59,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Check subscription on initial load APENAS se há sessão
+      // Check subscription on initial load if user is logged in
       if (session) {
-        checkSubscription().catch(error => {
-          console.error('Error checking subscription on initial load:', error);
-        });
+        setTimeout(() => {
+          checkSubscription();
+        }, 1000);
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone: string, city: string, state: string, country: string, occupation: string) => {
@@ -150,5 +147,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-export default AuthProvider;
