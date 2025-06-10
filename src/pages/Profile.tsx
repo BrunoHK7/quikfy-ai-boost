@@ -14,7 +14,6 @@ import { ProfileProjects } from "@/components/profile/ProfileProjects";
 import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
 import { ProfilePhotos } from "@/components/profile/ProfilePhotos";
 import { PhotoUploadDialog } from "@/components/profile/PhotoUploadDialog";
-import { CreditDisplay } from "@/components/credits/CreditDisplay";
 import { SubscriptionManagement } from "@/components/profile/SubscriptionManagement";
 import { useState } from "react";
 
@@ -114,7 +113,7 @@ const Profile = () => {
         {/* Tabs for Profile Content */}
         <Tabs defaultValue="overview" className="w-full">
           <div className="overflow-x-auto mb-4 sm:mb-6">
-            <TabsList className="inline-flex min-w-full sm:w-full grid-cols-none sm:grid sm:grid-cols-6 glass rounded-2xl p-1 border-border bg-card/50 whitespace-nowrap">
+            <TabsList className="inline-flex min-w-full sm:w-full grid-cols-none sm:grid sm:grid-cols-5 glass rounded-2xl p-1 border-border bg-card/50 whitespace-nowrap">
               <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
                 Visão Geral
               </TabsTrigger>
@@ -126,9 +125,6 @@ const Profile = () => {
               </TabsTrigger>
               <TabsTrigger value="achievements" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
                 Conquistas
-              </TabsTrigger>
-              <TabsTrigger value="plan" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
-                Meu Plano
               </TabsTrigger>
               <TabsTrigger value="subscription" className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white text-muted-foreground text-xs sm:text-sm px-2 sm:px-3">
                 Assinatura
@@ -158,11 +154,6 @@ const Profile = () => {
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
             <ProfileAchievements profile={profile} projectsCount={projectsCount} />
-          </TabsContent>
-
-          {/* Plan Tab */}
-          <TabsContent value="plan" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
-            <CreditDisplay showDetails={true} />
           </TabsContent>
 
           {/* Subscription Tab */}

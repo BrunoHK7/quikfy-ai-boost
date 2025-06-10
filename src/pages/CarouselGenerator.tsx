@@ -9,12 +9,10 @@ import { Loader2, ArrowLeft, Sparkles, Bot, Badge } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useCarouselUses } from "@/hooks/useCarouselUses";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
 const CarouselGenerator = () => {
   const navigate = useNavigate();
-  const { consumeUse, userUses, getCurrentPlanType } = useCarouselUses();
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,17 +68,7 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
 
     try {
-      console.log('🎯 CarouselGenerator - Consuming use for generation');
-      const useResult = await consumeUse("Geração de carrossel com IA personalizada");
-      
-      if (!useResult.success) {
-        console.error('❌ CarouselGenerator - Failed to consume use:', useResult.error);
-        toast.error(useResult.error || "Erro ao consumir uso");
-        setIsGenerating(false);
-        return;
-      }
-
-      console.log('✅ CarouselGenerator - Use consumed successfully:', useResult);
+      console.log('🎯 CarouselGenerator - Generating carousel');
 
       const { data, error } = await supabase.functions.invoke('webhook-receiver', {
         body: {
@@ -99,12 +87,7 @@ const CarouselGenerator = () => {
       }
 
       if (data?.session_id) {
-        const isUnlimited = useResult.uses_remaining === -1;
-        if (isUnlimited) {
-          toast.success("Carrossel sendo gerado!");
-        } else {
-          toast.success(`Carrossel sendo gerado! ${useResult.uses_remaining || 0} usos restantes.`);
-        }
+        toast.success("Carrossel sendo gerado!");
         
         // USO NAVIGATE AO INVÉS DE WINDOW.LOCATION.HREF PARA EVITAR RELOAD
         setTimeout(() => {
@@ -120,10 +103,6 @@ const CarouselGenerator = () => {
       setIsGenerating(false);
     }
   };
-
-  const currentPlan = getCurrentPlanType();
-  const isUnlimited = currentPlan === 'admin' || currentPlan === 'vip' || currentPlan === 'teste';
-  const hasUses = isUnlimited || (userUses && userUses.current_uses !== 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -150,17 +129,6 @@ const CarouselGenerator = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {isUnlimited ? (
-                  <span className="text-green-600 font-medium">Usos ilimitados</span>
-                ) : (
-                  <span>
-                    {userUses?.current_uses === -1 ? 'Ilimitado' : (userUses?.current_uses || 0)} usos restantes
-                  </span>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </header>
@@ -176,13 +144,6 @@ const CarouselGenerator = () => {
               <p className="text-gray-600 dark:text-gray-300">
                 Preencha os campos abaixo para gerar um carrossel personalizado com inteligência artificial.
               </p>
-              {!hasUses && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 dark:bg-yellow-900/20 dark:border-yellow-700">
-                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                    Você esgotou seus usos para este plano. Faça upgrade para continuar gerando carrosséis.
-                  </p>
-                </div>
-              )}
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -196,7 +157,6 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Dicas de marketing digital"
                   className="border-blue-200 focus:border-blue-500"
-                  disabled={!hasUses}
                 />
               </div>
 
@@ -211,7 +171,6 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Empreendedores iniciantes"
                   className="border-blue-200 focus:border-blue-500"
-                  disabled={!hasUses}
                 />
               </div>
 
@@ -226,7 +185,6 @@ const CarouselGenerator = () => {
                   onChange={handleInputChange}
                   placeholder="Ex: Casual e amigável"
                   className="border-blue-200 focus:border-blue-500"
-                  disabled={!hasUses}
                 />
               </div>
 
@@ -243,7 +201,6 @@ const CarouselGenerator = () => {
                   value={formData.numberOfSlides}
                   onChange={handleInputChange}
                   className="border-blue-200 focus:border-blue-500"
-                  disabled={!hasUses}
                 />
               </div>
 
@@ -259,13 +216,12 @@ const CarouselGenerator = () => {
                   placeholder="Adicione qualquer informação extra que possa ajudar na geração do carrossel..."
                   rows={3}
                   className="border-blue-200 focus:border-blue-500"
-                  disabled={!hasUses}
                 />
               </div>
 
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || !formData.topic.trim() || !hasUses}
+                disabled={isGenerating || !formData.topic.trim()}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
               >
                 {isGenerating ? (
@@ -276,7 +232,7 @@ const CarouselGenerator = () => {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    {hasUses ? 'Gerar Carrossel (1 uso)' : 'Usos esgotados'}
+                    Gerar Carrossel
                   </>
                 )}
               </Button>
