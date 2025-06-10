@@ -41,36 +41,20 @@ export const useAdminAuth = () => {
     // Verificação inicial
     checkAdminAuth();
 
-    // Listener para mudanças no sessionStorage (mais eficiente que setInterval)
+    // Listener para mudanças no sessionStorage
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'adminAuthenticated' || e.key === 'adminAuthTime') {
         checkAdminAuth();
       }
     };
 
-    // Listener para visibilidade da página (pausar verificações quando aba não está ativa)
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        // Só verifica quando a aba fica visível novamente
-        checkAdminAuth();
-      }
-    };
-
-    // Event listeners mais eficientes
+    // Event listener apenas para storage changes
     window.addEventListener('storage', handleStorageChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Verificação periódica mais espaçada e só quando a página está visível
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        checkAdminAuth();
-      }
-    }, 5 * 60 * 1000); // 5 minutos em vez de 1 minuto
+    // REMOVIDO: setInterval, visibilitychange e outros timers que causavam reloads
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('storage', handleStorageChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
