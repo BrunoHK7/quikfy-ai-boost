@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,9 +43,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Check subscription when user logs in (apenas uma vez, sem timers)
+        // Check subscription APENAS quando o usuário faz login (sem timers ou debounce)
         if (event === 'SIGNED_IN' && session) {
-          // Sem setTimeout, sem debounce - apenas executa uma vez
           try {
             await checkSubscription();
           } catch (error) {
@@ -62,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Check subscription on initial load apenas se há sessão
+      // Check subscription on initial load APENAS se há sessão
       if (session) {
         checkSubscription().catch(error => {
           console.error('Error checking subscription on initial load:', error);

@@ -50,6 +50,7 @@ const Profile = () => {
 
   const handleRetry = async () => {
     // USO REFETCH AO INVÉS DE WINDOW.LOCATION.RELOAD
+    console.log('🔄 Profile - Using refetch instead of reload');
     await refetch();
   };
 

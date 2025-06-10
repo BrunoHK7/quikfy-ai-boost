@@ -41,17 +41,15 @@ export const useAdminAuth = () => {
     // Verificação inicial
     checkAdminAuth();
 
-    // Listener para mudanças no sessionStorage
+    // Listener APENAS para mudanças no sessionStorage (sem timers ou outros eventos)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'adminAuthenticated' || e.key === 'adminAuthTime') {
         checkAdminAuth();
       }
     };
 
-    // Event listener apenas para storage changes
+    // APENAS storage listener - SEM visibilitychange, focus, intervals ou timers
     window.addEventListener('storage', handleStorageChange);
-
-    // REMOVIDO: setInterval, visibilitychange e outros timers que causavam reloads
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
