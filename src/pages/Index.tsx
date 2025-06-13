@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CoursesSection } from "@/components/CoursesSection";
 import { 
   Palette,
   Instagram,
@@ -113,6 +114,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Seção Cursos */}
+        <CoursesSection />
 
         {/* Seção Ferramentas */}
         <section id="ferramentas" className="bg-gray-50 py-20">
