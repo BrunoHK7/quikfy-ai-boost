@@ -17,7 +17,8 @@ import {
   Search, 
   Filter,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,6 +45,11 @@ const CourseCard = ({ course }: { course: Course }) => {
     }
   };
 
+  const handleOverviewClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/course-overview/${course.id}`);
+  };
+
   const handleUpgrade = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate('/pricing');
@@ -60,21 +66,25 @@ const CourseCard = ({ course }: { course: Course }) => {
 
   return (
     <Card className={`cursor-pointer transition-all hover:shadow-lg ${!hasAccess ? 'opacity-75' : ''}`}>
-      <div onClick={handleCourseClick} className="relative">
-        {course.cover_image && (
-          <div className="aspect-video relative overflow-hidden rounded-t-lg">
+      <div className="relative">
+        <div className="aspect-video relative overflow-hidden rounded-t-lg bg-gray-100">
+          {course.cover_image ? (
             <img
               src={course.cover_image}
               alt={course.title}
               className="w-full h-full object-cover"
             />
-            {!hasAccess && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Lock className="w-8 h-8 text-white" />
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
+              <BookOpen className="w-16 h-16 text-purple-400" />
+            </div>
+          )}
+          {!hasAccess && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+          )}
+        </div>
         
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-3">
@@ -113,21 +123,32 @@ const CourseCard = ({ course }: { course: Course }) => {
             )}
           </div>
 
-          {!hasAccess && requiredPlan ? (
+          <div className="space-y-2">
             <Button 
-              onClick={handleUpgrade}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              onClick={handleOverviewClick}
+              className="w-full" 
+              variant="outline"
             >
-              <Lock className="w-4 h-4 mr-2" />
-              Fazer upgrade para {getPlanLabel(requiredPlan)}
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <Eye className="w-4 h-4 mr-2" />
+              Ver Detalhes
             </Button>
-          ) : (
-            <Button onClick={handleCourseClick} className="w-full" variant="outline">
-              <BookOpen className="w-4 h-4 mr-2" />
-              {hasAccess ? 'Acessar Curso' : 'Ver Curso'}
-            </Button>
-          )}
+            
+            {!hasAccess && requiredPlan ? (
+              <Button 
+                onClick={handleUpgrade}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Fazer upgrade para {getPlanLabel(requiredPlan)}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button onClick={handleCourseClick} className="w-full">
+                <BookOpen className="w-4 h-4 mr-2" />
+                {hasAccess ? 'Acessar Curso' : 'Ver Curso'}
+              </Button>
+            )}
+          </div>
         </CardContent>
       </div>
     </Card>
