@@ -24,20 +24,30 @@ export const useCarouselCanvas = () => {
         const img = new Image();
         img.onload = () => {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          drawFullSizeContent(ctx, frame, canvas);
+          drawFullSizeContent(ctx, frame, canvas, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize);
           downloadCanvas(canvas, `${projectName}-slide-${index + 1}.png`);
         };
         img.src = frame.backgroundImage;
       } else {
         ctx.fillStyle = frame.backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawFullSizeContent(ctx, frame, canvas);
+        drawFullSizeContent(ctx, frame, canvas, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize);
         downloadCanvas(canvas, `${projectName}-slide-${index + 1}.png`);
       }
     });
   };
 
-  const drawFullSizeContent = (ctx: CanvasRenderingContext2D, frame: any, canvas: HTMLCanvasElement) => {
+  const drawFullSizeContent = (
+    ctx: CanvasRenderingContext2D, 
+    frame: any, 
+    canvas: HTMLCanvasElement,
+    marginEnabled: boolean,
+    marginHorizontal: number,
+    marginVertical: number,
+    signatureImage: string | null,
+    signaturePosition: string,
+    signatureSize: number
+  ) => {
     const marginX = marginEnabled ? marginHorizontal : 20;
     const marginY = marginEnabled ? marginVertical : 20;
     const contentWidth = canvas.width - (marginX * 2);
