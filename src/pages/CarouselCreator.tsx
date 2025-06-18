@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { EmojiPicker } from "@/components/carousel/EmojiPicker";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useVisibilityControl } from "@/hooks/useVisibilityControl";
 
 interface Frame {
   id: string;
@@ -50,6 +51,7 @@ const CarouselCreator = () => {
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const [frames, setFrames] = useState<Frame[]>([
     {
@@ -69,6 +71,20 @@ const CarouselCreator = () => {
       backgroundImage: undefined
     }
   ]);
+
+  // Use visibility control to prevent unwanted reloads
+  useVisibilityControl({
+    onVisibilityChange: (isVisible) => {
+      console.log('🔍 Visibility changed:', isVisible ? 'visible' : 'hidden');
+      // Optionally pause expensive operations when not visible
+      if (!isVisible) {
+        console.log('⏸️ Page hidden, pausing expensive operations');
+      } else {
+        console.log('▶️ Page visible, resuming operations');
+      }
+    },
+    preventUnload: hasUnsavedChanges
+  });
 
   const googleFonts = [
     'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Source Sans Pro',
@@ -93,7 +109,12 @@ const CarouselCreator = () => {
 
   const canvasDimensions = getDimensionsForCanvas();
 
+  // Optimized canvas drawing - only when necessary
   useEffect(() => {
+    if (document.hidden) {
+      console.log('⏸️ Skipping canvas draw - page hidden');
+      return;
+    }
     drawCanvas();
   }, [frames, currentFrameIndex, globalBackgroundColor, globalTextColor, globalFontFamily, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize, dimensions]);
 
@@ -105,6 +126,11 @@ const CarouselCreator = () => {
       fontFamily: frame.fontFamily === globalFontFamily ? globalFontFamily : frame.fontFamily
     })));
   }, [globalBackgroundColor, globalTextColor, globalFontFamily]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [frames, projectName, dimensions, globalBackgroundColor, globalTextColor, globalFontFamily, marginEnabled, marginHorizontal, marginVertical, signatureImage, signaturePosition, signatureSize]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -532,6 +558,7 @@ const CarouselCreator = () => {
 
       if (error) throw error;
 
+      setHasUnsavedChanges(false);
       toast.success("Projeto salvo com sucesso!");
     } catch (error) {
       console.error('Erro ao salvar projeto:', error);
@@ -571,6 +598,7 @@ const CarouselCreator = () => {
     enabled: true
   });
 
+  // Optimized data loading - only when user is present and mounted
   useEffect(() => {
     if (!user) return;
     
@@ -595,6 +623,8 @@ const CarouselCreator = () => {
           if (savedData.signatureSize) setSignatureSize(savedData.signatureSize);
           if (savedData.currentFrameIndex !== undefined) setCurrentFrameIndex(savedData.currentFrameIndex);
           if (savedData.frames && savedData.frames.length > 0) setFrames(savedData.frames);
+          
+          setHasUnsavedChanges(false);
         }
       } catch (error) {
         console.error('Erro ao carregar dados salvos:', error);
@@ -606,7 +636,7 @@ const CarouselCreator = () => {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, loadSavedData]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -647,6 +677,11 @@ const CarouselCreator = () => {
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300">
                   Auto-save ativo
                 </Badge>
+                {hasUnsavedChanges && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                    Alterações não salvas
+                  </Badge>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3">
