@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StandardHeader } from '@/components/StandardHeader';
 import { LinkPageSidebar } from '@/components/linkpage/LinkPageSidebar';
@@ -7,7 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { Save, ExternalLink } from 'lucide-react';
+import { Save, ExternalLink, Download } from 'lucide-react';
+import { generateStaticPage, downloadPage } from '@/utils/pageGenerator';
 
 export interface LinkButton {
   id: string;
@@ -377,6 +377,42 @@ const LinkPageEditor = () => {
     }
   };
 
+  const publishPage = () => {
+    if (!linkPageData.slug) {
+      toast({
+        title: 'Erro',
+        description: 'Defina um slug primeiro',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    console.log('📄 GENERATING STATIC PAGE for:', linkPageData.slug);
+    
+    try {
+      const pageContent = generateStaticPage(linkPageData);
+      const filename = `${linkPageData.slug}.html`;
+      
+      downloadPage(pageContent, filename);
+      
+      console.log('✅ Static page generated and downloaded:', filename);
+      
+      toast({
+        title: 'Página publicada!',
+        description: `A página ${filename} foi gerada e baixada. Você pode hospedá-la em qualquer servidor.`,
+        variant: 'default',
+      });
+      
+    } catch (error) {
+      console.error('❌ Error generating page:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao gerar a página',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -408,6 +444,15 @@ const LinkPageEditor = () => {
           Visualizar
         </Button>
       )}
+      <Button 
+        onClick={publishPage}
+        variant="purple"
+        disabled={!linkPageData.slug}
+        className="flex items-center gap-2"
+      >
+        <Download className="w-4 h-4" />
+        Publicar
+      </Button>
       <Button 
         onClick={saveLinkPage} 
         disabled={isSaving || !linkPageData.slug || isSlugAvailable === false}
