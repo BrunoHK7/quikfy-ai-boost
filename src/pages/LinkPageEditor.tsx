@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { StandardHeader } from '@/components/StandardHeader';
 import { LinkPageSidebar } from '@/components/linkpage/LinkPageSidebar';
@@ -96,7 +95,7 @@ const LinkPageEditor = () => {
           headlineFontFamily: data.headline_font_family,
           headlineSize: data.headline_size,
           backgroundColor: data.background_color,
-          buttons: data.buttons || []
+          buttons: Array.isArray(data.buttons) ? data.buttons as LinkButton[] : []
         });
         setIsSlugAvailable(true);
       }
@@ -226,7 +225,7 @@ const LinkPageEditor = () => {
         headline_font_family: linkPageData.headlineFontFamily,
         headline_size: linkPageData.headlineSize,
         background_color: linkPageData.backgroundColor,
-        buttons: linkPageData.buttons,
+        buttons: linkPageData.buttons as any,
         updated_at: new Date().toISOString()
       };
 

@@ -39,7 +39,7 @@ export const useLinkPages = () => {
           headlineFontFamily: data.headline_font_family,
           headlineSize: data.headline_size,
           backgroundColor: data.background_color,
-          buttons: data.buttons || []
+          buttons: Array.isArray(data.buttons) ? data.buttons as any[] : []
         };
         setLinkPage(linkPageData);
         return linkPageData;
