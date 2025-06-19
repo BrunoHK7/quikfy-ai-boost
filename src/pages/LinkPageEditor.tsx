@@ -372,7 +372,7 @@ const LinkPageEditor = () => {
 
   const viewLinkPage = () => {
     if (linkPageData.slug) {
-      const url = `https://ctzzjfasmnimbskpphuy.supabase.co/functions/v1/serve-link-page/quiklink-${linkPageData.slug}`;
+      const url = `${window.location.origin}/p/${linkPageData.slug}`;
       console.log('🌐 Opening link page:', url);
       window.open(url, '_blank');
     }
@@ -548,6 +548,25 @@ const LinkPageEditor = () => {
           <LinkPagePreview linkPageData={linkPageData} />
         </div>
       </div>
+
+      {/* Link Display */}
+      {linkPageData.slug && isSlugAvailable !== false && (
+        <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg p-3 shadow-lg max-w-sm">
+          <p className="text-sm text-gray-600 mb-2">Sua página estará disponível em:</p>
+          <div className="flex items-center gap-2">
+            <code className="text-sm bg-gray-100 px-2 py-1 rounded flex-1 truncate">
+              {window.location.origin}/p/{linkPageData.slug}
+            </code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigator.clipboard.writeText(`${window.location.origin}/p/${linkPageData.slug}`)}
+            >
+              Copiar
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
