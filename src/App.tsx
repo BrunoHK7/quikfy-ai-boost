@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TranslationProvider } from "./contexts/TranslationContext";
+import { AuthProvider } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -41,116 +42,118 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TranslationProvider language="pt">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/verify-email" element={<EmailVerification />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/podcasts" element={<Podcasts />} />
-              
-              {/* Rota pública para páginas de link */}
-              <Route path="/p/:slug" element={<PublicLinkPage />} />
-              
-              {/* Rotas protegidas */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile/:userId" element={<PublicProfile />} />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/courses" element={
-                <ProtectedRoute>
-                  <Courses />
-                </ProtectedRoute>
-              } />
-              <Route path="/courses/:courseId" element={
-                <ProtectedRoute>
-                  <CourseView />
-                </ProtectedRoute>
-              } />
-              <Route path="/courses/:courseId/lessons/:lessonId" element={
-                <ProtectedRoute>
-                  <LessonView />
-                </ProtectedRoute>
-              } />
-              <Route path="/create-course" element={
-                <ProtectedRoute>
-                  <CreateCourse />
-                </ProtectedRoute>
-              } />
-              <Route path="/edit-course/:courseId" element={
-                <ProtectedRoute>
-                  <EditCourse />
-                </ProtectedRoute>
-              } />
-              <Route path="/financial" element={
-                <ProtectedRoute>
-                  <FinancialManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/tools" element={
-                <ProtectedRoute>
-                  <Tools />
-                </ProtectedRoute>
-              } />
-              <Route path="/carousel-briefing" element={
-                <ProtectedRoute>
-                  <CarouselBriefing />
-                </ProtectedRoute>
-              } />
-              <Route path="/carousel-creator" element={
-                <ProtectedRoute>
-                  <CarouselCreator />
-                </ProtectedRoute>
-              } />
-              <Route path="/carousel-generator" element={
-                <ProtectedRoute>
-                  <CarouselGenerator />
-                </ProtectedRoute>
-              } />
-              <Route path="/carousel-result" element={
-                <ProtectedRoute>
-                  <CarouselResult />
-                </ProtectedRoute>
-              } />
-              <Route path="/link-page-editor" element={
-                <ProtectedRoute>
-                  <LinkPageEditor />
-                </ProtectedRoute>
-              } />
-              <Route path="/content-feed" element={
-                <ProtectedRoute>
-                  <ContentFeed />
-                </ProtectedRoute>
-              } />
-              
-              {/* Rotas de administrador */}
-              <Route path="/admin" element={<AdminAuth />} />
-              <Route path="/admin/dashboard" element={
-                <AdminProtectedRoute>
-                  <AdminDashboard />
-                </AdminProtectedRoute>
-              } />
-              
-              {/* Página 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </TranslationProvider>
+      <AuthProvider>
+        <TranslationProvider language="pt">
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/verify-email" element={<EmailVerification />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/podcasts" element={<Podcasts />} />
+                
+                {/* Rota pública para páginas de link */}
+                <Route path="/p/:slug" element={<PublicLinkPage />} />
+                
+                {/* Rotas protegidas */}
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile/:userId" element={<PublicProfile />} />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses" element={
+                  <ProtectedRoute>
+                    <Courses />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses/:courseId" element={
+                  <ProtectedRoute>
+                    <CourseView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses/:courseId/lessons/:lessonId" element={
+                  <ProtectedRoute>
+                    <LessonView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/create-course" element={
+                  <ProtectedRoute>
+                    <CreateCourse />
+                  </ProtectedRoute>
+                } />
+                <Route path="/edit-course/:courseId" element={
+                  <ProtectedRoute>
+                    <EditCourse />
+                  </ProtectedRoute>
+                } />
+                <Route path="/financial" element={
+                  <ProtectedRoute>
+                    <FinancialManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tools" element={
+                  <ProtectedRoute>
+                    <Tools />
+                  </ProtectedRoute>
+                } />
+                <Route path="/carousel-briefing" element={
+                  <ProtectedRoute>
+                    <CarouselBriefing />
+                  </ProtectedRoute>
+                } />
+                <Route path="/carousel-creator" element={
+                  <ProtectedRoute>
+                    <CarouselCreator />
+                  </ProtectedRoute>
+                } />
+                <Route path="/carousel-generator" element={
+                  <ProtectedRoute>
+                    <CarouselGenerator />
+                  </ProtectedRoute>
+                } />
+                <Route path="/carousel-result" element={
+                  <ProtectedRoute>
+                    <CarouselResult />
+                  </ProtectedRoute>
+                } />
+                <Route path="/link-page-editor" element={
+                  <ProtectedRoute>
+                    <LinkPageEditor />
+                  </ProtectedRoute>
+                } />
+                <Route path="/content-feed" element={
+                  <ProtectedRoute>
+                    <ContentFeed />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Rotas de administrador */}
+                <Route path="/admin" element={<AdminAuth />} />
+                <Route path="/admin/dashboard" element={
+                  <AdminProtectedRoute>
+                    <AdminDashboard />
+                  </AdminProtectedRoute>
+                } />
+                
+                {/* Página 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </TranslationProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
