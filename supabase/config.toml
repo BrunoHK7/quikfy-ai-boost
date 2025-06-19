@@ -34,3 +34,6 @@ site_url = "http://localhost:3000"
 
 [functions.webhook-receiver]
 verify_jwt = false
+
+[functions.serve-link-page]
+verify_jwt = false
