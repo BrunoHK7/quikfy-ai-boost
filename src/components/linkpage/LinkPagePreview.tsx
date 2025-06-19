@@ -46,7 +46,7 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
                   style={{
                     color: linkPageData.nameColor,
                     fontFamily: linkPageData.nameFontFamily,
-                    fontSize: linkPageData.headline ? '0.8rem' : '1.25rem' // 40% do tamanho da headline
+                    fontSize: `${linkPageData.headlineSize * 0.4}px` // 40% do tamanho da headline
                   }}
                 >
                   {linkPageData.name}
@@ -60,7 +60,7 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
                   style={{
                     color: linkPageData.headlineColor,
                     fontFamily: linkPageData.headlineFontFamily,
-                    fontSize: '1.25rem' // Tamanho base da headline
+                    fontSize: `${linkPageData.headlineSize}px`
                   }}
                 >
                   {linkPageData.headline}

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Plus, Trash2, Settings } from 'lucide-react';
 import { LinkPageData, LinkButton } from '@/pages/LinkPageEditor';
@@ -202,6 +203,20 @@ export const LinkPageSidebar: React.FC<LinkPageSidebarProps> = ({
               />
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Tamanho da headline: {linkPageData.headlineSize}px</Label>
+          <Slider
+            value={[linkPageData.headlineSize]}
+            onValueChange={([value]) => updateLinkPageData({ headlineSize: value })}
+            min={12}
+            max={32}
+            step={1}
+          />
+          <p className="text-xs text-gray-500">
+            O nome terá automaticamente 40% deste tamanho ({Math.round(linkPageData.headlineSize * 0.4)}px)
+          </p>
         </div>
       </div>
 

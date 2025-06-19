@@ -286,6 +286,60 @@ export type Database = {
           },
         ]
       }
+      link_pages: {
+        Row: {
+          background_color: string
+          buttons: Json
+          created_at: string
+          headline: string | null
+          headline_color: string
+          headline_font_family: string
+          headline_size: number
+          id: string
+          name: string | null
+          name_color: string
+          name_font_family: string
+          profile_image: string | null
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_color?: string
+          buttons?: Json
+          created_at?: string
+          headline?: string | null
+          headline_color?: string
+          headline_font_family?: string
+          headline_size?: number
+          id?: string
+          name?: string | null
+          name_color?: string
+          name_font_family?: string
+          profile_image?: string | null
+          slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_color?: string
+          buttons?: Json
+          created_at?: string
+          headline?: string | null
+          headline_color?: string
+          headline_font_family?: string
+          headline_size?: number
+          id?: string
+          name?: string | null
+          name_color?: string
+          name_font_family?: string
+          profile_image?: string | null
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       modules: {
         Row: {
           course_id: string | null

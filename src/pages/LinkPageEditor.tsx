@@ -1,8 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StandardHeader } from '@/components/StandardHeader';
 import { LinkPageSidebar } from '@/components/linkpage/LinkPageSidebar';
 import { LinkPagePreview } from '@/components/linkpage/LinkPagePreview';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 
 export interface LinkButton {
   id: string;
@@ -27,11 +32,14 @@ export interface LinkPageData {
   headline: string;
   headlineColor: string;
   headlineFontFamily: string;
+  headlineSize: number;
   backgroundColor: string;
   buttons: LinkButton[];
 }
 
 const LinkPageEditor = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [linkPageData, setLinkPageData] = useState<LinkPageData>({
     slug: '',
     profileImage: '',
@@ -41,12 +49,63 @@ const LinkPageEditor = () => {
     headline: '',
     headlineColor: '#374151',
     headlineFontFamily: 'Inter',
+    headlineSize: 20,
     backgroundColor: '#ffffff',
     buttons: []
   });
 
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar dados existentes ao montar o componente
+  useEffect(() => {
+    if (user) {
+      loadExistingLinkPage();
+    }
+  }, [user]);
+
+  const loadExistingLinkPage = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('link_pages')
+        .select('*')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading link page:', error);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar página de links',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data) {
+        setLinkPageData({
+          slug: data.slug,
+          profileImage: data.profile_image || '',
+          name: data.name || '',
+          nameColor: data.name_color,
+          nameFontFamily: data.name_font_family,
+          headline: data.headline || '',
+          headlineColor: data.headline_color,
+          headlineFontFamily: data.headline_font_family,
+          headlineSize: data.headline_size,
+          backgroundColor: data.background_color,
+          buttons: data.buttons || []
+        });
+        setIsSlugAvailable(true);
+      }
+    } catch (error) {
+      console.error('Error loading link page:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const updateLinkPageData = (updates: Partial<LinkPageData>) => {
     setLinkPageData(prev => ({ ...prev, ...updates }));
@@ -96,17 +155,139 @@ const LinkPageEditor = () => {
   };
 
   const checkSlugAvailability = async (slug: string) => {
-    // TODO: Implementar verificação real no backend
-    // Por enquanto, simulando que alguns slugs não estão disponíveis
-    const unavailableslugs = ['admin', 'api', 'www', 'app', 'support'];
-    const available = !unavailableslugs.includes(slug.toLowerCase()) && slug.length > 0;
-    setIsSlugAvailable(available);
-    return available;
+    if (!slug) {
+      setIsSlugAvailable(null);
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('link_pages')
+        .select('id, user_id')
+        .eq('slug', slug.toLowerCase())
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking slug:', error);
+        return false;
+      }
+
+      // Se não encontrou nenhum resultado ou se encontrou mas é do próprio usuário
+      const available = !data || data.user_id === user?.id;
+      setIsSlugAvailable(available);
+      return available;
+    } catch (error) {
+      console.error('Error checking slug availability:', error);
+      setIsSlugAvailable(false);
+      return false;
+    }
   };
+
+  const saveLinkPage = async () => {
+    if (!user) {
+      toast({
+        title: 'Erro',
+        description: 'Você precisa estar logado para salvar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!linkPageData.slug) {
+      toast({
+        title: 'Erro',
+        description: 'O slug é obrigatório',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isSlugAvailable === false) {
+      toast({
+        title: 'Erro',
+        description: 'Este slug não está disponível',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const linkPagePayload = {
+        user_id: user.id,
+        slug: linkPageData.slug.toLowerCase(),
+        profile_image: linkPageData.profileImage,
+        name: linkPageData.name,
+        name_color: linkPageData.nameColor,
+        name_font_family: linkPageData.nameFontFamily,
+        headline: linkPageData.headline,
+        headline_color: linkPageData.headlineColor,
+        headline_font_family: linkPageData.headlineFontFamily,
+        headline_size: linkPageData.headlineSize,
+        background_color: linkPageData.backgroundColor,
+        buttons: linkPageData.buttons,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('link_pages')
+        .upsert(linkPagePayload, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Error saving link page:', error);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao salvar página de links',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Página de links salva com sucesso!',
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error('Error saving link page:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao salvar',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const saveButton = (
+    <Button 
+      onClick={saveLinkPage} 
+      disabled={isSaving || !linkPageData.slug || isSlugAvailable === false}
+      className="flex items-center gap-2"
+    >
+      <Save className="w-4 h-4" />
+      {isSaving ? 'Salvando...' : 'Salvar'}
+    </Button>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StandardHeader title="Editor de Página de Links" />
+      <StandardHeader title="Editor de Página de Links" rightContent={saveButton} />
       
       <div className="flex h-[calc(100vh-80px)]">
         {/* Sidebar - 40% */}
