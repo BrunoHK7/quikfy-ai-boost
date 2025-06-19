@@ -159,12 +159,16 @@ const LinkPageEditor = () => {
       return false;
     }
 
+    console.log('Checking slug availability for:', slug);
+
     try {
       const { data, error } = await supabase
         .from('link_pages')
         .select('id, user_id')
         .eq('slug', slug.toLowerCase())
         .maybeSingle();
+
+      console.log('Slug check result:', { data, error });
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking slug:', error);
@@ -174,6 +178,7 @@ const LinkPageEditor = () => {
       // Se não encontrou nenhum resultado ou se encontrou mas é do próprio usuário
       const available = !data || data.user_id === user?.id;
       setIsSlugAvailable(available);
+      console.log('Slug available:', available);
       return available;
     } catch (error) {
       console.error('Error checking slug availability:', error);
@@ -211,6 +216,7 @@ const LinkPageEditor = () => {
     }
 
     setIsSaving(true);
+    console.log('Saving link page with data:', linkPageData);
 
     try {
       const linkPagePayload = {
@@ -229,11 +235,16 @@ const LinkPageEditor = () => {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      console.log('Payload to save:', linkPagePayload);
+
+      const { data, error } = await supabase
         .from('link_pages')
         .upsert(linkPagePayload, {
           onConflict: 'user_id'
-        });
+        })
+        .select();
+
+      console.log('Save result:', { data, error });
 
       if (error) {
         console.error('Error saving link page:', error);
@@ -245,11 +256,23 @@ const LinkPageEditor = () => {
         return;
       }
 
+      console.log('Link page saved successfully. Data:', data);
+
       toast({
         title: 'Sucesso',
         description: 'Página de links salva com sucesso! Sua página está disponível publicamente.',
         variant: 'default',
       });
+
+      // Verificar se a página foi realmente salva
+      const { data: verification, error: verifyError } = await supabase
+        .from('link_pages')
+        .select('*')
+        .eq('slug', linkPageData.slug.toLowerCase())
+        .maybeSingle();
+
+      console.log('Verification check:', { verification, verifyError });
+
     } catch (error) {
       console.error('Error saving link page:', error);
       toast({
@@ -264,8 +287,9 @@ const LinkPageEditor = () => {
 
   const viewLinkPage = () => {
     if (linkPageData.slug) {
-      // Usar a rota local para a página pública
-      window.open(`/quiklink-${linkPageData.slug}`, '_blank');
+      const url = `/quiklink-${linkPageData.slug}`;
+      console.log('Opening link page:', url);
+      window.open(url, '_blank');
     }
   };
 

@@ -14,19 +14,30 @@ const PublicLinkPage = () => {
   useEffect(() => {
     const loadLinkPage = async () => {
       if (!slug) {
+        console.log('No slug provided');
         setNotFound(true);
         setIsLoading(false);
         return;
       }
 
       console.log('Loading link page for slug:', slug);
+      console.log('Full URL:', window.location.href);
 
       try {
+        // Primeiro, vamos verificar se há dados na tabela
+        const { data: allPages, error: allError } = await supabase
+          .from('link_pages')
+          .select('*');
+        
+        console.log('All link pages in database:', allPages);
+        
         const { data, error } = await supabase
           .from('link_pages')
           .select('*')
           .eq('slug', slug.toLowerCase())
           .maybeSingle();
+
+        console.log('Query result for slug:', slug, 'Data:', data, 'Error:', error);
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading link page:', error);
@@ -94,6 +105,7 @@ const PublicLinkPage = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
           <p className="text-xl text-gray-600 mb-8">Página não encontrada</p>
           <p className="text-gray-500">A página de links que você está procurando não existe.</p>
+          <p className="text-sm text-gray-400 mt-4">Slug procurado: {slug}</p>
         </div>
       </div>
     );
