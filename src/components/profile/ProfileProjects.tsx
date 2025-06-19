@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,12 +101,12 @@ export const ProfileProjects: React.FC<ProfileProjectsProps> = ({ isOwnProfile }
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map((project) => (
                 <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <h4 className="font-medium mb-2 truncate">{project.title}</h4>
+                  <h4 className="font-medium mb-2 truncate">{project.name}</h4>
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {project.content}
+                    {project.frames.length} frames • {project.dimensions}
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                    <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                     <Button
                       size="sm"
                       variant="outline"
