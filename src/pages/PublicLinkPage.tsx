@@ -19,6 +19,8 @@ const PublicLinkPage = () => {
         return;
       }
 
+      console.log('Loading link page for slug:', slug);
+
       try {
         const { data, error } = await supabase
           .from('link_pages')
@@ -34,10 +36,13 @@ const PublicLinkPage = () => {
         }
 
         if (!data) {
+          console.log('No link page found for slug:', slug);
           setNotFound(true);
           setIsLoading(false);
           return;
         }
+
+        console.log('Link page data loaded:', data);
 
         const linkPageData: LinkPageData = {
           slug: data.slug,
@@ -83,7 +88,15 @@ const PublicLinkPage = () => {
   }
 
   if (notFound || !linkPageData) {
-    return <Navigate to="/404" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+          <p className="text-xl text-gray-600 mb-8">Página não encontrada</p>
+          <p className="text-gray-500">A página de links que você está procurando não existe.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

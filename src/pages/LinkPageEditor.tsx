@@ -247,7 +247,7 @@ const LinkPageEditor = () => {
 
       toast({
         title: 'Sucesso',
-        description: 'Página de links salva com sucesso!',
+        description: 'Página de links salva com sucesso! Sua página está disponível publicamente.',
         variant: 'default',
       });
     } catch (error) {
@@ -264,7 +264,8 @@ const LinkPageEditor = () => {
 
   const viewLinkPage = () => {
     if (linkPageData.slug) {
-      window.open(`https://quikfy.com.br/quiklink-${linkPageData.slug}`, '_blank');
+      // Usar a rota local para a página pública
+      window.open(`/quiklink-${linkPageData.slug}`, '_blank');
     }
   };
 
