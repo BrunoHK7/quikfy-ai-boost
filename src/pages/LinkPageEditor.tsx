@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StandardHeader } from '@/components/StandardHeader';
 import { LinkPageSidebar } from '@/components/linkpage/LinkPageSidebar';
@@ -371,9 +372,8 @@ const LinkPageEditor = () => {
 
   const viewLinkPage = () => {
     if (linkPageData.slug) {
-      const url = `/quiklink-${linkPageData.slug}`;
+      const url = `https://ctzzjfasmnimbskpphuy.supabase.co/functions/v1/serve-link-page/quiklink-${linkPageData.slug}`;
       console.log('🌐 Opening link page:', url);
-      console.log('🌐 Full URL will be:', window.location.origin + url);
       window.open(url, '_blank');
     }
   };
