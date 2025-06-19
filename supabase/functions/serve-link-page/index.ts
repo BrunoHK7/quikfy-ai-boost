@@ -50,7 +50,11 @@ serve(async (req) => {
         </html>
       `, { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }
       })
     }
     
@@ -66,9 +70,29 @@ serve(async (req) => {
     
     if (!supabaseUrl || !supabaseKey) {
       console.log('❌ Missing Supabase credentials')
-      return new Response('Server configuration error', { 
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Erro de configuração</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; }
+            .error { color: #d32f2f; }
+          </style>
+        </head>
+        <body>
+          <h1>Erro de configuração do servidor</h1>
+          <p class="error">Configuração do banco de dados não encontrada</p>
+        </body>
+        </html>
+      `, { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }
       })
     }
     
@@ -104,7 +128,11 @@ serve(async (req) => {
         </html>
       `, { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }
       })
     }
     
@@ -137,7 +165,11 @@ serve(async (req) => {
         </html>
       `, { 
         status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }
       })
     }
     
@@ -149,6 +181,7 @@ serve(async (req) => {
     console.log('✅ Generated HTML, length:', pageHtml.length)
     
     return new Response(pageHtml, {
+      status: 200,
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
@@ -176,7 +209,11 @@ serve(async (req) => {
       </html>
     `, { 
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache'
+      }
     })
   }
 })
