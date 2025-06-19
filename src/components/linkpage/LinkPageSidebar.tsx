@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,7 +88,7 @@ export const LinkPageSidebar: React.FC<LinkPageSidebarProps> = ({
         />
         {linkPageData.slug && (
           <p className="text-sm text-gray-600">
-            Sua página será: quikfy.com.br/quiklink-{linkPageData.slug}
+            Sua página será: {window.location.origin}/p/{linkPageData.slug}
           </p>
         )}
         {isSlugAvailable === false && (
