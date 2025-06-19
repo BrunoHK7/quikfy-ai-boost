@@ -33,6 +33,7 @@ serve(async (req) => {
         <head>
           <title>Formato de URL incorreto</title>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
             .error { color: #666; }
@@ -51,9 +52,10 @@ serve(async (req) => {
       `, { 
         status: 400,
         headers: { 
-          ...corsHeaders, 
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       })
     }
@@ -76,6 +78,7 @@ serve(async (req) => {
         <head>
           <title>Erro de configuração</title>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
             .error { color: #d32f2f; }
@@ -89,9 +92,10 @@ serve(async (req) => {
       `, { 
         status: 500,
         headers: { 
-          ...corsHeaders, 
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       })
     }
@@ -116,6 +120,7 @@ serve(async (req) => {
         <head>
           <title>Erro no banco de dados</title>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
             .error { color: #d32f2f; }
@@ -129,9 +134,10 @@ serve(async (req) => {
       `, { 
         status: 500,
         headers: { 
-          ...corsHeaders, 
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       })
     }
@@ -149,6 +155,7 @@ serve(async (req) => {
         <head>
           <title>Página não encontrada</title>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
             .error { color: #666; }
@@ -166,9 +173,10 @@ serve(async (req) => {
       `, { 
         status: 404,
         headers: { 
-          ...corsHeaders, 
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       })
     }
@@ -183,9 +191,9 @@ serve(async (req) => {
     return new Response(pageHtml, {
       status: 200,
       headers: {
-        ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300'
+        'Cache-Control': 'public, max-age=300',
+        'X-Content-Type-Options': 'nosniff'
       }
     })
     
@@ -197,6 +205,7 @@ serve(async (req) => {
       <head>
         <title>Erro interno</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           body { font-family: sans-serif; text-align: center; padding: 50px; }
           .error { color: #d32f2f; }
@@ -210,9 +219,10 @@ serve(async (req) => {
     `, { 
       status: 500,
       headers: { 
-        ...corsHeaders, 
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
     })
   }
