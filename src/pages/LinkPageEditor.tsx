@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StandardHeader } from '@/components/StandardHeader';
 import { LinkPageSidebar } from '@/components/linkpage/LinkPageSidebar';
@@ -255,7 +256,7 @@ const LinkPageEditor = () => {
         console.error('❌ Error saving link page:', error);
         toast({
           title: 'Erro',
-          description: 'Erro ao salvar página de links',
+          description: `Erro ao salvar página de links: ${error.message}`,
           variant: 'destructive',
         });
         return;
@@ -263,25 +264,49 @@ const LinkPageEditor = () => {
 
       console.log('✅ Link page saved successfully. Data:', data);
 
-      toast({
-        title: 'Sucesso',
-        description: 'Página de links salva com sucesso! Sua página está disponível publicamente.',
-        variant: 'default',
-      });
-
-      // Verificar se a página foi realmente salva
-      const { data: verification, error: verifyError } = await supabase
+      // Primeira verificação - buscar pela slug específica
+      console.log('🔍 VERIFICATION 1: Searching by slug...');
+      const { data: verification1, error: verifyError1 } = await supabase
         .from('link_pages')
         .select('*')
         .eq('slug', linkPageData.slug.toLowerCase())
         .maybeSingle();
 
-      console.log('🔍 VERIFICATION CHECK after save:', { verification, verifyError });
+      console.log('🔍 VERIFICATION 1 result:', { verification1, verifyError1 });
 
-      if (verification) {
+      // Segunda verificação - buscar por user_id
+      console.log('🔍 VERIFICATION 2: Searching by user_id...');
+      const { data: verification2, error: verifyError2 } = await supabase
+        .from('link_pages')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log('🔍 VERIFICATION 2 result:', { verification2, verifyError2 });
+
+      // Terceira verificação - listar todas as páginas
+      console.log('🔍 VERIFICATION 3: List all link pages...');
+      const { data: allPages, error: allError } = await supabase
+        .from('link_pages')
+        .select('*');
+
+      console.log('🔍 VERIFICATION 3 result:', { allPages, allError });
+      console.log('📊 Total pages in database:', allPages?.length || 0);
+
+      if (verification1) {
         console.log('✅ PAGE EXISTS IN DATABASE - Public URL should work:', `/quiklink-${linkPageData.slug}`);
+        toast({
+          title: 'Sucesso',
+          description: 'Página de links salva com sucesso! Sua página está disponível publicamente.',
+          variant: 'default',
+        });
       } else {
         console.error('❌ PAGE NOT FOUND IN DATABASE after save!');
+        toast({
+          title: 'Aviso',
+          description: 'Página foi salva mas não foi encontrada na verificação. Verifique os logs.',
+          variant: 'destructive',
+        });
       }
 
     } catch (error) {
@@ -293,6 +318,53 @@ const LinkPageEditor = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const testPublicAccess = async () => {
+    if (!linkPageData.slug) {
+      toast({
+        title: 'Erro',
+        description: 'Defina um slug primeiro',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    console.log('🧪 TESTING PUBLIC ACCESS for slug:', linkPageData.slug);
+    
+    try {
+      // Teste de acesso público (sem autenticação)
+      const { data, error } = await supabase
+        .from('link_pages')
+        .select('*')
+        .eq('slug', linkPageData.slug.toLowerCase())
+        .maybeSingle();
+
+      console.log('🧪 PUBLIC ACCESS TEST result:', { data, error });
+
+      if (data) {
+        console.log('✅ PUBLIC ACCESS: Page can be accessed publicly');
+        toast({
+          title: 'Teste passou',
+          description: 'A página pode ser acessada publicamente!',
+          variant: 'default',
+        });
+      } else {
+        console.error('❌ PUBLIC ACCESS: Page cannot be accessed publicly');
+        toast({
+          title: 'Teste falhou',
+          description: 'A página não pode ser acessada publicamente',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error testing public access:', error);
+      toast({
+        title: 'Erro no teste',
+        description: 'Erro ao testar acesso público',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -318,6 +390,14 @@ const LinkPageEditor = () => {
 
   const rightContent = (
     <div className="flex items-center gap-2">
+      <Button 
+        onClick={testPublicAccess}
+        variant="outline"
+        className="flex items-center gap-2"
+        disabled={!linkPageData.slug}
+      >
+        🧪 Testar
+      </Button>
       {linkPageData.slug && isSlugAvailable !== false && (
         <Button 
           onClick={viewLinkPage}
