@@ -264,7 +264,7 @@ const LinkPageEditor = () => {
 
   const viewLinkPage = () => {
     if (linkPageData.slug) {
-      window.open(`https://quiklinks.quikfy.com.br/${linkPageData.slug}`, '_blank');
+      window.open(`https://quikfy.com.br/quiklink-${linkPageData.slug}`, '_blank');
     }
   };
 

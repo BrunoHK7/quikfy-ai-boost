@@ -110,7 +110,7 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
         {linkPageData.slug && (
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold">quiklinks.quikfy.com.br/</span>
+              <span className="font-semibold">quikfy.com.br/quiklink-</span>
               <span className="text-purple-600 font-semibold">{linkPageData.slug}</span>
             </p>
           </div>
