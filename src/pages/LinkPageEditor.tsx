@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, ExternalLink } from 'lucide-react';
 
 export interface LinkButton {
   id: string;
@@ -262,6 +262,12 @@ const LinkPageEditor = () => {
     }
   };
 
+  const viewLinkPage = () => {
+    if (linkPageData.slug) {
+      window.open(`https://quiklinks.quikfy.com.br/${linkPageData.slug}`, '_blank');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -273,20 +279,32 @@ const LinkPageEditor = () => {
     );
   }
 
-  const saveButton = (
-    <Button 
-      onClick={saveLinkPage} 
-      disabled={isSaving || !linkPageData.slug || isSlugAvailable === false}
-      className="flex items-center gap-2"
-    >
-      <Save className="w-4 h-4" />
-      {isSaving ? 'Salvando...' : 'Salvar'}
-    </Button>
+  const rightContent = (
+    <div className="flex items-center gap-2">
+      {linkPageData.slug && isSlugAvailable !== false && (
+        <Button 
+          onClick={viewLinkPage}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <ExternalLink className="w-4 h-4" />
+          Visualizar
+        </Button>
+      )}
+      <Button 
+        onClick={saveLinkPage} 
+        disabled={isSaving || !linkPageData.slug || isSlugAvailable === false}
+        className="flex items-center gap-2"
+      >
+        <Save className="w-4 h-4" />
+        {isSaving ? 'Salvando...' : 'Salvar'}
+      </Button>
+    </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StandardHeader title="Editor de Página de Links" rightContent={saveButton} />
+      <StandardHeader title="Editor de Página de Links" rightContent={rightContent} />
       
       <div className="flex h-[calc(100vh-80px)]">
         {/* Sidebar - 40% */}
