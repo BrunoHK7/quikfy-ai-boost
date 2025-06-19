@@ -102,7 +102,9 @@ export const ProfileProjects: React.FC<ProfileProjectsProps> = ({ isOwnProfile }
               {projects.map((project) => (
                 <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <h4 className="font-medium mb-2 truncate">{project.name}</h4>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{project.description}</p>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                    {project.frames.length} frames • {project.dimensions}
+                  </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                     <Button

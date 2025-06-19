@@ -139,11 +139,7 @@ const Profile = () => {
 
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-4 sm:space-y-6 mt-4 sm:mt-8">
-            <ProfileProjects 
-              projects={projects} 
-              onDeleteProject={handleDeleteProject} 
-              onProjectsCountChange={handleProjectsCountChange}
-            />
+            <ProfileProjects isOwnProfile={true} />
           </TabsContent>
 
           {/* Photos Tab */}
