@@ -109,7 +109,7 @@ const PublicLinkPage = () => {
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ backgroundColor: linkPageData.backgroundColor }}
+      style={{ backgroundColor: linkPageData.backgroundColor + ' !important' }}
     >
       <div className="w-full max-w-md mx-auto">
         <div className="flex flex-col items-center text-center gap-6">
