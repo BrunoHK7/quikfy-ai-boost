@@ -76,12 +76,27 @@ const PublicLinkPage = () => {
   if (isLoading) {
     return (
       <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor }}
+        style={{ 
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: backgroundColor,
+          margin: 0,
+          padding: 0
+        }}
       >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            animation: 'spin 1s linear infinite',
+            borderRadius: '50%',
+            height: '32px',
+            width: '32px',
+            border: '2px solid transparent',
+            borderTop: '2px solid #9333ea',
+            margin: '0 auto 16px'
+          }}></div>
+          <p style={{ color: '#6b7280' }}>Carregando...</p>
         </div>
       </div>
     );
@@ -90,15 +105,27 @@ const PublicLinkPage = () => {
   if (error || !linkPageData) {
     return (
       <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor }}
+        style={{ 
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: backgroundColor,
+          margin: 0,
+          padding: 0
+        }}
       >
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ 
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#1f2937',
+            marginBottom: '16px'
+          }}>
             {error === 'Página não encontrada' ? '404 - Página não encontrada' : 'Erro'}
           </h1>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <a href="/" className="text-purple-600 hover:underline">
+          <p style={{ color: '#6b7280', marginBottom: '16px' }}>{error}</p>
+          <a href="/" style={{ color: '#9333ea', textDecoration: 'underline' }}>
             Voltar ao início
           </a>
         </div>
@@ -108,20 +135,50 @@ const PublicLinkPage = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ backgroundColor: linkPageData.backgroundColor + ' !important' }}
+      style={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        backgroundColor: linkPageData.backgroundColor,
+        margin: 0
+      }}
     >
-      <div className="w-full max-w-md mx-auto">
-        <div className="flex flex-col items-center text-center gap-6">
+      <div style={{ width: '100%', maxWidth: '448px', margin: '0 auto' }}>
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          gap: '24px'
+        }}>
           {/* Profile Image */}
           {linkPageData.profileImage ? (
             <img 
               src={linkPageData.profileImage} 
               alt="Profile" 
-              className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+              style={{
+                width: '128px',
+                height: '128px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '4px solid white',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+              }}
             />
           ) : (
-            <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
+            <div style={{
+              width: '128px',
+              height: '128px',
+              borderRadius: '50%',
+              backgroundColor: '#d1d5db',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#6b7280',
+              fontSize: '14px'
+            }}>
               Foto
             </div>
           )}
@@ -129,11 +186,12 @@ const PublicLinkPage = () => {
           {/* Name */}
           {linkPageData.name && (
             <h1 
-              className="font-bold m-0"
               style={{ 
                 color: linkPageData.nameColor,
                 fontFamily: linkPageData.nameFontFamily,
-                fontSize: `${Math.round(linkPageData.headlineSize * 1.4)}px`
+                fontSize: `${Math.round(linkPageData.headlineSize * 1.4)}px`,
+                fontWeight: 'bold',
+                margin: 0
               }}
             >
               {linkPageData.name}
@@ -143,11 +201,13 @@ const PublicLinkPage = () => {
           {/* Headline */}
           {linkPageData.headline && (
             <p 
-              className="leading-relaxed max-w-96 m-0"
               style={{ 
                 color: linkPageData.headlineColor,
                 fontFamily: linkPageData.headlineFontFamily,
-                fontSize: `${linkPageData.headlineSize}px`
+                fontSize: `${linkPageData.headlineSize}px`,
+                lineHeight: '1.625',
+                maxWidth: '384px',
+                margin: 0
               }}
             >
               {linkPageData.headline}
@@ -155,7 +215,13 @@ const PublicLinkPage = () => {
           )}
 
           {/* Buttons */}
-          <div className="w-full flex flex-col gap-4 max-w-96">
+          <div style={{ 
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '384px'
+          }}>
             {linkPageData.buttons.length > 0 ? (
               linkPageData.buttons.map((button: any) => (
                 <a
@@ -163,35 +229,60 @@ const PublicLinkPage = () => {
                   href={button.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full px-6 py-4 font-medium transition-all cursor-pointer no-underline flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
                   style={{
+                    width: '100%',
+                    padding: '16px 24px',
+                    fontWeight: button.fontWeight,
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
                     backgroundColor: button.backgroundColor,
                     color: button.textColor,
                     border: button.borderWidth > 0 ? `${button.borderWidth}px solid ${button.borderColor}` : 'none',
                     borderRadius: `${button.borderRadius}px`,
-                    fontWeight: button.fontWeight,
                     fontSize: `${button.fontSize}px`,
                     fontFamily: button.fontFamily,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.95)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
                   }}
                 >
                   {button.text}
                   {button.url && (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                     </svg>
                   )}
                 </a>
               ))
             ) : (
-              <div className="w-full p-8 text-center text-gray-400">
+              <div style={{ 
+                width: '100%',
+                padding: '32px',
+                textAlign: 'center',
+                color: '#9ca3af'
+              }}>
                 <p>Nenhum link disponível</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="text-center p-4 mt-8">
-            <p className="text-xs text-gray-500">
+          <div style={{ textAlign: 'center', padding: '16px', marginTop: '32px' }}>
+            <p style={{ fontSize: '12px', color: '#6b7280' }}>
               Criado com Quikfy
             </p>
           </div>
