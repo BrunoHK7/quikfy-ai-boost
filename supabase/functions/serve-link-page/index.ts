@@ -8,6 +8,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log('🌐 EDGE FUNCTION CALLED:', req.method, req.url)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -17,34 +19,90 @@ serve(async (req) => {
     const url = new URL(req.url)
     const pathname = url.pathname
     
+    console.log('🔍 Full pathname:', pathname)
+    
     // Extrair o slug da URL (formato: /quiklink-{slug})
-    const match = pathname.match(/^\/quiklink-(.+)$/)
+    const match = pathname.match(/\/quiklink-(.+)$/)
+    console.log('🔍 Regex match result:', match)
+    
     if (!match) {
-      return new Response('Page not found', { 
-        status: 404,
+      console.log('❌ No match found for pathname:', pathname)
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Formato de URL incorreto</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; }
+            .error { color: #666; }
+            .debug { color: #999; font-size: 12px; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>Formato de URL incorreto</h1>
+          <p class="error">A URL deve ter o formato: /quiklink-{slug}</p>
+          <div class="debug">
+            <p>URL recebida: ${pathname}</p>
+            <p>Esperado: /quiklink-obrunokurtz</p>
+          </div>
+        </body>
+        </html>
+      `, { 
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'text/html' }
       })
     }
     
     const slug = match[1]
-    console.log('🔍 Serving page for slug:', slug)
+    console.log('✅ Extracted slug:', slug)
     
     // Criar cliente Supabase
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    console.log('🔧 Supabase URL exists:', !!supabaseUrl)
+    console.log('🔧 Service role key exists:', !!supabaseKey)
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.log('❌ Missing Supabase credentials')
+      return new Response('Server configuration error', { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+      })
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey)
     
     // Buscar os dados da página no banco
+    console.log('🔍 Searching for page with slug:', slug)
     const { data: linkPage, error: dbError } = await supabase
       .from('link_pages')
       .select('*')
       .eq('slug', slug.toLowerCase())
       .maybeSingle()
     
+    console.log('💾 Database query result:', { linkPage: !!linkPage, error: dbError })
+    
     if (dbError) {
       console.error('❌ Database error:', dbError)
-      return new Response('Database error', { 
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Erro no banco de dados</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; }
+            .error { color: #d32f2f; }
+          </style>
+        </head>
+        <body>
+          <h1>Erro no banco de dados</h1>
+          <p class="error">${dbError.message}</p>
+        </body>
+        </html>
+      `, { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'text/html' }
       })
@@ -52,6 +110,11 @@ serve(async (req) => {
     
     if (!linkPage) {
       console.log('❌ Page not found for slug:', slug)
+      
+      // Vamos também verificar que páginas existem
+      const { data: allPages } = await supabase.from('link_pages').select('slug')
+      console.log('📋 Available pages:', allPages?.map(p => p.slug) || [])
+      
       return new Response(`
         <!DOCTYPE html>
         <html>
@@ -61,11 +124,15 @@ serve(async (req) => {
           <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
             .error { color: #666; }
+            .debug { color: #999; font-size: 12px; margin-top: 20px; }
           </style>
         </head>
         <body>
           <h1>404 - Página não encontrada</h1>
-          <p class="error">A página que você está procurando não existe.</p>
+          <p class="error">A página "${slug}" não foi encontrada.</p>
+          <div class="debug">
+            <p>Páginas disponíveis: ${allPages?.map(p => p.slug).join(', ') || 'Nenhuma'}</p>
+          </div>
         </body>
         </html>
       `, { 
@@ -74,22 +141,40 @@ serve(async (req) => {
       })
     }
     
-    console.log('✅ Found link page data:', linkPage.name)
+    console.log('✅ Found link page data for:', linkPage.name)
     
     // Gerar HTML da página
     const pageHtml = generateLinkPageHtml(linkPage)
+    
+    console.log('✅ Generated HTML, length:', pageHtml.length)
     
     return new Response(pageHtml, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300' // Cache por 5 minutos
+        'Cache-Control': 'public, max-age=300'
       }
     })
     
   } catch (error) {
     console.error('❌ Unexpected error:', error)
-    return new Response('Internal server error', { 
+    return new Response(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Erro interno</title>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: sans-serif; text-align: center; padding: 50px; }
+          .error { color: #d32f2f; }
+        </style>
+      </head>
+      <body>
+        <h1>Erro interno do servidor</h1>
+        <p class="error">${error.message}</p>
+      </body>
+      </html>
+    `, { 
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'text/html' }
     })
