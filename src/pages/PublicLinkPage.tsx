@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { LinkPageData } from '@/pages/LinkPageEditor';
 import { ExternalLink } from 'lucide-react';
@@ -16,7 +16,6 @@ const PublicLinkPage = () => {
       console.log('🌐 PUBLIC PAGE LOADING STARTED');
       console.log('🌐 URL slug from params:', slug);
       console.log('🌐 Full URL:', window.location.href);
-      console.log('🌐 Current route params:', useParams());
 
       if (!slug) {
         console.log('❌ No slug provided in URL');
