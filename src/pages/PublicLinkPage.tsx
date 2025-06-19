@@ -56,6 +56,7 @@ const PublicLinkPage = () => {
         };
 
         console.log('✅ Link page loaded successfully:', linkPageData.name);
+        console.log('🎨 Background color:', linkPageData.backgroundColor);
         setLinkPageData(linkPageData);
 
       } catch (error) {
@@ -69,9 +70,15 @@ const PublicLinkPage = () => {
     loadLinkPage();
   }, [slug]);
 
+  // Usar a cor de fundo configurada ou um fallback
+  const backgroundColor = linkPageData?.backgroundColor || '#ffffff';
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor }}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
@@ -82,7 +89,10 @@ const PublicLinkPage = () => {
 
   if (error || !linkPageData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor }}
+      >
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
             {error === 'Página não encontrada' ? '404 - Página não encontrada' : 'Erro'}
