@@ -1,27 +1,110 @@
-import { LinkPageData } from '@/pages/LinkPageEditor';
-import { supabase } from '@/integrations/supabase/client';
 
-export const generateStaticPage = (linkPageData: LinkPageData): string => {
-  const { 
-    slug, 
-    profileImage, 
-    name, 
-    nameColor, 
-    nameFontFamily, 
-    headline, 
-    headlineColor, 
-    headlineFontFamily, 
-    headlineSize, 
-    backgroundColor, 
-    buttons 
-  } = linkPageData;
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const url = new URL(req.url)
+    const pathname = url.pathname
+    
+    // Extrair o slug da URL (formato: /quiklink-{slug})
+    const match = pathname.match(/^\/quiklink-(.+)$/)
+    if (!match) {
+      return new Response('Page not found', { 
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+      })
+    }
+    
+    const slug = match[1]
+    console.log('🔍 Serving page for slug:', slug)
+    
+    // Criar cliente Supabase
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+    
+    // Buscar os dados da página no banco
+    const { data: linkPage, error: dbError } = await supabase
+      .from('link_pages')
+      .select('*')
+      .eq('slug', slug.toLowerCase())
+      .maybeSingle()
+    
+    if (dbError) {
+      console.error('❌ Database error:', dbError)
+      return new Response('Database error', { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+      })
+    }
+    
+    if (!linkPage) {
+      console.log('❌ Page not found for slug:', slug)
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Página não encontrada</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; }
+            .error { color: #666; }
+          </style>
+        </head>
+        <body>
+          <h1>404 - Página não encontrada</h1>
+          <p class="error">A página que você está procurando não existe.</p>
+        </body>
+        </html>
+      `, { 
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+      })
+    }
+    
+    console.log('✅ Found link page data:', linkPage.name)
+    
+    // Gerar HTML da página
+    const pageHtml = generateLinkPageHtml(linkPage)
+    
+    return new Response(pageHtml, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300' // Cache por 5 minutos
+      }
+    })
+    
+  } catch (error) {
+    console.error('❌ Unexpected error:', error)
+    return new Response('Internal server error', { 
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'text/html' }
+    })
+  }
+})
+
+function generateLinkPageHtml(linkPageData: any): string {
+  const buttons = Array.isArray(linkPageData.buttons) ? linkPageData.buttons : []
+  
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${name || 'Página de Links'}</title>
+    <title>${linkPageData.name || 'Página de Links'}</title>
     <style>
         * {
             margin: 0;
@@ -31,7 +114,7 @@ export const generateStaticPage = (linkPageData: LinkPageData): string => {
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: ${backgroundColor};
+            background-color: ${linkPageData.background_color};
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -76,18 +159,18 @@ export const generateStaticPage = (linkPageData: LinkPageData): string => {
         
         .name {
             font-weight: bold;
-            color: ${nameColor};
-            font-family: ${nameFontFamily};
-            font-size: ${Math.round(headlineSize * 1.4)}px;
+            color: ${linkPageData.name_color};
+            font-family: ${linkPageData.name_font_family};
+            font-size: ${Math.round(linkPageData.headline_size * 1.4)}px;
             margin: 0;
         }
         
         .headline {
             line-height: 1.6;
             max-width: 24rem;
-            color: ${headlineColor};
-            font-family: ${headlineFontFamily};
-            font-size: ${headlineSize}px;
+            color: ${linkPageData.headline_color};
+            font-family: ${linkPageData.headline_font_family};
+            font-size: ${linkPageData.headline_size}px;
             margin: 0;
         }
         
@@ -147,18 +230,18 @@ export const generateStaticPage = (linkPageData: LinkPageData): string => {
 <body>
     <div class="container">
         <div class="content">
-            ${profileImage ? 
-                `<img src="${profileImage}" alt="Profile" class="profile-image" />` :
+            ${linkPageData.profile_image ? 
+                `<img src="${linkPageData.profile_image}" alt="Profile" class="profile-image" />` :
                 `<div class="profile-placeholder">Foto</div>`
             }
             
-            ${name ? `<h1 class="name">${name}</h1>` : ''}
+            ${linkPageData.name ? `<h1 class="name">${linkPageData.name}</h1>` : ''}
             
-            ${headline ? `<p class="headline">${headline}</p>` : ''}
+            ${linkPageData.headline ? `<p class="headline">${linkPageData.headline}</p>` : ''}
             
             <div class="buttons">
                 ${buttons.length > 0 ? 
-                    buttons.map(button => `
+                    buttons.map((button: any) => `
                         <a 
                             href="${button.url}" 
                             target="_blank" 
@@ -190,64 +273,5 @@ export const generateStaticPage = (linkPageData: LinkPageData): string => {
         </div>
     </div>
 </body>
-</html>`;
-};
-
-export const downloadPage = (content: string, filename: string) => {
-  const blob = new Blob([content], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
-
-export const publishPageOnline = async (linkPageData: LinkPageData) => {
-  const pageContent = generateStaticPage(linkPageData);
-  
-  console.log('🚀 Publishing page online for slug:', linkPageData.slug);
-  console.log('📄 Generated HTML content length:', pageContent.length);
-  
-  try {
-    // Obter o usuário atual
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      throw new Error('Usuário não autenticado');
-    }
-    
-    // Nome do arquivo no storage
-    const fileName = `${user.id}/${linkPageData.slug}.html`;
-    
-    console.log('📤 Uploading to storage:', fileName);
-    
-    // Fazer upload do HTML para o storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('link-pages')
-      .upload(fileName, pageContent, {
-        contentType: 'text/html',
-        upsert: true // Substitui se já existir
-      });
-    
-    if (uploadError) {
-      console.error('❌ Upload error:', uploadError);
-      throw new Error(`Erro no upload: ${uploadError.message}`);
-    }
-    
-    console.log('✅ Page uploaded successfully:', uploadData);
-    
-    // Retornar a URL onde a página está disponível
-    const publicUrl = `https://ctzzjfasmnimbskpphuy.supabase.co/functions/v1/serve-link-page/quiklink-${linkPageData.slug}`;
-    
-    console.log('🌐 Page available at:', publicUrl);
-    
-    return publicUrl;
-    
-  } catch (error) {
-    console.error('❌ Error publishing page:', error);
-    throw error;
-  }
-};
+</html>`
+}
