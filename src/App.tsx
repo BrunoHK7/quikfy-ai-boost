@@ -32,15 +32,15 @@ import NotFound from "./pages/NotFound";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import FinancialManagement from "./pages/FinancialManagement";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TranslationProvider>
+      <TranslationProvider language="pt">
         <TooltipProvider>
           <Toaster />
           <Sonner />
