@@ -8,9 +8,10 @@ import {
   Palette,
   Instagram,
   ArrowRight,
-  Wrench
+  Wrench,
+  Link
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 const Tools = () => {
   const tools = [
@@ -29,6 +30,14 @@ const Tools = () => {
       link: "/carousel-briefing",
       buttonText: "Acessar IA Carrossel",
       category: "IA"
+    },
+    {
+      title: "Página de Links",
+      description: "Crie sua própria página de links personalizada, similar ao Linktree.",
+      icon: <Link className="w-8 h-8 text-purple-600" />,
+      link: "/link-page-editor",
+      buttonText: "Criar Página de Links",
+      category: "Marketing"
     }
   ];
 
@@ -57,7 +66,7 @@ const Tools = () => {
         {/* Tools Grid */}
         <section className="bg-gray-50 py-20">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {tools.map((tool, index) => (
                 <Card key={index} className="border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 bg-white hover:shadow-lg group">
                   <CardHeader className="text-center pb-6">
@@ -75,7 +84,7 @@ const Tools = () => {
                     <CardDescription className="text-gray-600 mb-8 text-base leading-relaxed">
                       {tool.description}
                     </CardDescription>
-                    <Link to={tool.link}>
+                    <RouterLink to={tool.link}>
                       <Button 
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                         size="lg"
@@ -83,7 +92,7 @@ const Tools = () => {
                         {tool.buttonText}
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
-                    </Link>
+                    </RouterLink>
                   </CardContent>
                 </Card>
               ))}
