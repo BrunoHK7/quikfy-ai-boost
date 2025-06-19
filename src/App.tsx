@@ -41,7 +41,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TranslationProvider>
+      <TranslationProvider language="pt">
         <TooltipProvider>
           <Toaster />
           <Sonner />
