@@ -14,6 +14,19 @@ interface ButtonEditorProps {
   onClose: () => void;
 }
 
+const fontOptions = [
+  { value: 'Inter', label: 'Inter' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Helvetica', label: 'Helvetica' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Roboto', label: 'Roboto' },
+  { value: 'Open Sans', label: 'Open Sans' },
+  { value: 'Lato', label: 'Lato' },
+  { value: 'Montserrat', label: 'Montserrat' },
+  { value: 'Poppins', label: 'Poppins' }
+];
+
 export const ButtonEditor: React.FC<ButtonEditorProps> = ({
   button,
   updateButton,
@@ -51,32 +64,55 @@ export const ButtonEditor: React.FC<ButtonEditorProps> = ({
       </div>
 
       {/* Tipografia */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <Label>Tipografia</Label>
+        
         <div className="space-y-2">
-          <Label>Peso da fonte</Label>
+          <Label>Fonte</Label>
           <Select
-            value={button.fontWeight}
-            onValueChange={(value: 'normal' | 'bold') => updateButton({ fontWeight: value })}
+            value={button.fontFamily}
+            onValueChange={(value) => updateButton({ fontFamily: value })}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="normal">Normal</SelectItem>
-              <SelectItem value="bold">Negrito</SelectItem>
+              {fontOptions.map((font) => (
+                <SelectItem key={font.value} value={font.value}>
+                  {font.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-        
-        <div className="space-y-2">
-          <Label>Tamanho da fonte: {button.fontSize}px</Label>
-          <Slider
-            value={[button.fontSize]}
-            onValueChange={([value]) => updateButton({ fontSize: value })}
-            min={12}
-            max={24}
-            step={1}
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Peso da fonte</Label>
+            <Select
+              value={button.fontWeight}
+              onValueChange={(value: 'normal' | 'bold') => updateButton({ fontWeight: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="bold">Negrito</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Tamanho da fonte: {button.fontSize}px</Label>
+            <Slider
+              value={[button.fontSize]}
+              onValueChange={([value]) => updateButton({ fontSize: value })}
+              min={12}
+              max={24}
+              step={1}
+            />
+          </div>
         </div>
       </div>
 

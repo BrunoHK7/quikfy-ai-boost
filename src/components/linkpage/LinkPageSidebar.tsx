@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Plus, Trash2, Settings } from 'lucide-react';
 import { LinkPageData, LinkButton } from '@/pages/LinkPageEditor';
@@ -20,6 +21,19 @@ interface LinkPageSidebarProps {
   isSlugAvailable: boolean | null;
   checkSlugAvailability: (slug: string) => Promise<boolean>;
 }
+
+const fontOptions = [
+  { value: 'Inter', label: 'Inter' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Helvetica', label: 'Helvetica' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Roboto', label: 'Roboto' },
+  { value: 'Open Sans', label: 'Open Sans' },
+  { value: 'Lato', label: 'Lato' },
+  { value: 'Montserrat', label: 'Montserrat' },
+  { value: 'Poppins', label: 'Poppins' }
+];
 
 export const LinkPageSidebar: React.FC<LinkPageSidebarProps> = ({
   linkPageData,
@@ -73,7 +87,7 @@ export const LinkPageSidebar: React.FC<LinkPageSidebarProps> = ({
         />
         {linkPageData.slug && (
           <p className="text-sm text-gray-600">
-            Sua página será: quikfy.com/{linkPageData.slug}
+            Sua página será: quiklinks.quikfy.com.br/{linkPageData.slug}
           </p>
         )}
         {isSlugAvailable === false && (
@@ -93,26 +107,102 @@ export const LinkPageSidebar: React.FC<LinkPageSidebarProps> = ({
       />
 
       {/* Nome */}
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome</Label>
+      <div className="space-y-4">
+        <Label>Nome</Label>
         <Input
-          id="name"
           value={linkPageData.name}
           onChange={(e) => updateLinkPageData({ name: e.target.value })}
           placeholder="Seu nome ou empresa"
         />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Fonte do nome</Label>
+            <Select
+              value={linkPageData.nameFontFamily}
+              onValueChange={(value) => updateLinkPageData({ nameFontFamily: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((font) => (
+                  <SelectItem key={font.value} value={font.value}>
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Cor do nome</Label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={linkPageData.nameColor}
+                onChange={(e) => updateLinkPageData({ nameColor: e.target.value })}
+                className="w-12 h-10 rounded border border-gray-300"
+              />
+              <Input
+                value={linkPageData.nameColor}
+                onChange={(e) => updateLinkPageData({ nameColor: e.target.value })}
+                placeholder="#000000"
+                className="flex-1"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Headline */}
-      <div className="space-y-2">
-        <Label htmlFor="headline">Headline</Label>
+      <div className="space-y-4">
+        <Label>Headline</Label>
         <Textarea
-          id="headline"
           value={linkPageData.headline}
           onChange={(e) => updateLinkPageData({ headline: e.target.value })}
           placeholder="Descreva brevemente sobre você ou sua empresa"
           rows={3}
         />
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Fonte da headline</Label>
+            <Select
+              value={linkPageData.headlineFontFamily}
+              onValueChange={(value) => updateLinkPageData({ headlineFontFamily: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((font) => (
+                  <SelectItem key={font.value} value={font.value}>
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Cor da headline</Label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={linkPageData.headlineColor}
+                onChange={(e) => updateLinkPageData({ headlineColor: e.target.value })}
+                className="w-12 h-10 rounded border border-gray-300"
+              />
+              <Input
+                value={linkPageData.headlineColor}
+                onChange={(e) => updateLinkPageData({ headlineColor: e.target.value })}
+                placeholder="#374151"
+                className="flex-1"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Cor do background */}

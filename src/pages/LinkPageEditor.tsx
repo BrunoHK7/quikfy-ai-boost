@@ -15,13 +15,18 @@ export interface LinkButton {
   borderRadius: number;
   fontWeight: 'normal' | 'bold';
   fontSize: number;
+  fontFamily: string;
 }
 
 export interface LinkPageData {
   slug: string;
   profileImage: string;
   name: string;
+  nameColor: string;
+  nameFontFamily: string;
   headline: string;
+  headlineColor: string;
+  headlineFontFamily: string;
   backgroundColor: string;
   buttons: LinkButton[];
 }
@@ -31,7 +36,11 @@ const LinkPageEditor = () => {
     slug: '',
     profileImage: '',
     name: '',
+    nameColor: '#000000',
+    nameFontFamily: 'Inter',
     headline: '',
+    headlineColor: '#374151',
+    headlineFontFamily: 'Inter',
     backgroundColor: '#ffffff',
     buttons: []
   });
@@ -54,7 +63,8 @@ const LinkPageEditor = () => {
       borderWidth: 2,
       borderRadius: 8,
       fontWeight: 'normal',
-      fontSize: 16
+      fontSize: 16,
+      fontFamily: 'Inter'
     };
     
     setLinkPageData(prev => ({

@@ -41,14 +41,28 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
 
               {/* Nome */}
               {linkPageData.name && (
-                <h1 className="text-xl font-bold text-gray-900 mb-2">
+                <h1 
+                  className="font-bold mb-2"
+                  style={{
+                    color: linkPageData.nameColor,
+                    fontFamily: linkPageData.nameFontFamily,
+                    fontSize: linkPageData.headline ? '0.8rem' : '1.25rem' // 40% do tamanho da headline
+                  }}
+                >
                   {linkPageData.name}
                 </h1>
               )}
 
               {/* Headline */}
               {linkPageData.headline && (
-                <p className="text-sm text-gray-700 mb-6 leading-relaxed">
+                <p 
+                  className="mb-6 leading-relaxed"
+                  style={{
+                    color: linkPageData.headlineColor,
+                    fontFamily: linkPageData.headlineFontFamily,
+                    fontSize: '1.25rem' // Tamanho base da headline
+                  }}
+                >
                   {linkPageData.headline}
                 </p>
               )}
@@ -66,7 +80,8 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
                       border: button.borderWidth > 0 ? `${button.borderWidth}px solid ${button.borderColor}` : 'none',
                       borderRadius: `${button.borderRadius}px`,
                       fontWeight: button.fontWeight,
-                      fontSize: `${button.fontSize}px`
+                      fontSize: `${button.fontSize}px`,
+                      fontFamily: button.fontFamily
                     }}
                   >
                     {button.text}
@@ -95,7 +110,7 @@ export const LinkPagePreview: React.FC<LinkPagePreviewProps> = ({
         {linkPageData.slug && (
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold">quikfy.com/</span>
+              <span className="font-semibold">quiklinks.quikfy.com.br/</span>
               <span className="text-purple-600 font-semibold">{linkPageData.slug}</span>
             </p>
           </div>
