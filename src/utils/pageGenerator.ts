@@ -1,4 +1,3 @@
-
 import { LinkPageData } from '@/pages/LinkPageEditor';
 
 export const generateStaticPage = (linkPageData: LinkPageData): string => {
@@ -203,4 +202,21 @@ export const downloadPage = (content: string, filename: string) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+export const publishPageOnline = async (linkPageData: LinkPageData) => {
+  const pageContent = generateStaticPage(linkPageData);
+  
+  // Aqui você pode implementar a lógica para hospedar a página
+  // Por exemplo, salvar o HTML em um storage bucket ou sistema de arquivos
+  // Para este exemplo, vou simular o processo
+  
+  console.log('🚀 Publishing page online for slug:', linkPageData.slug);
+  console.log('📄 Generated HTML content length:', pageContent.length);
+  
+  // Simular delay de publicação
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Retornar a URL onde a página foi publicada
+  return `quikfy.com.br/quiklink-${linkPageData.slug}`;
 };

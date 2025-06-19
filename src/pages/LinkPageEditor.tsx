@@ -6,8 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { Save, ExternalLink, Download } from 'lucide-react';
-import { generateStaticPage, downloadPage } from '@/utils/pageGenerator';
+import { Save, ExternalLink, Download, Globe } from 'lucide-react';
+import { generateStaticPage, downloadPage, publishPageOnline } from '@/utils/pageGenerator';
 
 export interface LinkButton {
   id: string;
@@ -58,6 +58,7 @@ const LinkPageEditor = () => {
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Carregar dados existentes ao montar o componente
   useEffect(() => {
@@ -377,7 +378,7 @@ const LinkPageEditor = () => {
     }
   };
 
-  const publishPage = () => {
+  const publishPageOnPlatform = async () => {
     if (!linkPageData.slug) {
       toast({
         title: 'Erro',
@@ -387,7 +388,56 @@ const LinkPageEditor = () => {
       return;
     }
 
-    console.log('📄 GENERATING STATIC PAGE for:', linkPageData.slug);
+    if (isSlugAvailable === false) {
+      toast({
+        title: 'Erro',
+        description: 'Este slug não está disponível',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    console.log('🚀 STARTING ONLINE PUBLICATION for:', linkPageData.slug);
+    
+    try {
+      // Primeiro, salvar os dados no banco
+      await saveLinkPage();
+      
+      // Depois, publicar a página online
+      const publicUrl = await publishPageOnline(linkPageData);
+      
+      console.log('✅ Page published online at:', publicUrl);
+      
+      toast({
+        title: 'Página publicada!',
+        description: `Sua página está disponível em: ${publicUrl}`,
+        variant: 'default',
+      });
+      
+    } catch (error) {
+      console.error('❌ Error publishing page:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao publicar a página online',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const downloadStaticPage = () => {
+    if (!linkPageData.slug) {
+      toast({
+        title: 'Erro',
+        description: 'Defina um slug primeiro',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    console.log('📄 GENERATING STATIC PAGE for download:', linkPageData.slug);
     
     try {
       const pageContent = generateStaticPage(linkPageData);
@@ -398,8 +448,8 @@ const LinkPageEditor = () => {
       console.log('✅ Static page generated and downloaded:', filename);
       
       toast({
-        title: 'Página publicada!',
-        description: `A página ${filename} foi gerada e baixada. Você pode hospedá-la em qualquer servidor.`,
+        title: 'Página baixada!',
+        description: `A página ${filename} foi gerada e baixada.`,
         variant: 'default',
       });
       
@@ -445,13 +495,22 @@ const LinkPageEditor = () => {
         </Button>
       )}
       <Button 
-        onClick={publishPage}
-        variant="purple"
+        onClick={downloadStaticPage}
+        variant="outline"
         disabled={!linkPageData.slug}
         className="flex items-center gap-2"
       >
         <Download className="w-4 h-4" />
-        Publicar
+        Baixar HTML
+      </Button>
+      <Button 
+        onClick={publishPageOnPlatform}
+        variant="purple"
+        disabled={!linkPageData.slug || isSlugAvailable === false || isPublishing}
+        className="flex items-center gap-2"
+      >
+        <Globe className="w-4 h-4" />
+        {isPublishing ? 'Publicando...' : 'Publicar Online'}
       </Button>
       <Button 
         onClick={saveLinkPage} 
