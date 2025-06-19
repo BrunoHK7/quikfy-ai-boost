@@ -159,7 +159,7 @@ const LinkPageEditor = () => {
       return false;
     }
 
-    console.log('Checking slug availability for:', slug);
+    console.log('🔍 Checking slug availability for:', slug);
 
     try {
       const { data, error } = await supabase
@@ -168,20 +168,20 @@ const LinkPageEditor = () => {
         .eq('slug', slug.toLowerCase())
         .maybeSingle();
 
-      console.log('Slug check result:', { data, error });
+      console.log('🔍 Slug check result:', { data, error });
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking slug:', error);
+        console.error('❌ Error checking slug:', error);
         return false;
       }
 
       // Se não encontrou nenhum resultado ou se encontrou mas é do próprio usuário
       const available = !data || data.user_id === user?.id;
       setIsSlugAvailable(available);
-      console.log('Slug available:', available);
+      console.log('✅ Slug available:', available);
       return available;
     } catch (error) {
-      console.error('Error checking slug availability:', error);
+      console.error('❌ Error checking slug availability:', error);
       setIsSlugAvailable(false);
       return false;
     }
@@ -189,6 +189,7 @@ const LinkPageEditor = () => {
 
   const saveLinkPage = async () => {
     if (!user) {
+      console.error('❌ No user found');
       toast({
         title: 'Erro',
         description: 'Você precisa estar logado para salvar',
@@ -198,6 +199,7 @@ const LinkPageEditor = () => {
     }
 
     if (!linkPageData.slug) {
+      console.error('❌ No slug provided');
       toast({
         title: 'Erro',
         description: 'O slug é obrigatório',
@@ -207,6 +209,7 @@ const LinkPageEditor = () => {
     }
 
     if (isSlugAvailable === false) {
+      console.error('❌ Slug not available');
       toast({
         title: 'Erro',
         description: 'Este slug não está disponível',
@@ -216,7 +219,9 @@ const LinkPageEditor = () => {
     }
 
     setIsSaving(true);
-    console.log('Saving link page with data:', linkPageData);
+    console.log('💾 STARTING SAVE PROCESS');
+    console.log('💾 Saving link page with data:', linkPageData);
+    console.log('💾 User ID:', user.id);
 
     try {
       const linkPagePayload = {
@@ -235,7 +240,7 @@ const LinkPageEditor = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('Payload to save:', linkPagePayload);
+      console.log('💾 Payload to save:', linkPagePayload);
 
       const { data, error } = await supabase
         .from('link_pages')
@@ -244,10 +249,10 @@ const LinkPageEditor = () => {
         })
         .select();
 
-      console.log('Save result:', { data, error });
+      console.log('💾 Save result:', { data, error });
 
       if (error) {
-        console.error('Error saving link page:', error);
+        console.error('❌ Error saving link page:', error);
         toast({
           title: 'Erro',
           description: 'Erro ao salvar página de links',
@@ -256,7 +261,7 @@ const LinkPageEditor = () => {
         return;
       }
 
-      console.log('Link page saved successfully. Data:', data);
+      console.log('✅ Link page saved successfully. Data:', data);
 
       toast({
         title: 'Sucesso',
@@ -271,10 +276,16 @@ const LinkPageEditor = () => {
         .eq('slug', linkPageData.slug.toLowerCase())
         .maybeSingle();
 
-      console.log('Verification check:', { verification, verifyError });
+      console.log('🔍 VERIFICATION CHECK after save:', { verification, verifyError });
+
+      if (verification) {
+        console.log('✅ PAGE EXISTS IN DATABASE - Public URL should work:', `/quiklink-${linkPageData.slug}`);
+      } else {
+        console.error('❌ PAGE NOT FOUND IN DATABASE after save!');
+      }
 
     } catch (error) {
-      console.error('Error saving link page:', error);
+      console.error('❌ Error saving link page:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao salvar',
@@ -288,7 +299,8 @@ const LinkPageEditor = () => {
   const viewLinkPage = () => {
     if (linkPageData.slug) {
       const url = `/quiklink-${linkPageData.slug}`;
-      console.log('Opening link page:', url);
+      console.log('🌐 Opening link page:', url);
+      console.log('🌐 Full URL will be:', window.location.origin + url);
       window.open(url, '_blank');
     }
   };

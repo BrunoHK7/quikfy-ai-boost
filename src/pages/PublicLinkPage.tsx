@@ -13,15 +13,19 @@ const PublicLinkPage = () => {
 
   useEffect(() => {
     const loadLinkPage = async () => {
+      console.log('🌐 PUBLIC PAGE LOADING STARTED');
+      console.log('🌐 URL slug from params:', slug);
+      console.log('🌐 Full URL:', window.location.href);
+      console.log('🌐 Current route params:', useParams());
+
       if (!slug) {
-        console.log('No slug provided');
+        console.log('❌ No slug provided in URL');
         setNotFound(true);
         setIsLoading(false);
         return;
       }
 
-      console.log('Loading link page for slug:', slug);
-      console.log('Full URL:', window.location.href);
+      console.log('🔍 Searching for slug in database:', slug);
 
       try {
         // Primeiro, vamos verificar se há dados na tabela
@@ -29,31 +33,36 @@ const PublicLinkPage = () => {
           .from('link_pages')
           .select('*');
         
-        console.log('All link pages in database:', allPages);
+        console.log('📊 All link pages in database:', allPages);
+        console.log('📊 Total pages found:', allPages?.length || 0);
         
+        // Agora vamos buscar a página específica
         const { data, error } = await supabase
           .from('link_pages')
           .select('*')
           .eq('slug', slug.toLowerCase())
           .maybeSingle();
 
-        console.log('Query result for slug:', slug, 'Data:', data, 'Error:', error);
+        console.log('🔍 Query result for slug:', slug);
+        console.log('🔍 Data found:', data);
+        console.log('🔍 Error:', error);
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading link page:', error);
+          console.error('❌ Database error:', error);
           setNotFound(true);
           setIsLoading(false);
           return;
         }
 
         if (!data) {
-          console.log('No link page found for slug:', slug);
+          console.log('❌ No link page found for slug:', slug);
+          console.log('❌ Available slugs in database:', allPages?.map(p => p.slug) || []);
           setNotFound(true);
           setIsLoading(false);
           return;
         }
 
-        console.log('Link page data loaded:', data);
+        console.log('✅ Link page data found:', data);
 
         const linkPageData: LinkPageData = {
           slug: data.slug,
@@ -69,12 +78,14 @@ const PublicLinkPage = () => {
           buttons: Array.isArray(data.buttons) ? data.buttons as any[] : []
         };
 
+        console.log('✅ Processed link page data:', linkPageData);
         setLinkPageData(linkPageData);
       } catch (err) {
-        console.error('Error loading link page:', err);
+        console.error('❌ Unexpected error loading link page:', err);
         setNotFound(true);
       } finally {
         setIsLoading(false);
+        console.log('🌐 PUBLIC PAGE LOADING FINISHED');
       }
     };
 
@@ -83,22 +94,25 @@ const PublicLinkPage = () => {
 
   const handleButtonClick = (url: string) => {
     if (url) {
+      console.log('🔗 Button clicked, opening URL:', url);
       window.open(url, '_blank');
     }
   };
 
   if (isLoading) {
+    console.log('⏳ Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-gray-600">Carregando página...</p>
         </div>
       </div>
     );
   }
 
   if (notFound || !linkPageData) {
+    console.log('❌ Showing 404 page');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -106,10 +120,13 @@ const PublicLinkPage = () => {
           <p className="text-xl text-gray-600 mb-8">Página não encontrada</p>
           <p className="text-gray-500">A página de links que você está procurando não existe.</p>
           <p className="text-sm text-gray-400 mt-4">Slug procurado: {slug}</p>
+          <p className="text-sm text-gray-400">URL completa: {window.location.href}</p>
         </div>
       </div>
     );
   }
+
+  console.log('✅ Rendering public link page for:', linkPageData.name);
 
   return (
     <div 
