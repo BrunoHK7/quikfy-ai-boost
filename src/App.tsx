@@ -58,6 +58,7 @@ function App() {
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/tools" element={<Tools />} />
                 <Route path="/admin-auth" element={<AdminAuth />} />
+                {/* Rota para páginas de links públicas - DEVE vir antes de outras rotas */}
                 <Route path="/quiklink-:slug" element={<PublicLinkPage />} />
                 <Route 
                   path="/profile/:userId" 
