@@ -25,6 +25,7 @@ import ContentFeed from "./pages/ContentFeed";
 import Podcasts from "./pages/Podcasts";
 import Tools from "./pages/Tools";
 import LinkPageEditor from "./pages/LinkPageEditor";
+import PublicLinkPage from "./pages/PublicLinkPage";
 import EmailVerification from "./pages/EmailVerification";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/tools" element={<Tools />} />
                 <Route path="/admin-auth" element={<AdminAuth />} />
+                <Route path="/quiklink-:slug" element={<PublicLinkPage />} />
                 <Route 
                   path="/profile/:userId" 
                   element={
