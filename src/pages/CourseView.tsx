@@ -110,6 +110,7 @@ const CourseView = () => {
                     <div
                       key={lesson.id}
                       className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                      onClick={() => window.location.href = `/course/${courseId}/lessons/${lesson.id}`}
                     >
                       <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
                         <span className="text-sm font-medium text-purple-600">

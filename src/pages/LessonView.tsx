@@ -300,7 +300,7 @@ const LessonView = () => {
                       className={`flex items-center p-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
                         l.id === lessonId ? 'bg-purple-50 border-l-4 border-l-purple-600' : 'hover:bg-gray-50'
                       }`}
-                      onClick={() => window.location.href = `/courses/${courseId}/lessons/${l.id}`}
+                      onClick={() => window.location.href = `/course/${courseId}/lessons/${l.id}`}
                     >
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${
                         l.id === lessonId ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-600'
@@ -375,7 +375,7 @@ const LessonView = () => {
               {prevLesson ? (
                 <Button 
                   variant="outline"
-                  onClick={() => window.location.href = `/courses/${courseId}/lessons/${prevLesson.id}`}
+                  onClick={() => window.location.href = `/course/${courseId}/lessons/${prevLesson.id}`}
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Aula Anterior
@@ -384,7 +384,7 @@ const LessonView = () => {
               
               {nextLesson && (
                 <Button 
-                  onClick={() => window.location.href = `/courses/${courseId}/lessons/${nextLesson.id}`}
+                  onClick={() => window.location.href = `/course/${courseId}/lessons/${nextLesson.id}`}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   Próxima Aula

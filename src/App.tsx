@@ -78,12 +78,12 @@ function App() {
                     <Courses />
                   </ProtectedRoute>
                 } />
-                <Route path="/courses/:courseId" element={
+                <Route path="/course/:courseId" element={
                   <ProtectedRoute>
                     <CourseView />
                   </ProtectedRoute>
                 } />
-                <Route path="/courses/:courseId/lessons/:lessonId" element={
+                <Route path="/course/:courseId/lessons/:lessonId" element={
                   <ProtectedRoute>
                     <LessonView />
                   </ProtectedRoute>
@@ -128,7 +128,7 @@ function App() {
                     <CarouselResult />
                   </ProtectedRoute>
                 } />
-                <Route path="/link-page-editor" element={
+                <Route path="/linkpage-editor" element={
                   <ProtectedRoute>
                     <LinkPageEditor />
                   </ProtectedRoute>
@@ -140,10 +140,15 @@ function App() {
                 } />
                 
                 {/* Rotas de administrador */}
-                <Route path="/admin" element={<AdminAuth />} />
-                <Route path="/admin/dashboard" element={
+                <Route path="/admin-auth" element={<AdminAuth />} />
+                <Route path="/admin" element={
                   <AdminProtectedRoute>
                     <AdminDashboard />
+                  </AdminProtectedRoute>
+                } />
+                <Route path="/admin/edit-course/:courseId" element={
+                  <AdminProtectedRoute>
+                    <EditCourse />
                   </AdminProtectedRoute>
                 } />
                 
