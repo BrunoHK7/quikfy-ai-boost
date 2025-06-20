@@ -41,7 +41,7 @@ const Index = () => {
       title: "Página de Links",
       description: "Crie páginas personalizadas com todos os seus links.",
       icon: <LinkIcon className="w-8 h-8 text-purple-600" />,
-      link: "/link-editor",
+      link: "/linkpage-editor",
       buttonText: "Criar Página de Links"
     }
   ];
