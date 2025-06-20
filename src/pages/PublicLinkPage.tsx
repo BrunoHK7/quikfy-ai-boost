@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -283,7 +282,24 @@ const PublicLinkPage = () => {
           {/* Footer */}
           <div style={{ textAlign: 'center', padding: '16px', marginTop: '32px' }}>
             <p style={{ fontSize: '12px', color: '#6b7280' }}>
-              Criado com Quikfy
+              <a 
+                href="https://www.quikfy.com.br" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  color: '#6b7280', 
+                  textDecoration: 'none',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#9333ea';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#6b7280';
+                }}
+              >
+                Criado com Quikfy
+              </a>
             </p>
           </div>
         </div>

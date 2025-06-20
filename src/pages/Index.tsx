@@ -11,7 +11,8 @@ import {
   Palette,
   Instagram,
   ArrowRight,
-  Crown
+  Crown,
+  Link as LinkIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 

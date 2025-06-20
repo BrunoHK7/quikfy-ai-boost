@@ -341,9 +341,15 @@ function generateLinkPageHtml(linkPageData: any): string {
             margin-top: 2rem;
         }
         
-        .footer p {
+        .footer a {
             font-size: 0.75rem;
             color: #6b7280;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer a:hover {
+            color: #9333ea;
         }
         
         .no-links {
@@ -400,7 +406,9 @@ function generateLinkPageHtml(linkPageData: any): string {
             </div>
             
             <div class="footer">
-                <p>Criado com Quikfy</p>
+                <a href="https://www.quikfy.com.br" target="_blank" rel="noopener noreferrer">
+                    Criado com Quikfy
+                </a>
             </div>
         </div>
     </div>
