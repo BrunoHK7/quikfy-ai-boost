@@ -36,6 +36,13 @@ const Index = () => {
       icon: <Instagram className="w-8 h-8 text-purple-600" />,
       link: "/carousel-briefing",
       buttonText: "Acessar IA Carrossel"
+    },
+    {
+      title: "Página de Links",
+      description: "Crie páginas personalizadas com todos os seus links.",
+      icon: <LinkIcon className="w-8 h-8 text-purple-600" />,
+      link: "/link-editor",
+      buttonText: "Criar Página de Links"
     }
   ];
 
@@ -131,7 +138,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {tools.map((tool, index) => (
                 <Card key={index} className="border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 bg-white hover:shadow-lg group">
                   <CardHeader className="text-center pb-6">
