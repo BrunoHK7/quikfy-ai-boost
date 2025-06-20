@@ -35,7 +35,7 @@ const Tools = () => {
       title: "Página de Links",
       description: "Crie sua própria página de links personalizada, similar ao Linktree.",
       icon: <Link className="w-8 h-8 text-purple-600" />,
-      link: "/link-page-editor",
+      link: "/linkpage-editor",
       buttonText: "Criar Página de Links",
       category: "Marketing"
     }
