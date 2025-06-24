@@ -47,15 +47,19 @@ const CarouselResult: React.FC = () => {
 
   useEffect(() => {
     console.log('🔍 CarouselResult - Starting sessionId recovery...');
+    console.log('📄 Current URL:', window.location.href);
+    console.log('📄 Location search:', location.search);
     
-    // Tentar recuperar sessionId da URL primeiro
+    // Tentar recuperar sessionId da URL primeiro (múltiplas variações)
     const urlParams = new URLSearchParams(location.search);
-    const urlSessionId = urlParams.get('sessionId');
+    const urlSessionId = urlParams.get('sessionId') || urlParams.get('session') || urlParams.get('session_id');
     
     // Tentar recuperar do localStorage
     const storedSessionId = localStorage.getItem('carouselSessionId');
     
-    console.log('📄 URL sessionId:', urlSessionId);
+    console.log('📄 URL sessionId (sessionId):', urlParams.get('sessionId'));
+    console.log('📄 URL sessionId (session):', urlParams.get('session'));
+    console.log('📄 URL sessionId (session_id):', urlParams.get('session_id'));
     console.log('💾 Stored sessionId:', storedSessionId);
     
     // Priorizar URL, depois localStorage
@@ -64,6 +68,8 @@ const CarouselResult: React.FC = () => {
     if (finalSessionId) {
       console.log('✅ SessionId found:', finalSessionId);
       setSessionId(finalSessionId);
+      // Garantir que está salvo no localStorage também
+      localStorage.setItem('carouselSessionId', finalSessionId);
     } else {
       console.log('❌ No sessionId found, will show error...');
     }
@@ -82,14 +88,16 @@ const CarouselResult: React.FC = () => {
 
   useEffect(() => {
     if (response) {
-      console.log('Resposta do webhook recebida:', response);
+      console.log('✅ Resposta do webhook recebida:', response);
       const parsedContent = parseCarouselContent(response);
+      console.log('📋 Conteúdo parseado:', parsedContent);
       setCarouselContent(parsedContent);
     }
   }, [response]);
 
   useEffect(() => {
     if (error) {
+      console.error('❌ Erro no webhook:', error);
       toast({
         title: "Erro",
         description: error,
@@ -99,7 +107,7 @@ const CarouselResult: React.FC = () => {
   }, [error]);
 
   const parseCarouselContent = (text: string): CarouselContent => {
-    console.log('Parseando conteúdo:', text);
+    console.log('🔄 Parseando conteúdo:', text);
     
     const sections: CarouselContent = {};
     
@@ -180,7 +188,7 @@ const CarouselResult: React.FC = () => {
       }
     });
 
-    console.log('Conteúdo parseado:', sections);
+    console.log('📋 Conteúdo parseado final:', sections);
     return sections;
   };
 
@@ -298,6 +306,10 @@ const CarouselResult: React.FC = () => {
               <p className="text-muted-foreground">
                 Não foi possível identificar a sessão do carrossel.
               </p>
+              <div className="text-xs text-muted-foreground space-y-2">
+                <p>URL atual: {window.location.href}</p>
+                <p>localStorage: {localStorage.getItem('carouselSessionId') || 'vazio'}</p>
+              </div>
               <Button onClick={() => navigate('/carousel-generator')} className="mt-4">
                 Gerar Novo Carrossel
               </Button>
@@ -368,6 +380,10 @@ const CarouselResult: React.FC = () => {
               <p className="text-muted-foreground">
                 {error || 'Não conseguimos gerar seu carrossel. Tente novamente.'}
               </p>
+              <div className="text-xs text-muted-foreground space-y-2">
+                <p>Session ID: {sessionId}</p>
+                <p>Erro detalhado: {error}</p>
+              </div>
               <Button onClick={generateNewCarousel} className="mt-4">
                 Tentar Novamente
               </Button>

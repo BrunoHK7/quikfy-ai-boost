@@ -87,13 +87,19 @@ const CarouselGenerator = () => {
       }
 
       if (data?.session_id) {
+        console.log('✅ Session ID recebido:', data.session_id);
+        
+        // Salvar sessionId tanto no localStorage quanto na URL
+        localStorage.setItem('carouselSessionId', data.session_id);
+        
         toast.success("Carrossel sendo gerado!");
         
-        // USO NAVIGATE AO INVÉS DE WINDOW.LOCATION.HREF PARA EVITAR RELOAD
+        // Navegar para a página de resultado com sessionId na URL
         setTimeout(() => {
-          navigate(`/carousel-result?session=${data.session_id}`);
+          navigate(`/carousel-result?sessionId=${data.session_id}`);
         }, 1500);
       } else {
+        console.error('Resposta sem session_id:', data);
         toast.error("Erro na resposta do servidor");
       }
     } catch (error) {
