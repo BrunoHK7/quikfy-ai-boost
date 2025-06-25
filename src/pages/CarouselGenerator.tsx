@@ -11,6 +11,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
+// Função para gerar sessionId único
+const generateSessionId = () => {
+  const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substring(2, 11);
+  return `quiz_session_${timestamp}_${randomString}`;
+};
+
 const CarouselGenerator = () => {
   const navigate = useNavigate();
   
@@ -68,10 +75,16 @@ const CarouselGenerator = () => {
     setIsGenerating(true);
 
     try {
-      console.log('🎯 CarouselGenerator - Generating carousel');
+      // Gerar sessionId único
+      const sessionId = generateSessionId();
+      console.log('🎯 CarouselGenerator - Generated sessionId:', sessionId);
+
+      // Salvar sessionId no localStorage ANTES da chamada
+      localStorage.setItem('carouselSessionId', sessionId);
 
       const { data, error } = await supabase.functions.invoke('webhook-receiver', {
         body: {
+          sessionId: sessionId, // Usar sessionId consistente
           topic: formData.topic,
           targetAudience: formData.targetAudience,
           style: formData.style,
@@ -80,28 +93,23 @@ const CarouselGenerator = () => {
         }
       });
 
+      console.log('🔄 Resposta da função webhook-receiver:', { data, error });
+
       if (error) {
         console.error('Error calling webhook:', error);
         toast.error("Erro ao gerar carrossel. Tente novamente.");
         return;
       }
 
-      if (data?.session_id) {
-        console.log('✅ Session ID recebido:', data.session_id);
-        
-        // Salvar sessionId tanto no localStorage quanto na URL
-        localStorage.setItem('carouselSessionId', data.session_id);
-        
-        toast.success("Carrossel sendo gerado!");
-        
-        // Navegar para a página de resultado com sessionId na URL
-        setTimeout(() => {
-          navigate(`/carousel-result?sessionId=${data.session_id}`);
-        }, 1500);
-      } else {
-        console.error('Resposta sem session_id:', data);
-        toast.error("Erro na resposta do servidor");
-      }
+      // Sucesso - navegar independente da resposta específica
+      console.log('✅ Chamada realizada com sucesso, navegando...');
+      toast.success("Carrossel sendo gerado!");
+      
+      // Navegar para a página de resultado com sessionId na URL
+      setTimeout(() => {
+        navigate(`/carousel-result?sessionId=${sessionId}`);
+      }, 1500);
+
     } catch (error) {
       console.error('Error generating carousel:', error);
       toast.error("Erro inesperado. Tente novamente.");

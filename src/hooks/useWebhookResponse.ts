@@ -20,9 +20,10 @@ export const useWebhookResponse = (sessionId: string | null) => {
     console.log('🔍 useWebhookResponse - Starting loading phases for sessionId:', sessionId);
     setIsLoading(true);
     setError(null);
+    setResponse(null); // Reset response
     
     let pollCount = 0;
-    const maxPolls = 13; // 40 segundos ÷ 3 segundos (aproximadamente)
+    const maxPolls = 20; // Aumentar tentativas para 60 segundos
     let intervalId: NodeJS.Timeout;
     let initialTimeout: NodeJS.Timeout;
     
@@ -50,20 +51,42 @@ export const useWebhookResponse = (sessionId: string | null) => {
         
         if (data && data.length > 0) {
           const response = data[0];
-          console.log('✅ useWebhookResponse - Found response for session:', response);
-          setResponse(response.content);
-          setIsLoading(false);
+          console.log('✅ useWebhookResponse - Found response for sessionId:', sessionId);
+          console.log('📄 Response content preview:', response.content.substring(0, 100));
           
-          // Parar o polling
-          if (intervalId) {
-            clearInterval(intervalId);
+          // Verificar se é uma resposta de processamento ou resposta real
+          try {
+            const parsedContent = JSON.parse(response.content);
+            if (parsedContent.status === 'processing') {
+              console.log('⏳ Response still processing, continue polling...');
+              // Continuar polling
+            } else {
+              // Resposta real encontrada
+              setResponse(response.content);
+              setIsLoading(false);
+              
+              // Parar o polling
+              if (intervalId) {
+                clearInterval(intervalId);
+              }
+              return;
+            }
+          } catch (e) {
+            // Se não é JSON ou não tem status processing, assumir que é resposta real
+            setResponse(response.content);
+            setIsLoading(false);
+            
+            // Parar o polling
+            if (intervalId) {
+              clearInterval(intervalId);
+            }
+            return;
           }
-          return;
         }
 
         if (pollCount >= maxPolls) {
           console.log('⏰ useWebhookResponse - Timeout reached for session:', sessionId);
-          setError('Timeout: Não conseguimos gerar sua resposta. Tente novamente.');
+          setError('Timeout: Não conseguimos gerar sua resposta a tempo. Tente novamente.');
           setIsLoading(false);
           
           if (intervalId) {
@@ -83,8 +106,8 @@ export const useWebhookResponse = (sessionId: string | null) => {
       }
     };
 
-    // Fase 1: Carregamento inicial de 15 segundos
-    console.log('⏳ useWebhookResponse - Starting initial 15s loading phase');
+    // Fase 1: Carregamento inicial de 10 segundos
+    console.log('⏳ useWebhookResponse - Starting initial 10s loading phase');
     setLoadingPhase('initial');
     
     initialTimeout = setTimeout(() => {
@@ -94,9 +117,9 @@ export const useWebhookResponse = (sessionId: string | null) => {
       // Fazer primeira busca imediatamente
       pollForResponse();
       
-      // Continuar polling a cada 2 segundos
-      intervalId = setInterval(pollForResponse, 2000);
-    }, 15000); // 15 segundos
+      // Continuar polling a cada 3 segundos
+      intervalId = setInterval(pollForResponse, 3000);
+    }, 10000); // 10 segundos
 
     // Cleanup
     return () => {

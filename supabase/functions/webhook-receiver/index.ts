@@ -34,18 +34,17 @@ serve(async (req) => {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // Busca mais completa pelo sessionId
-        // 1. Primeiro nivel - sessionId
+        // PRIORIZAR sessionId (formato correto) sobre session_id
         if (parsedData.sessionId && typeof parsedData.sessionId === 'string') {
           sessionId = parsedData.sessionId
           console.log('✅ Found sessionId at root level:', sessionId)
         }
-        // 2. Primeiro nivel - session_id  
+        // Segundo formato: session_id  
         else if (parsedData.session_id && typeof parsedData.session_id === 'string') {
           sessionId = parsedData.session_id
           console.log('✅ Found session_id at root level:', sessionId)
         }
-        // 3. Dentro de um objeto data ou payload
+        // Busca em objetos aninhados
         else if (parsedData.data) {
           if (parsedData.data.sessionId) {
             sessionId = parsedData.data.sessionId
@@ -55,30 +54,50 @@ serve(async (req) => {
             console.log('✅ Found session_id in data object:', sessionId)
           }
         }
-        // 4. Busca em todos os campos de primeiro nivel
-        else {
-          console.log('🔍 Searching all top-level fields for sessionId...')
+        
+        // Se é uma chamada DIRETA do frontend (não de webhook externo)
+        if (!sessionId && parsedData.topic) {
+          console.log('🔧 Direct frontend call detected, creating placeholder response')
+          
+          // Verificar se há sessionId nos campos
           for (const [key, value] of Object.entries(parsedData)) {
-            console.log(`Checking field "${key}":`, value)
-            if (typeof value === 'string' && (key.toLowerCase().includes('session') || value.includes('quiz_session_'))) {
+            if (key === 'sessionId' && typeof value === 'string') {
               sessionId = value
-              console.log(`✅ Found sessionId in field "${key}":`, sessionId)
+              console.log('✅ Found sessionId in frontend data:', sessionId)
               break
             }
-            // Se o valor é um objeto, verificar dentro dele
-            if (typeof value === 'object' && value !== null) {
-              const obj = value as Record<string, any>
-              if (obj.sessionId) {
-                sessionId = obj.sessionId
-                console.log(`✅ Found sessionId in nested object "${key}":`, sessionId)
-                break
-              }
-              if (obj.session_id) {
-                sessionId = obj.session_id
-                console.log(`✅ Found session_id in nested object "${key}":`, sessionId)
-                break
-              }
+          }
+          
+          if (sessionId) {
+            // Inserir resposta placeholder que será substituída pelo webhook real
+            const { data: insertData, error: insertError } = await supabase
+              .from('webhook_responses')
+              .insert({
+                session_id: sessionId,
+                content: JSON.stringify({
+                  status: "processing",
+                  message: "Carrossel sendo gerado..."
+                }),
+                created_at: new Date().toISOString()
+              })
+              .select()
+            
+            if (insertError) {
+              console.error('❌ Insert error:', insertError)
+            } else {
+              console.log('✅ Placeholder response inserted:', insertData)
             }
+            
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                session_id: sessionId,
+                message: 'Request received, processing...'
+              }),
+              { 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            )
           }
         }
         
@@ -139,13 +158,15 @@ serve(async (req) => {
       console.log('📝 Final content:', responseContent.substring(0, 200) + '...')
       console.log('📏 Content length:', responseContent.length)
       
-      // Salvar APENAS com o sessionId encontrado
+      // Para chamadas do webhook externo, fazer UPSERT
       const { data: insertData, error: insertError } = await supabase
         .from('webhook_responses')
-        .insert({
+        .upsert({
           session_id: sessionId,
           content: responseContent,
           created_at: new Date().toISOString()
+        }, {
+          onConflict: 'session_id'
         })
         .select()
       
