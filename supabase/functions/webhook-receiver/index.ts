@@ -21,6 +21,7 @@ serve(async (req) => {
     console.log('=== WEBHOOK RECEIVER START ===')
     console.log('Method:', req.method)
     console.log('URL:', req.url)
+    console.log('Headers:', Object.fromEntries(req.headers.entries()))
     
     if (req.method === 'POST') {
       const body = await req.text()
@@ -28,48 +29,26 @@ serve(async (req) => {
       
       let sessionId = null
       let responseContent = body
+      let isDirectFrontendCall = false
       
       // Tentar extrair sessionId e conteúdo do JSON
       try {
         const parsedData = JSON.parse(body)
         console.log('Parsed JSON data:', parsedData)
         
-        // PRIORIZAR sessionId (formato correto) sobre session_id
-        if (parsedData.sessionId && typeof parsedData.sessionId === 'string') {
-          sessionId = parsedData.sessionId
-          console.log('✅ Found sessionId at root level:', sessionId)
-        }
-        // Segundo formato: session_id  
-        else if (parsedData.session_id && typeof parsedData.session_id === 'string') {
-          sessionId = parsedData.session_id
-          console.log('✅ Found session_id at root level:', sessionId)
-        }
-        // Busca em objetos aninhados
-        else if (parsedData.data) {
-          if (parsedData.data.sessionId) {
-            sessionId = parsedData.data.sessionId
-            console.log('✅ Found sessionId in data object:', sessionId)
-          } else if (parsedData.data.session_id) {
-            sessionId = parsedData.data.session_id
-            console.log('✅ Found session_id in data object:', sessionId)
-          }
-        }
-        
-        // Se é uma chamada DIRETA do frontend (não de webhook externo)
-        if (!sessionId && parsedData.topic) {
-          console.log('🔧 Direct frontend call detected, creating placeholder response')
+        // Detectar se é uma chamada DIRETA do frontend (tem campo 'topic')
+        if (parsedData.topic && !parsedData.resposta && !parsedData.content && !parsedData.text) {
+          console.log('🔧 Direct frontend call detected')
+          isDirectFrontendCall = true
           
-          // Verificar se há sessionId nos campos
-          for (const [key, value] of Object.entries(parsedData)) {
-            if (key === 'sessionId' && typeof value === 'string') {
-              sessionId = value
-              console.log('✅ Found sessionId in frontend data:', sessionId)
-              break
-            }
+          // Extrair sessionId
+          if (parsedData.sessionId) {
+            sessionId = parsedData.sessionId
+            console.log('✅ Found sessionId in frontend call:', sessionId)
           }
           
           if (sessionId) {
-            // Inserir resposta placeholder que será substituída pelo webhook real
+            // Inserir resposta placeholder que será substituída pelo Make
             const { data: insertData, error: insertError } = await supabase
               .from('webhook_responses')
               .insert({
@@ -101,7 +80,31 @@ serve(async (req) => {
           }
         }
         
-        // Extrair o conteúdo da resposta
+        // Para dados vindos do Make (contém resposta real)
+        console.log('🎯 Processing Make webhook data')
+        
+        // PRIORIZAR sessionId (formato correto) sobre session_id
+        if (parsedData.sessionId && typeof parsedData.sessionId === 'string') {
+          sessionId = parsedData.sessionId
+          console.log('✅ Found sessionId at root level:', sessionId)
+        }
+        // Segundo formato: session_id  
+        else if (parsedData.session_id && typeof parsedData.session_id === 'string') {
+          sessionId = parsedData.session_id
+          console.log('✅ Found session_id at root level:', sessionId)
+        }
+        // Busca em objetos aninhados
+        else if (parsedData.data) {
+          if (parsedData.data.sessionId) {
+            sessionId = parsedData.data.sessionId
+            console.log('✅ Found sessionId in data object:', sessionId)
+          } else if (parsedData.data.session_id) {
+            sessionId = parsedData.data.session_id
+            console.log('✅ Found session_id in data object:', sessionId)
+          }
+        }
+        
+        // Extrair o conteúdo da resposta do Make
         if (parsedData.resposta) {
           responseContent = parsedData.resposta
           console.log('Using resposta field as content')
@@ -157,45 +160,48 @@ serve(async (req) => {
       console.log('🎯 FINAL sessionId to save:', sessionId)
       console.log('📝 Final content:', responseContent.substring(0, 200) + '...')
       console.log('📏 Content length:', responseContent.length)
+      console.log('🔄 Is direct frontend call:', isDirectFrontendCall)
       
-      // Para chamadas do webhook externo, fazer UPSERT
-      const { data: insertData, error: insertError } = await supabase
-        .from('webhook_responses')
-        .upsert({
-          session_id: sessionId,
-          content: responseContent,
-          created_at: new Date().toISOString()
-        }, {
-          onConflict: 'session_id'
-        })
-        .select()
-      
-      if (insertError) {
-        console.error('❌ Insert error:', insertError)
+      // Para chamadas do Make (resposta real), fazer UPSERT para substituir placeholder
+      if (!isDirectFrontendCall) {
+        const { data: insertData, error: insertError } = await supabase
+          .from('webhook_responses')
+          .upsert({
+            session_id: sessionId,
+            content: responseContent,
+            created_at: new Date().toISOString()
+          }, {
+            onConflict: 'session_id'
+          })
+          .select()
+        
+        if (insertError) {
+          console.error('❌ Insert error:', insertError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
+            { 
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+        
+        console.log('✅ Successfully inserted:', insertData)
+        console.log('=== WEBHOOK RECEIVER SUCCESS ===')
+        
         return new Response(
-          JSON.stringify({ error: 'Failed to store response', details: insertError.message }),
+          JSON.stringify({ 
+            success: true, 
+            message: 'Response saved successfully',
+            session_id: sessionId,
+            content_length: responseContent.length,
+            inserted_id: insertData?.[0]?.id
+          }),
           { 
-            status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         )
       }
-      
-      console.log('✅ Successfully inserted:', insertData)
-      console.log('=== WEBHOOK RECEIVER SUCCESS ===')
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'Response saved successfully',
-          session_id: sessionId,
-          content_length: responseContent.length,
-          inserted_id: insertData?.[0]?.id
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
     }
 
     return new Response(
