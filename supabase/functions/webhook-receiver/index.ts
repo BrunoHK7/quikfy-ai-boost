@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -189,26 +190,22 @@ serve(async (req) => {
       console.log('📏 Content length:', typeof responseContent === 'string' ? responseContent.length : JSON.stringify(responseContent).length)
       console.log('🔄 Is direct frontend call:', isDirectFrontendCall)
       
-      // Para chamadas do Make (resposta real), fazer UPSERT para substituir placeholder
+      // Para chamadas do Make (resposta real), verificar se já existe e atualizar ou inserir
       if (!isDirectFrontendCall) {
         // Garantir que responseContent seja string
         const finalContent = typeof responseContent === 'string' ? responseContent : JSON.stringify(responseContent)
         
-        const { data: upsertData, error: upsertError } = await supabase
+        // Primeiro, verificar se já existe um registro para este sessionId
+        const { data: existingData, error: selectError } = await supabase
           .from('webhook_responses')
-          .upsert({
-            session_id: sessionId,
-            content: finalContent,
-            created_at: new Date().toISOString()
-          }, {
-            onConflict: 'session_id'
-          })
-          .select()
+          .select('*')
+          .eq('session_id', sessionId)
+          .single()
         
-        if (upsertError) {
-          console.error('❌ Upsert error:', upsertError)
+        if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = not found
+          console.error('❌ Select error:', selectError)
           return new Response(
-            JSON.stringify({ error: 'Failed to store response', details: upsertError.message }),
+            JSON.stringify({ error: 'Failed to check existing response', details: selectError.message }),
             { 
               status: 500,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -216,7 +213,51 @@ serve(async (req) => {
           )
         }
         
-        console.log('✅ Successfully upserted:', upsertData)
+        let finalData
+        let finalError
+        
+        if (existingData) {
+          // Atualizar registro existente
+          console.log('📝 Updating existing record:', existingData.id)
+          const { data: updateData, error: updateError } = await supabase
+            .from('webhook_responses')
+            .update({
+              content: finalContent,
+              created_at: new Date().toISOString()
+            })
+            .eq('session_id', sessionId)
+            .select()
+          
+          finalData = updateData
+          finalError = updateError
+        } else {
+          // Inserir novo registro
+          console.log('📝 Inserting new record')
+          const { data: insertData, error: insertError } = await supabase
+            .from('webhook_responses')
+            .insert({
+              session_id: sessionId,
+              content: finalContent,
+              created_at: new Date().toISOString()
+            })
+            .select()
+          
+          finalData = insertData
+          finalError = insertError
+        }
+        
+        if (finalError) {
+          console.error('❌ Database operation error:', finalError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to store response', details: finalError.message }),
+            { 
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+        
+        console.log('✅ Successfully saved response:', finalData)
         console.log('=== WEBHOOK RECEIVER SUCCESS ===')
         
         return new Response(
@@ -225,7 +266,8 @@ serve(async (req) => {
             message: 'Response saved successfully',
             session_id: sessionId,
             content_length: finalContent.length,
-            upserted_id: upsertData?.[0]?.id
+            record_id: finalData?.[0]?.id,
+            operation: existingData ? 'updated' : 'inserted'
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -259,3 +301,4 @@ serve(async (req) => {
     )
   }
 })
+
